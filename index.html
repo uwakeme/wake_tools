@@ -804,6 +804,71 @@
       letter-spacing: -0.02em;
     }
 
+    /* Markdown 预览 */
+    .md-preview {
+      background: var(--bg-elev);
+      color: var(--text);
+      line-height: 1.7;
+      font-family: var(--font-sans);
+      font-size: 14px;
+      padding: 16px 20px;
+    }
+    .md-preview h1, .md-preview h2, .md-preview h3, .md-preview h4 {
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin: 1.4em 0 0.6em;
+    }
+    .md-preview h1 { font-size: 1.8em; padding-bottom: 0.3em; border-bottom: 1px solid var(--border); }
+    .md-preview h2 { font-size: 1.4em; padding-bottom: 0.3em; border-bottom: 1px solid var(--border); }
+    .md-preview h3 { font-size: 1.2em; }
+    .md-preview h4 { font-size: 1.05em; }
+    .md-preview p { margin: 0.8em 0; }
+    .md-preview code {
+      font-family: var(--font-mono);
+      font-size: 0.9em;
+      background: var(--code-bg);
+      border: 1px solid var(--code-border);
+      padding: 1px 6px;
+      border-radius: 4px;
+      color: var(--primary);
+    }
+    .md-preview pre {
+      background: var(--code-bg);
+      border: 1px solid var(--code-border);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      overflow: auto;
+      margin: 1em 0;
+    }
+    .md-preview pre code {
+      background: none;
+      border: none;
+      padding: 0;
+      color: var(--text);
+      font-size: 12.5px;
+      line-height: 1.65;
+    }
+    .md-preview blockquote {
+      border-left: 3px solid var(--primary);
+      background: var(--primary-softer);
+      margin: 1em 0;
+      padding: 8px 16px;
+      color: var(--text-secondary);
+      border-radius: 0 6px 6px 0;
+    }
+    .md-preview ul, .md-preview ol {
+      padding-left: 2em;
+      margin: 0.8em 0;
+    }
+    .md-preview li { margin: 0.3em 0; }
+    .md-preview a { color: var(--primary); text-decoration: none; }
+    .md-preview a:hover { text-decoration: underline; }
+    .md-preview hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 2em 0;
+    }
+
     /* 移动端 */
     @media (max-width: 768px) {
       .sidebar {
@@ -920,6 +985,16 @@
       radix: IC('<rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="10" y2="10"/><line x1="13" y1="10" x2="15" y2="10"/><line x1="8" y1="14" x2="10" y2="14"/><line x1="13" y1="14" x2="15" y2="14"/><line x1="8" y1="18" x2="10" y2="18"/><line x1="13" y1="18" x2="15" y2="18"/>'),
       cron: IC('<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="m9 16 2 2 4-4"/>'),
       ascii: IC('<path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/>'),
+      jwt: IC('<rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/><line x1="12" y1="15" x2="12" y2="17"/>'),
+      hash: IC('<line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/>'),
+      html: IC('<polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>'),
+      urlparse: IC('<circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>'),
+      header: IC('<path d="M4 6h16M4 12h16M4 18h10"/>'),
+      duration: IC('<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>'),
+      bytes: IC('<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>'),
+      markdown: IC('<rect x="2" y="4" width="20" height="16" rx="2"/><path d="M6 16V8l3 4 3-4v8"/><path d="M16 8v8M16 16l-2-2M16 16l2-2"/>'),
+      yaml: IC('<path d="M4 4h6v16H4z"/><path d="M14 4h6v16h-6z"/><line x1="10" y1="12" x2="14" y2="12"/>'),
+      fakedata: IC('<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>'),
       arrowRight: IC('<line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>'),
       copy: IC('<rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>'),
       check: IC('<polyline points="20 6 9 17 4 12"/>'),
@@ -938,10 +1013,14 @@
         desc: '文本与十六进制字符串互转。' },
       { id: 'unicode', group: '编码转换', icon: 'unicode', name: 'Unicode 编解码',
         desc: '中文字符与 \\uXXXX 转义互转。' },
+      { id: 'html', group: '编码转换', icon: 'html', name: 'HTML 实体编解码',
+        desc: 'HTML 实体（&lt; &gt; &amp; 等）转义/反转义。' },
 
       // 时间日期
       { id: 'timestamp', group: '时间日期', icon: 'timestamp', name: '时间戳转换',
         desc: 'Unix 时间戳与日期时间互转，支持秒/毫秒。' },
+      { id: 'duration', group: '时间日期', icon: 'duration', name: '时间单位转换',
+        desc: '秒 / 分 / 时 / 天 / 周换算，支持加减运算。' },
 
       // 格式化
       { id: 'json', group: '格式化', icon: 'json', name: 'JSON 格式化',
@@ -950,6 +1029,10 @@
         desc: 'SQL 语句关键字大写、缩进美化。' },
       { id: 'xml', group: '格式化', icon: 'xml', name: 'XML 格式化',
         desc: 'XML 美化、压缩。' },
+      { id: 'markdown', group: '格式化', icon: 'markdown', name: 'Markdown 预览',
+        desc: '左侧写 Markdown，右侧实时渲染预览。' },
+      { id: 'yaml', group: '格式化', icon: 'yaml', name: 'YAML ↔ JSON',
+        desc: 'YAML 与 JSON 互转，支持基础语法。' },
 
       // 文本处理
       { id: 'case', group: '文本处理', icon: 'case', name: '命名风格转换',
@@ -968,6 +1051,10 @@
         desc: '生成高强度随机密码，可选字符集与长度。' },
       { id: 'lorem', group: '生成器', icon: 'lorem', name: 'Lorem Ipsum',
         desc: '生成占位文本。' },
+      { id: 'hash', group: '生成器', icon: 'hash', name: 'Hash 生成',
+        desc: '计算文本的 MD5 / SHA-1 / SHA-256 / SHA-512 哈希值。' },
+      { id: 'fakedata', group: '生成器', icon: 'fakedata', name: '假数据生成',
+        desc: '批量生成测试用姓名、邮箱、手机号、身份证、地址。' },
 
       // 颜色工具
       { id: 'color', group: '颜色工具', icon: 'color', name: '颜色值转换',
@@ -976,6 +1063,16 @@
       // 数字工具
       { id: 'radix', group: '数字工具', icon: 'radix', name: '进制转换',
         desc: '2~36 进制互转。' },
+      { id: 'bytes', group: '数字工具', icon: 'bytes', name: '字节单位转换',
+        desc: 'B / KB / MB / GB / TB，支持二进制（1024）和十进制（1000）。' },
+
+      // 网络调试
+      { id: 'jwt', group: '网络调试', icon: 'jwt', name: 'JWT 解码',
+        desc: '解析 JWT 的 Header / Payload / Signature（不验签）。' },
+      { id: 'urlparse', group: '网络调试', icon: 'urlparse', name: 'URL 解析',
+        desc: '拆分 URL 的协议、域名、路径、参数等。' },
+      { id: 'header', group: '网络调试', icon: 'header', name: 'HTTP Header 解析',
+        desc: '解析 HTTP 头部为可读表格。' },
 
       // 其它
       { id: 'cron', group: '其它', icon: 'cron', name: 'Cron 表达式',
@@ -2488,6 +2585,854 @@ date</textarea>
               if (t) { copyText(t.dataset.ch); toast('已复制：' + t.dataset.ch); }
             });
             render();
+          }
+        };
+      },
+
+      /* ---------- JWT 解码 ---------- */
+      jwt() {
+        const b64urlDecode = (s) => {
+          s = s.replace(/-/g, '+').replace(/_/g, '/');
+          while (s.length % 4) s += '=';
+          return decodeURIComponent(escape(atob(s)));
+        };
+        return {
+          view: () => `
+            <div class="tool-header">
+              <h1 class="tool-title">JWT 解码</h1>
+              <p class="tool-desc">解析 JWT 的 Header / Payload / Signature。本工具<strong>不验签</strong>，仅做结构展示。</p>
+            </div>
+            <div class="panel">
+              <div class="panel-title">JWT Token</div>
+              <textarea class="textarea mono" id="jwin" style="min-height:120px;">eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkrDgWlod-S4reaWh-aVsCIsImlhdCI6MTUxNjIzOTAyMn0.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c</textarea>
+              <div class="btn-row">
+                <button class="btn btn-primary" data-act="dec">解码</button>
+                <button class="btn" data-act="sample">示例</button>
+                <button class="btn" data-act="clear">清空</button>
+              </div>
+            </div>
+            <div class="row-3">
+              <div class="panel">
+                <div class="panel-title">Header</div>
+                <div class="output" id="jwh">—</div>
+              </div>
+              <div class="panel">
+                <div class="panel-title">Payload</div>
+                <div class="output" id="jwp">—</div>
+              </div>
+              <div class="panel">
+                <div class="panel-title">Signature</div>
+                <div class="output" id="jws">—</div>
+              </div>
+            </div>
+          `,
+          bind(root) {
+            const $i = root.querySelector('#jwin');
+            const dec = () => {
+              const parts = $i.value.trim().split('.');
+              if (parts.length !== 3) { toast('JWT 格式错误（需要 header.payload.signature 三段）'); return; }
+              try {
+                const h = JSON.parse(b64urlDecode(parts[0]));
+                const p = JSON.parse(b64urlDecode(parts[1]));
+                root.querySelector('#jwh').textContent = JSON.stringify(h, null, 2);
+                root.querySelector('#jwp').textContent = JSON.stringify(p, null, 2);
+                root.querySelector('#jws').textContent = parts[2];
+                toast('已解码');
+              } catch (e) { toast('解码失败：' + e.message); }
+            };
+            root.addEventListener('click', e => {
+              const a = e.target.dataset.act;
+              if (a === 'dec') dec();
+              else if (a === 'clear') {
+                $i.value = ''; root.querySelector('#jwh').textContent = '—';
+                root.querySelector('#jwp').textContent = '—'; root.querySelector('#jws').textContent = '—';
+              }
+            });
+            dec();
+          }
+        };
+      },
+
+      /* ---------- Hash 生成 ---------- */
+      hash() {
+        // MD5 (Joseph Myers, MIT) - 简化内嵌版
+        const MD5 = (str) => {
+          const enc = new TextEncoder();
+          const bytes = enc.encode(str);
+          const n = bytes.length;
+          const x = new Uint32Array((((n + 8) >>> 6) + 1) << 4);
+          for (let i = 0; i < n; i++) x[i >> 2] |= bytes[i] << ((i % 4) << 3);
+          x[n >> 2] |= 0x80 << ((n % 4) << 3);
+          x[x.length - 2] = n * 8;
+          const addUnsigned = (x, y) => {
+            const lsw = (x & 0xFFFF) + (y & 0xFFFF);
+            const msw = (x >> 16) + (y >> 16) + (lsw >> 16);
+            return (msw << 16) | (lsw & 0xFFFF);
+          };
+          const F = (x, y, z) => (x & y) | (~x & z);
+          const G = (x, y, z) => (x & z) | (y & ~z);
+          const H = (x, y, z) => x ^ y ^ z;
+          const I = (x, y, z) => y ^ (x | ~z);
+          const FF = (a, b, c, d, x, s, t) => addUnsigned((a = addUnsigned(addUnsigned(a, F(b, c, d)), addUnsigned(x, t))) << s | a >>> (32 - s), b);
+          const GG = (a, b, c, d, x, s, t) => addUnsigned((a = addUnsigned(addUnsigned(a, G(b, c, d)), addUnsigned(x, t))) << s | a >>> (32 - s), b);
+          const HH = (a, b, c, d, x, s, t) => addUnsigned((a = addUnsigned(addUnsigned(a, H(b, c, d)), addUnsigned(x, t))) << s | a >>> (32 - s), b);
+          const II = (a, b, c, d, x, s, t) => addUnsigned((a = addUnsigned(addUnsigned(a, I(b, c, d)), addUnsigned(x, t))) << s | a >>> (32 - s), b);
+          let a = 0x67452301, b = 0xEFCDAB89, c = 0x98BADCFE, d = 0x10325476;
+          for (let i = 0; i < x.length; i += 16) {
+            const oa = a, ob = b, oc = c, od = d;
+            a = FF(a, b, c, d, x[i], 7, -680876936);
+            d = FF(d, a, b, c, x[i + 1], 12, -389564586);
+            c = FF(c, d, a, b, x[i + 2], 17, 606105819);
+            b = FF(b, c, d, a, x[i + 3], 22, -1044525330);
+            a = FF(a, b, c, d, x[i + 4], 7, -176418897);
+            d = FF(d, a, b, c, x[i + 5], 12, 1200080426);
+            c = FF(c, d, a, b, x[i + 6], 17, -1473231341);
+            b = FF(b, c, d, a, x[i + 7], 22, -45705983);
+            a = FF(a, b, c, d, x[i + 8], 7, 1770035416);
+            d = FF(d, a, b, c, x[i + 9], 12, -1958414417);
+            c = FF(c, d, a, b, x[i + 10], 17, -42063);
+            b = FF(b, c, d, a, x[i + 11], 22, -1990404162);
+            a = FF(a, b, c, d, x[i + 12], 7, 1804603682);
+            d = FF(d, a, b, c, x[i + 13], 12, -40341101);
+            c = FF(c, d, a, b, x[i + 14], 17, -1502002290);
+            b = FF(b, c, d, a, x[i + 15], 22, 1236535329);
+            a = GG(a, b, c, d, x[i + 1], 5, -165796510);
+            d = GG(d, a, b, c, x[i + 6], 9, -1069501632);
+            c = GG(c, d, a, b, x[i + 11], 14, 643717713);
+            b = GG(b, c, d, a, x[i], 20, -373897302);
+            a = GG(a, b, c, d, x[i + 5], 5, -701558691);
+            d = GG(d, a, b, c, x[i + 10], 9, 38016083);
+            c = GG(c, d, a, b, x[i + 15], 14, -660478335);
+            b = GG(b, c, d, a, x[i + 4], 20, -405537848);
+            a = GG(a, b, c, d, x[i + 9], 5, 568446438);
+            d = GG(d, a, b, c, x[i + 14], 9, -1019803690);
+            c = GG(c, d, a, b, x[i + 3], 14, -187363961);
+            b = GG(b, c, d, a, x[i + 8], 20, 1163531501);
+            a = GG(a, b, c, d, x[i + 13], 5, -1444681467);
+            d = GG(d, a, b, c, x[i + 2], 9, -51403784);
+            c = GG(c, d, a, b, x[i + 7], 14, 1735328473);
+            b = GG(b, c, d, a, x[i + 12], 20, -1926607734);
+            a = HH(a, b, c, d, x[i + 5], 4, -378558);
+            d = HH(d, a, b, c, x[i + 8], 11, -2022574463);
+            c = HH(c, d, a, b, x[i + 11], 16, 1839030562);
+            b = HH(b, c, d, a, x[i + 14], 23, -35309556);
+            a = HH(a, b, c, d, x[i + 1], 4, -1530992060);
+            d = HH(d, a, b, c, x[i + 4], 11, 1272893353);
+            c = HH(c, d, a, b, x[i + 7], 16, -155497632);
+            b = HH(b, c, d, a, x[i + 10], 23, -1094730640);
+            a = HH(a, b, c, d, x[i + 13], 4, 681279174);
+            d = HH(d, a, b, c, x[i], 11, -358537222);
+            c = HH(c, d, a, b, x[i + 3], 16, -722521979);
+            b = HH(b, c, d, a, x[i + 6], 23, 76029189);
+            a = HH(a, b, c, d, x[i + 9], 4, -640364487);
+            d = HH(d, a, b, c, x[i + 12], 11, -421815835);
+            c = HH(c, d, a, b, x[i + 15], 16, 530742520);
+            b = HH(b, c, d, a, x[i + 2], 23, -995338651);
+            a = II(a, b, c, d, x[i], 6, -198630844);
+            d = II(d, a, b, c, x[i + 7], 10, 1126891415);
+            c = II(c, d, a, b, x[i + 14], 15, -1416354905);
+            b = II(b, c, d, a, x[i + 5], 21, -57434055);
+            a = II(a, b, c, d, x[i + 12], 6, 1700485571);
+            d = II(d, a, b, c, x[i + 3], 10, -1894986606);
+            c = II(c, d, a, b, x[i + 10], 15, -1051523);
+            b = II(b, c, d, a, x[i + 1], 21, -2054922799);
+            a = II(a, b, c, d, x[i + 8], 6, 1873313359);
+            d = II(d, a, b, c, x[i + 15], 10, -30611744);
+            c = II(c, d, a, b, x[i + 6], 15, -1560198380);
+            b = II(b, c, d, a, x[i + 13], 21, 1309151649);
+            a = II(a, b, c, d, x[i + 4], 6, -145523070);
+            d = II(d, a, b, c, x[i + 11], 10, -1120210379);
+            c = II(c, d, a, b, x[i + 2], 15, 718787259);
+            b = II(b, c, d, a, x[i + 9], 21, -343485551);
+            a = addUnsigned(a, oa); b = addUnsigned(b, ob); c = addUnsigned(c, oc); d = addUnsigned(d, od);
+          }
+          return [a, b, c, d].map(v => ('00000000' + (v >>> 0).toString(16)).slice(-8)).join('');
+        };
+        return {
+          view: () => `
+            <div class="tool-header">
+              <h1 class="tool-title">Hash 生成</h1>
+              <p class="tool-desc">计算文本的 MD5 / SHA-1 / SHA-256 / SHA-512 哈希值（实时计算）。</p>
+            </div>
+            <div class="panel">
+              <div class="panel-title">输入文本</div>
+              <textarea class="textarea mono" id="hin" style="min-height:120px;">Hello, 世界</textarea>
+              <div class="btn-row">
+                <button class="btn" data-act="clear">清空</button>
+              </div>
+            </div>
+            <div class="panel">
+              <div class="panel-title">MD5 <span style="color:var(--text-muted);font-weight:400;text-transform:none;letter-spacing:normal;">（128 bit）</span></div>
+              <div class="output" id="h-md5">—</div>
+            </div>
+            <div class="row">
+              <div class="panel">
+                <div class="panel-title">SHA-1 <span style="color:var(--text-muted);font-weight:400;text-transform:none;letter-spacing:normal;">（160 bit）</span></div>
+                <div class="output" id="h-sha1">—</div>
+              </div>
+              <div class="panel">
+                <div class="panel-title">SHA-256 <span style="color:var(--text-muted);font-weight:400;text-transform:none;letter-spacing:normal;">（256 bit）</span></div>
+                <div class="output" id="h-sha256">—</div>
+              </div>
+            </div>
+            <div class="panel">
+              <div class="panel-title">SHA-512 <span style="color:var(--text-muted);font-weight:400;text-transform:none;letter-spacing:normal;">（512 bit）</span></div>
+              <div class="output" id="h-sha512">—</div>
+            </div>
+          `,
+          bind(root) {
+            const $i = root.querySelector('#hin');
+            const compute = () => {
+              const text = $i.value;
+              try {
+                root.querySelector('#h-md5').textContent = MD5(text);
+                const enc = new TextEncoder();
+                crypto.subtle.digest('SHA-1', enc.encode(text)).then(b => {
+                  root.querySelector('#h-sha1').textContent = [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join('');
+                });
+                crypto.subtle.digest('SHA-256', enc.encode(text)).then(b => {
+                  root.querySelector('#h-sha256').textContent = [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join('');
+                });
+                crypto.subtle.digest('SHA-512', enc.encode(text)).then(b => {
+                  root.querySelector('#h-sha512').textContent = [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join('');
+                });
+              } catch (e) { toast('计算失败：' + e.message); }
+            };
+            let t;
+            $i.addEventListener('input', () => { clearTimeout(t); t = setTimeout(compute, 100); });
+            root.addEventListener('click', e => { if (e.target.dataset.act === 'clear') { $i.value = ''; compute(); } });
+            compute();
+          }
+        };
+      },
+
+      /* ---------- HTML 实体编解码 ---------- */
+      html() {
+        const ENTITIES = {
+          '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+          ' ': '&nbsp;', '©': '&copy;', '®': '&reg;', '™': '&trade;',
+          '€': '&euro;', '£': '&pound;', '¥': '&yen;', '¢': '&cent;',
+          '§': '&sect;', '¶': '&para;', '×': '&times;', '÷': '&divide;',
+          '±': '&plusmn;', 'µ': '&micro;', '·': '&middot;', '°': '&deg;',
+          '¼': '&frac14;', '½': '&frac12;', '¾': '&frac34;',
+          '«': '&laquo;', '»': '&raquo;', '←': '&larr;', '→': '&rarr;',
+          '↑': '&uarr;', '↓': '&darr;', '↔': '&harr;',
+        };
+        const REV = Object.fromEntries(Object.entries(ENTITIES).map(([k, v]) => [v, k]));
+        return {
+          view: () => `
+            <div class="tool-header">
+              <h1 class="tool-title">HTML 实体编解码</h1>
+              <p class="tool-desc">转义/反转义常见 HTML 实体（&amp;lt; &amp;gt; &amp;amp; &amp;quot; 等）。</p>
+            </div>
+            <div class="row">
+              <div class="panel">
+                <div class="panel-title">原文</div>
+                <textarea class="textarea mono" id="hein" style="min-height:160px;">&lt;div class="test"&gt;你好 "世界"&amp;你好&lt;/div&gt;</textarea>
+                <div class="btn-row">
+                  <button class="btn btn-primary" data-act="enc">转义 →</button>
+                  <button class="btn" data-act="clear">清空</button>
+                </div>
+              </div>
+              <div class="panel">
+                <div class="panel-title">实体</div>
+                <textarea class="textarea mono" id="heout" style="min-height:160px;"></textarea>
+                <div class="btn-row">
+                  <button class="btn btn-primary" data-act="dec">← 解码</button>
+                  <button class="btn" data-act="copy">复制</button>
+                </div>
+              </div>
+            </div>
+          `,
+          bind(root) {
+            const $i = root.querySelector('#hein');
+            const $o = root.querySelector('#heout');
+            const enc = () => {
+              $o.value = $i.value.replace(/[&<>"']|[\u00A0-\u00FF]/g, c => ENTITIES[c] || '&#' + c.codePointAt(0) + ';');
+              toast('已转义');
+            };
+            const dec = () => {
+              try {
+                $o.value = $i.value
+                  .replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(+n))
+                  .replace(/&#x([0-9a-fA-F]+);/g, (_, n) => String.fromCodePoint(parseInt(n, 16)))
+                  .replace(/&(amp|lt|gt|quot|nbsp|copy|reg|trade|euro|pound|yen|cent|sect|para|times|divide|plusmn|micro|middot|deg|frac14|frac12|frac34|laquo|raquo|larr|rarr|uarr|darr|harr);/g, (_, name) => ({ amp:'&',lt:'<',gt:'>',quot:'"',nbsp:'\u00A0',copy:'©',reg:'®',trade:'™',euro:'€',pound:'£',yen:'¥',cent:'¢',sect:'§',para:'¶',times:'×',divide:'÷',plusmn:'±',micro:'µ',middot:'·',deg:'°',frac14:'¼',frac12:'½',frac34:'¾',laquo:'«',raquo:'»',larr:'←',rarr:'→',uarr:'↑',darr:'↓',harr:'↔' })[name] || '&' + name + ';');
+                toast('已解码');
+              } catch (e) { toast('解码失败：' + e.message); }
+            };
+            root.addEventListener('click', e => {
+              const a = e.target.dataset.act;
+              if (a === 'enc') enc();
+              else if (a === 'dec') dec();
+              else if (a === 'clear') { $i.value = ''; $o.value = ''; }
+              else if (a === 'copy') copyText($o.value);
+            });
+          }
+        };
+      },
+
+      /* ---------- URL 解析 ---------- */
+      urlparse() {
+        return {
+          view: () => `
+            <div class="tool-header">
+              <h1 class="tool-title">URL 解析</h1>
+              <p class="tool-desc">拆分 URL 的协议、域名、端口、路径、查询参数、片段等。</p>
+            </div>
+            <div class="panel">
+              <div class="panel-title">URL</div>
+              <input class="input mono" id="upin" value="https://www.example.com:8080/path/to/page?id=42&name=wake&lang=zh-CN#section-2" />
+              <div class="btn-row">
+                <button class="btn btn-primary" data-act="parse">解析</button>
+                <button class="btn" data-act="clear">清空</button>
+              </div>
+            </div>
+            <div class="panel">
+              <div class="panel-title">结构</div>
+              <div class="output" id="upstruct">—</div>
+            </div>
+            <div class="panel">
+              <div class="panel-title">查询参数</div>
+              <div class="output" id="upquery">—</div>
+            </div>
+          `,
+          bind(root) {
+            const $i = root.querySelector('#upin');
+            const parse = () => {
+              try {
+                const u = new URL($i.value.trim());
+                const struct = [
+                  `协议 (protocol):  ${u.protocol}`,
+                  `用户名 (username): ${u.username || '—'}`,
+                  `密码 (password):   ${u.password || '—'}`,
+                  `主机 (host):       ${u.host}`,
+                  `域名 (hostname):   ${u.hostname}`,
+                  `端口 (port):       ${u.port || '(默认)'}`,
+                  `源 (origin):       ${u.origin}`,
+                  `路径 (pathname):   ${u.pathname}`,
+                  `查询 (search):     ${u.search || '—'}`,
+                  `片段 (hash):       ${u.hash || '—'}`,
+                ].join('\n');
+                root.querySelector('#upstruct').textContent = struct;
+                const params = [...u.searchParams.entries()];
+                root.querySelector('#upquery').textContent = params.length
+                  ? params.map(([k, v]) => `${k}  =  ${v}`).join('\n')
+                  : '— 无查询参数 —';
+                toast('已解析');
+              } catch (e) { toast('URL 解析失败：' + e.message); }
+            };
+            root.addEventListener('click', e => {
+              const a = e.target.dataset.act;
+              if (a === 'parse') parse();
+              else if (a === 'clear') { $i.value = ''; root.querySelector('#upstruct').textContent = '—'; root.querySelector('#upquery').textContent = '—'; }
+            });
+            $i.addEventListener('change', parse);
+            parse();
+          }
+        };
+      },
+
+      /* ---------- HTTP Header 解析 ---------- */
+      header() {
+        return {
+          view: () => `
+            <div class="tool-header">
+              <h1 class="tool-title">HTTP Header 解析</h1>
+              <p class="tool-desc">把 HTTP 头部文本（<code>Name: Value</code> 形式）解析为可读表格。</p>
+            </div>
+            <div class="panel">
+              <div class="panel-title">HTTP Headers</div>
+              <textarea class="textarea mono" id="hdin" style="min-height:200px;">Content-Type: application/json; charset=utf-8
+Content-Length: 1234
+Cache-Control: no-cache, no-store, must-revalidate
+Date: Mon, 08 Jun 2026 05:00:00 GMT
+Server: nginx/1.24.0
+Set-Cookie: session=abc123; Path=/; HttpOnly; Secure
+Access-Control-Allow-Origin: *
+X-Request-ID: 550e8400-e29b-41d4-a716-446655440000</textarea>
+              <div class="btn-row">
+                <button class="btn btn-primary" data-act="parse">解析</button>
+                <button class="btn" data-act="clear">清空</button>
+              </div>
+            </div>
+            <div class="panel">
+              <div class="panel-title">解析结果（<span id="hdcount">0</span> 项）</div>
+              <div class="output" id="hdout">—</div>
+            </div>
+          `,
+          bind(root) {
+            const $i = root.querySelector('#hdin');
+            const parse = () => {
+              const lines = $i.value.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+              const rows = [];
+              for (const l of lines) {
+                const idx = l.indexOf(':');
+                if (idx === -1) continue;
+                const k = l.slice(0, idx).trim();
+                const v = l.slice(idx + 1).trim();
+                if (k) rows.push([k, v]);
+              }
+              root.querySelector('#hdcount').textContent = rows.length;
+              root.querySelector('#hdout').textContent = rows.length
+                ? rows.map(([k, v]) => `${k.padEnd(28, ' ')}  ${v}`).join('\n')
+                : '— 未解析到有效 header —';
+              toast('已解析');
+            };
+            root.addEventListener('click', e => {
+              const a = e.target.dataset.act;
+              if (a === 'parse') parse();
+              else if (a === 'clear') { $i.value = ''; root.querySelector('#hdout').textContent = '—'; root.querySelector('#hdcount').textContent = '0'; }
+            });
+            parse();
+          }
+        };
+      },
+
+      /* ---------- 时间单位转换 ---------- */
+      duration() {
+        const UNITS = { 毫秒: 1, ms: 1, 秒: 1000, s: 1000, 分: 60000, min: 60000, 时: 3600000, h: 3600000, 天: 86400000, d: 86400000, 周: 604800000, w: 604800000 };
+        return {
+          view: () => `
+            <div class="tool-header">
+              <h1 class="tool-title">时间单位转换</h1>
+              <p class="tool-desc">秒 / 分 / 时 / 天 / 周之间的换算。</p>
+            </div>
+            <div class="panel">
+              <div class="field">
+                <label class="field-label">输入数值</label>
+                <input class="input mono" id="duin" value="3600" />
+              </div>
+              <div class="row">
+                <div class="field">
+                  <label class="field-label">从</label>
+                  <select class="select" id="dufrom">
+                    <option value="ms">毫秒 (ms)</option>
+                    <option value="s" selected>秒 (s)</option>
+                    <option value="min">分 (min)</option>
+                    <option value="h">时 (h)</option>
+                    <option value="d">天 (d)</option>
+                    <option value="w">周 (w)</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label class="field-label">到（输出所有单位）</label>
+                </div>
+              </div>
+              <div class="btn-row">
+                <button class="btn btn-primary" data-act="conv">转换</button>
+              </div>
+            </div>
+            <div class="panel">
+              <div class="panel-title">结果</div>
+              <div class="output" id="duout">—</div>
+            </div>
+          `,
+          bind(root) {
+            const $i = root.querySelector('#duin');
+            const $f = root.querySelector('#dufrom');
+            const $o = root.querySelector('#duout');
+            const conv = () => {
+              const v = parseFloat($i.value);
+              if (isNaN(v)) { toast('请输入有效数值'); return; }
+              const ms = v * UNITS[$f.value];
+              $o.value = [
+                `${ms} 毫秒`,
+                `${(ms / 1000).toFixed(6)} 秒`,
+                `${(ms / 60000).toFixed(6)} 分`,
+                `${(ms / 3600000).toFixed(6)} 时`,
+                `${(ms / 86400000).toFixed(6)} 天`,
+                `${(ms / 604800000).toFixed(6)} 周`,
+              ].join('\n');
+            };
+            $i.addEventListener('input', conv);
+            $f.addEventListener('change', conv);
+            root.addEventListener('click', e => { if (e.target.dataset.act === 'conv') conv(); });
+            conv();
+          }
+        };
+      },
+
+      /* ---------- 字节单位转换 ---------- */
+      bytes() {
+        const DEC = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
+        const BIN = ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB'];
+        return {
+          view: () => `
+            <div class="tool-header">
+              <h1 class="tool-title">字节单位转换</h1>
+              <p class="tool-desc">B / KB / MB / GB / TB，支持十进制（KB=1000）和二进制（KiB=1024）。</p>
+            </div>
+            <div class="panel">
+              <div class="field">
+                <label class="field-label">输入数值</label>
+                <input class="input mono" id="bin" value="1024" />
+              </div>
+              <div class="row">
+                <div class="field">
+                  <label class="field-label">从</label>
+                  <select class="select" id="bfrom">
+                    <option value="0" selected>B</option>
+                    <option value="1">KB</option>
+                    <option value="2">MB</option>
+                    <option value="3">GB</option>
+                    <option value="4">TB</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label class="field-label">进制</label>
+                  <select class="select" id="bsys">
+                    <option value="1024">二进制 (1024)</option>
+                    <option value="1000">十进制 (1000)</option>
+                  </select>
+                </div>
+              </div>
+              <div class="btn-row">
+                <button class="btn btn-primary" data-act="conv">转换</button>
+              </div>
+            </div>
+            <div class="panel">
+              <div class="panel-title">结果</div>
+              <div class="output" id="bout">—</div>
+            </div>
+          `,
+          bind(root) {
+            const $i = root.querySelector('#bin');
+            const $f = root.querySelector('#bfrom');
+            const $s = root.querySelector('#bsys');
+            const $o = root.querySelector('#bout');
+            const conv = () => {
+              const v = parseFloat($i.value);
+              if (isNaN(v)) { toast('请输入有效数值'); return; }
+              const base = parseFloat($s.value);
+              const units = base === 1024 ? BIN : DEC;
+              const bytes = v * Math.pow(base, parseInt($f.value));
+              const lines = [];
+              for (let i = 0; i < units.length; i++) {
+                lines.push(`${(bytes / Math.pow(base, i)).toFixed(6).replace(/\.?0+$/, '')}  ${units[i]}`);
+              }
+              $o.value = lines.join('\n') + `\n\n原始字节: ${bytes.toLocaleString()} B`;
+            };
+            $i.addEventListener('input', conv);
+            $f.addEventListener('change', conv);
+            $s.addEventListener('change', conv);
+            root.addEventListener('click', e => { if (e.target.dataset.act === 'conv') conv(); });
+            conv();
+          }
+        };
+      },
+
+      /* ---------- Markdown 预览 ---------- */
+      markdown() {
+        // 极简 Markdown 渲染（仅支持常用语法）
+        const escapeHtml = s => s.replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+        const render = (md) => {
+          // 提取代码块
+          const codeBlocks = [];
+          md = md.replace(/```(\w*)\n([\s\S]*?)```/g, (_, lang, code) => {
+            codeBlocks.push({ lang, code });
+            return `\u0001CODE${codeBlocks.length - 1}\u0001`;
+          });
+          // 转义
+          md = escapeHtml(md);
+          // 标题
+          md = md.replace(/^###### (.*$)/gm, '<h6>$1</h6>')
+                 .replace(/^##### (.*$)/gm, '<h5>$1</h5>')
+                 .replace(/^#### (.*$)/gm, '<h4>$1</h4>')
+                 .replace(/^### (.*$)/gm, '<h3>$1</h3>')
+                 .replace(/^## (.*$)/gm, '<h2>$1</h2>')
+                 .replace(/^# (.*$)/gm, '<h1>$1</h1>');
+          // 粗体 + 斜体
+          md = md.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>')
+                 .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                 .replace(/\*(.+?)\*/g, '<em>$1</em>')
+                 .replace(/__(.+?)__/g, '<strong>$1</strong>')
+                 .replace(/_(.+?)_/g, '<em>$1</em>');
+          // 行内代码
+          md = md.replace(/`([^`]+)`/g, '<code>$1</code>');
+          // 链接
+          md = md.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+          // 列表
+          md = md.replace(/^[\-\*] (.+)$/gm, '<li>$1</li>');
+          md = md.replace(/(<li>.*<\/li>\n?)+/g, m => '<ul>' + m + '</ul>');
+          md = md.replace(/^\d+\. (.+)$/gm, '<li>$1</li>');
+          // 引用
+          md = md.replace(/^&gt; (.+)$/gm, '<blockquote>$1</blockquote>');
+          // 水平线
+          md = md.replace(/^---+$/gm, '<hr>');
+          // 段落
+          md = md.split(/\n\n+/).map(p => {
+            if (/^<(h\d|ul|ol|blockquote|hr|pre)/.test(p.trim())) return p;
+            return '<p>' + p.replace(/\n/g, '<br>') + '</p>';
+          }).join('\n');
+          // 恢复代码块
+          md = md.replace(/\u0001CODE(\d+)\u0001/g, (_, i) => {
+            const cb = codeBlocks[+i];
+            return `<pre><code class="lang-${cb.lang}">${escapeHtml(cb.code)}</code></pre>`;
+          });
+          return md;
+        };
+        return {
+          view: () => `
+            <div class="tool-header">
+              <h1 class="tool-title">Markdown 预览</h1>
+              <p class="tool-desc">左侧写 Markdown，右侧实时渲染预览。支持标题、粗体、斜体、代码、链接、列表、引用等。</p>
+            </div>
+            <div class="row">
+              <div class="panel">
+                <div class="panel-title">Markdown</div>
+                <textarea class="textarea mono" id="mdin" style="min-height:400px;"># Hello Markdown
+
+这是一段 **加粗** 和 *斜体* 文字，还有 \`inline code\`。
+
+## 功能列表
+
+- 支持 H1-H6 标题
+- **粗体** 和 *斜体*
+- \`行内代码\` 和代码块
+- [链接](https://github.com)
+- 引用和分割线
+
+### 代码块
+
+\`\`\`javascript
+function hello(name) {
+  return \`Hello, \${name}!\`;
+}
+\`\`\`
+
+> 引用块：这是一段引用的内容。
+
+---</textarea>
+              </div>
+              <div class="panel">
+                <div class="panel-title">预览</div>
+                <div class="md-preview mono" id="mdout" style="min-height:400px;"></div>
+              </div>
+            </div>
+          `,
+          bind(root) {
+            const $i = root.querySelector('#mdin');
+            const $o = root.querySelector('#mdout');
+            const upd = () => { $o.innerHTML = render($i.value); };
+            $i.addEventListener('input', upd);
+            upd();
+          }
+        };
+      },
+
+      /* ---------- YAML ↔ JSON ---------- */
+      yaml() {
+        // 极简 YAML 解析（仅支持基本语法：对象、数组、字符串、数字、布尔、null）
+        const parseYaml = (text) => {
+          const lines = text.split(/\r?\n/).filter(l => !/^\s*#/.test(l) && l.trim());
+          const root = {};
+          const stack = [{ indent: -1, container: root, type: 'obj' }];
+          for (const raw of lines) {
+            const indent = raw.match(/^ */)[0].length;
+            const line = raw.trim();
+            // 弹栈
+            while (stack.length > 1 && indent <= stack[stack.length - 1].indent) stack.pop();
+            const top = stack[stack.length - 1];
+            if (line.startsWith('- ')) {
+              if (top.type !== 'arr') {
+                // 转数组
+                const k = top.lastKey;
+                top.container[k] = [];
+                top.type = 'arr';
+                top.arrKey = k;
+              }
+              top.container.push(parseValue(line.slice(2)));
+            } else {
+              const idx = line.indexOf(':');
+              if (idx === -1) continue;
+              const k = line.slice(0, idx).trim();
+              const v = line.slice(idx + 1).trim();
+              if (v === '' || v === undefined) {
+                // 子结构
+                top.lastKey = k;
+                top.container[k] = {};
+                stack.push({ indent, container: top.container[k], type: 'obj', lastKey: null });
+              } else {
+                top.container[k] = parseValue(v);
+                top.type = 'obj';
+                top.lastKey = k;
+              }
+            }
+          }
+          return root;
+        };
+        const parseValue = (v) => {
+          if (v === 'null' || v === '~' || v === '') return null;
+          if (v === 'true') return true;
+          if (v === 'false') return false;
+          if (/^-?\d+$/.test(v)) return parseInt(v, 10);
+          if (/^-?\d+\.\d+$/.test(v)) return parseFloat(v);
+          if (v.startsWith('"') && v.endsWith('"')) return v.slice(1, -1).replace(/\\"/g, '"');
+          if (v.startsWith("'") && v.endsWith("'")) return v.slice(1, -1);
+          return v;
+        };
+        // 极简 YAML 序列化
+        const stringifyYaml = (obj, indent = 0) => {
+          const pad = ' '.repeat(indent);
+          if (obj === null) return 'null';
+          if (typeof obj !== 'object') return JSON.stringify(obj);
+          if (Array.isArray(obj)) {
+            return obj.map(v => `${pad}- ${typeof v === 'object' ? '\n' + stringifyYaml(v, indent + 2) : stringifyYaml(v)}`).join('\n');
+          }
+          return Object.entries(obj).map(([k, v]) => {
+            if (v === null || typeof v !== 'object') return `${pad}${k}: ${stringifyYaml(v)}`;
+            const sub = stringifyYaml(v, indent + 2);
+            return `${pad}${k}:\n${sub}`;
+          }).join('\n');
+        };
+        return {
+          view: () => `
+            <div class="tool-header">
+              <h1 class="tool-title">YAML ↔ JSON</h1>
+              <p class="tool-desc">YAML 与 JSON 互转，支持基础语法（对象、数组、字符串、数字、布尔、null）。</p>
+            </div>
+            <div class="row">
+              <div class="panel">
+                <div class="panel-title">YAML</div>
+                <textarea class="textarea mono" id="ymin" style="min-height:300px;">name: wake
+age: 18
+active: true
+tags:
+  - tools
+  - web
+profile:
+  email: wake@example.com
+  address:
+    city: Beijing
+    country: CN</textarea>
+                <div class="btn-row">
+                  <button class="btn btn-primary" data-act="to-json">转 JSON →</button>
+                  <button class="btn" data-act="clear">清空</button>
+                </div>
+              </div>
+              <div class="panel">
+                <div class="panel-title">JSON</div>
+                <textarea class="textarea mono" id="ymout" style="min-height:300px;"></textarea>
+                <div class="btn-row">
+                  <button class="btn btn-primary" data-act="to-yaml">← 转 YAML</button>
+                  <button class="btn" data-act="copy">复制</button>
+                </div>
+              </div>
+            </div>
+          `,
+          bind(root) {
+            const $i = root.querySelector('#ymin');
+            const $o = root.querySelector('#ymout');
+            const toJson = () => {
+              try { $o.value = JSON.stringify(parseYaml($i.value), null, 2); toast('已转 JSON'); }
+              catch (e) { toast('解析失败：' + e.message); }
+            };
+            const toYaml = () => {
+              try { $o.value = stringifyYaml(JSON.parse($o.value)); toast('已转 YAML'); }
+              catch (e) { toast('解析失败：' + e.message); }
+            };
+            root.addEventListener('click', e => {
+              const a = e.target.dataset.act;
+              if (a === 'to-json') toJson();
+              else if (a === 'to-yaml') toYaml();
+              else if (a === 'clear') { $i.value = ''; $o.value = ''; }
+              else if (a === 'copy') copyText($o.value);
+            });
+          }
+        };
+      },
+
+      /* ---------- 假数据生成 ---------- */
+      fakedata() {
+        const SURNAMES = ['张', '王', '李', '赵', '刘', '陈', '杨', '黄', '周', '吴', '徐', '孙', '马', '朱', '胡', '林', '郭', '何', '高', '罗', '郑', '梁', '谢', '宋', '唐', '许', '韩', '冯', '邓', '曹'];
+        const GIVEN = ['伟', '芳', '娜', '秀英', '敏', '静', '丽', '强', '磊', '军', '洋', '勇', '艳', '杰', '娟', '涛', '明', '超', '秀兰', '霞', '平', '刚', '桂英', '文', '华', '建国', '建华', '志强', '小红', '丽娟'];
+        const DOMAINS = ['gmail.com', 'outlook.com', '163.com', 'qq.com', 'hotmail.com', 'yahoo.com', 'example.com'];
+        const CITIES = ['北京', '上海', '广州', '深圳', '杭州', '成都', '武汉', '南京', '西安', '重庆', '苏州', '天津', '长沙', '青岛', '厦门'];
+        const STREETS = ['人民路', '中山路', '解放路', '建设路', '和平路', '胜利路', '文化路', '新华路', '光明路', '民主路'];
+        const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+        const rnd = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+        const pad = (n, w) => String(n).padStart(w, '0');
+        const genName = () => pick(SURNAMES) + pick(GIVEN) + (Math.random() > 0.6 ? pick(GIVEN) : '');
+        const genEmail = (name) => {
+          const pinyin = { 张:'zhang',王:'wang',李:'li',赵:'zhao',刘:'liu',陈:'chen',杨:'yang',黄:'huang',周:'zhou',吴:'wu',徐:'xu',孙:'sun',马:'ma',朱:'zhu',胡:'hu',林:'lin',郭:'guo',何:'he',高:'gao',罗:'luo',郑:'zheng',梁:'liang',谢:'xie',宋:'song',唐:'tang',许:'xu',韩:'han',冯:'feng',邓:'deng',曹:'cao' };
+          const first = pinyin[name[0]] || 'user';
+          return `${first}${rnd(100, 9999)}@${pick(DOMAINS)}`;
+        };
+        const genPhone = () => `1${pick(['3','4','5','6','7','8','9'])}${rnd(1000000, 9999999)}`;
+        const genIdCard = () => {
+          const area = pad(rnd(100000, 659999), 6);
+          const yyyy = rnd(1950, 2005);
+          const mm = pad(rnd(1, 12), 2);
+          const dd = pad(rnd(1, 28), 2);
+          const seq = pad(rnd(1, 999), 3);
+          const base = area + yyyy + mm + dd + seq;
+          // 简单校验位
+          const w = [7,9,10,5,8,4,2,1,6,3,7,9,10,5,8,4,2];
+          let s = 0;
+          for (let i = 0; i < 17; i++) s += +base[i] * w[i];
+          const m = ['1','0','X','9','8','7','6','5','4','3','2'][s % 11];
+          return base + m;
+        };
+        const genAddress = () => `${pick(CITIES)}市${pick(['市辖区','高新区','经开区'])}${pick(STREETS)}${rnd(1, 999)}号`;
+        const TYPES = {
+          姓名: genName,
+          邮箱: () => genEmail(genName()),
+          手机号: genPhone,
+          身份证: genIdCard,
+          地址: genAddress,
+        };
+        return {
+          view: () => `
+            <div class="tool-header">
+              <h1 class="tool-title">假数据生成</h1>
+              <p class="tool-desc">批量生成测试用姓名、邮箱、手机号、身份证号、地址。数据完全随机，无业务意义。</p>
+            </div>
+            <div class="panel">
+              <div class="row-3">
+                <div class="field">
+                  <label class="field-label">类型</label>
+                  <select class="select" id="fdtype">
+                    <option value="姓名">姓名</option>
+                    <option value="邮箱">邮箱</option>
+                    <option value="手机号">手机号</option>
+                    <option value="身份证">身份证</option>
+                    <option value="地址">地址</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label class="field-label">数量</label>
+                  <input class="input" type="number" id="fdn" value="10" min="1" max="200" />
+                </div>
+                <div class="field" style="display:flex;align-items:flex-end;">
+                  <button class="btn btn-primary" data-act="gen" style="width:100%;">生成</button>
+                </div>
+              </div>
+            </div>
+            <div class="panel">
+              <div class="panel-title">结果</div>
+              <textarea class="textarea mono" id="fdout" style="min-height:300px;"></textarea>
+              <div class="btn-row">
+                <button class="btn" data-act="copy">复制</button>
+                <button class="btn" data-act="clear">清空</button>
+              </div>
+            </div>
+          `,
+          bind(root) {
+            const $t = root.querySelector('#fdtype');
+            const $n = root.querySelector('#fdn');
+            const $o = root.querySelector('#fdout');
+            const gen = () => {
+              const fn = TYPES[$t.value];
+              const n = Math.min(200, Math.max(1, +$n.value || 1));
+              $o.value = Array.from({ length: n }, fn).join('\n');
+            };
+            root.addEventListener('click', e => {
+              const a = e.target.dataset.act;
+              if (a === 'gen') gen();
+              else if (a === 'copy') copyText($o.value);
+              else if (a === 'clear') $o.value = '';
+            });
+            gen();
           }
         };
       },
