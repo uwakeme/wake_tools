@@ -1,1 +1,0 @@
-{"function":"() => { const card = document.querySelectorAll('.home-card')[4]; card.dispatchEvent(new MouseEvent('mouseenter', {bubbles:true})); card.dispatchEvent(new MouseEvent('mouseover', {bubbles:true})); return 'hovered: ' + card.querySelector('h3').textContent; }"}
