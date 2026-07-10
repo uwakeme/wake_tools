@@ -50,6 +50,8 @@
     desc: '逐行比较两段文本的差异。' },
   { id: 'regex', group: '文本处理', icon: 'regex', name: '正则测试',
     desc: '实时测试正则表达式，支持捕获组高亮。' },
+  { id: 'string', group: '文本处理', icon: 'string', name: '字符串工具',
+    desc: '长度统计、反转、重复、填充、替换、大小写等常用字符串操作。' },
 
   // 生成器
   { id: 'uuid', group: '生成器', icon: 'uuid', name: 'UUID 生成',
@@ -935,6 +937,327 @@ date</textarea>
           if (e.target.dataset.act === 'clear') { root.querySelector('#rtxt').value = ''; update(); }
         });
         update();
+      }
+    };
+  },
+
+  /* ---------- String (字符串工具合集) ---------- */
+  string() {
+    return {
+      view: () => `
+        <div class="tool-header">
+          <h1 class="tool-title">字符串工具</h1>
+          <p class="tool-desc">常用字符串操作集合：长度统计、反转、重复、填充、替换、大小写。所有结果实时计算。</p>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">输入</div>
+          <textarea class="textarea mono" id="stin" style="min-height:100px;">Hello, 世界！👋🌏</textarea>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">长度统计</div>
+          <div class="stats" id="st-stats"></div>
+        </div>
+
+        <div class="row">
+          <div class="panel">
+            <div class="panel-title">反转</div>
+            <div class="field">
+              <label class="switch">
+                <input type="checkbox" id="st-rev-bytes" />
+                <span class="switch-track"></span>
+                <span class="switch-label">按字节反转（UTF-8，可能乱码）</span>
+              </label>
+            </div>
+            <div class="output mono" id="st-rev">—</div>
+            <div class="btn-row">
+              <button class="btn" data-act="copy-rev">复制</button>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-title">重复</div>
+            <div class="row-3">
+              <div class="field">
+                <label class="field-label">次数 N</label>
+                <input class="input" type="number" id="st-rep-n" value="3" min="0" max="1000" />
+              </div>
+              <div class="field" style="display:flex;align-items:flex-end;">
+                <label class="switch">
+                  <input type="checkbox" id="st-rep-sep" />
+                  <span class="switch-track"></span>
+                  <span class="switch-label">换行分隔</span>
+                </label>
+              </div>
+            </div>
+            <div class="output mono" id="st-rep" style="min-height:60px;">—</div>
+            <div class="btn-row">
+              <button class="btn" data-act="copy-rep">复制</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="panel">
+            <div class="panel-title">填充（padStart / padEnd）</div>
+            <div class="row-3">
+              <div class="field">
+                <label class="field-label">目标长度</label>
+                <input class="input" type="number" id="st-pad-len" value="20" min="0" max="100000" />
+              </div>
+              <div class="field">
+                <label class="field-label">填充字符</label>
+                <input class="input mono" id="st-pad-ch" value=" " maxlength="10" />
+              </div>
+              <div class="field">
+                <label class="field-label">方向</label>
+                <select class="select" id="st-pad-dir">
+                  <option value="end" selected>右填充 padEnd</option>
+                  <option value="start">左填充 padStart</option>
+                </select>
+              </div>
+            </div>
+            <div class="output mono" id="st-pad">—</div>
+            <div class="btn-row">
+              <button class="btn" data-act="copy-pad">复制</button>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-title">替换（replaceAll）</div>
+            <div class="field">
+              <label class="field-label">查找</label>
+              <input class="input mono" id="st-rep-find" value="world" placeholder="要查找的子串..." />
+            </div>
+            <div class="field">
+              <label class="field-label">替换为</label>
+              <input class="input mono" id="st-rep-with" value="Wake" placeholder="替换成..." />
+            </div>
+            <div class="field">
+              <label class="switch">
+                <input type="checkbox" id="st-rep-regex" />
+                <span class="switch-track"></span>
+                <span class="switch-label">正则模式（含捕获组 <code>$1 $2</code>）</span>
+              </label>
+            </div>
+            <div class="field">
+              <label class="switch">
+                <input type="checkbox" id="st-rep-icase" />
+                <span class="switch-track"></span>
+                <span class="switch-label">忽略大小写</span>
+              </label>
+            </div>
+            <div class="output mono" id="st-replace">—</div>
+            <div class="btn-row">
+              <button class="btn" data-act="copy-replace">复制</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">大小写转换</div>
+          <div class="row-3">
+            <div class="field" style="grid-column:1 / -1;">
+              <label class="field-label">UPPER · 全部大写</label>
+              <input class="input mono" id="st-case-upper" readonly />
+            </div>
+            <div class="field" style="grid-column:1 / -1;">
+              <label class="field-label">lower · 全部小写</label>
+              <input class="input mono" id="st-case-lower" readonly />
+            </div>
+            <div class="field">
+              <label class="field-label">Sentence · 句首大写</label>
+              <input class="input mono" id="st-case-sent" readonly />
+            </div>
+            <div class="field">
+              <label class="field-label">Capitalize · 首字母大写</label>
+              <input class="input mono" id="st-case-cap" readonly />
+            </div>
+            <div class="field" style="grid-column:1 / -1;">
+              <label class="field-label">Title Case · 每个单词首字母大写</label>
+              <input class="input mono" id="st-case-title" readonly />
+            </div>
+          </div>
+          <div class="btn-row">
+            <button class="btn" data-act="copy-upper">复制 UPPER</button>
+            <button class="btn" data-act="copy-lower">复制 lower</button>
+            <button class="btn" data-act="copy-sent">复制 Sentence</button>
+            <button class="btn" data-act="copy-cap">复制 Capitalize</button>
+            <button class="btn" data-act="copy-title">复制 Title</button>
+          </div>
+        </div>
+      `,
+      bind(root) {
+        const $i = root.querySelector('#stin');
+
+        // 长度统计
+        const $stats = root.querySelector('#st-stats');
+        const updateStats = () => {
+          const s = $i.value;
+          const bytes = new TextEncoder().encode(s).length;
+          const codePoints = [...s].length;
+          const lines = s === '' ? 0 : s.split('\n').length;
+          const words = (s.trim().match(/\S+/g) || []).length;
+          const whites = (s.match(/\s/g) || []).length;
+          $stats.innerHTML = `
+            <div class="stat"><div class="stat-label">字符数（length）</div><div class="stat-value">${s.length}</div></div>
+            <div class="stat"><div class="stat-label">码点数（Unicode）</div><div class="stat-value">${codePoints}</div></div>
+            <div class="stat"><div class="stat-label">字节数（UTF-8）</div><div class="stat-value">${bytes}</div></div>
+            <div class="stat"><div class="stat-label">行数</div><div class="stat-value">${lines}</div></div>
+            <div class="stat"><div class="stat-label">单词数</div><div class="stat-value">${words}</div></div>
+            <div class="stat"><div class="stat-label">空白字符</div><div class="stat-value">${whites}</div></div>
+          `;
+        };
+
+        // 反转
+        const $revBytes = root.querySelector('#st-rev-bytes');
+        const $rev = root.querySelector('#st-rev');
+        const updateRev = () => {
+          const s = $i.value;
+          if (s === '') { $rev.textContent = '—'; return; }
+          if ($revBytes.checked) {
+            // 按字节反转：拿到 UTF-8 字节数组，反转，再用 fatal:false 解码
+            const bytes = new TextEncoder().encode(s);
+            $rev.textContent = new TextDecoder('utf-8', { fatal: false }).decode(bytes.reverse());
+          } else {
+            // 按 Unicode 码点反转，正确处理 emoji / surrogate pair
+            $rev.textContent = [...s].reverse().join('');
+          }
+        };
+
+        // 重复
+        const $repN = root.querySelector('#st-rep-n');
+        const $repSep = root.querySelector('#st-rep-sep');
+        const $rep = root.querySelector('#st-rep');
+        const updateRep = () => {
+          const n = Math.min(1000, Math.max(0, parseInt($repN.value, 10) || 0));
+          const s = $i.value;
+          if (s === '' || n === 0) { $rep.textContent = '—'; return; }
+          $rep.textContent = $repSep.checked ? Array(n).fill(s).join('\n') : s.repeat(n);
+        };
+
+        // 填充
+        const $padLen = root.querySelector('#st-pad-len');
+        const $padCh = root.querySelector('#st-pad-ch');
+        const $padDir = root.querySelector('#st-pad-dir');
+        const $pad = root.querySelector('#st-pad');
+        const updatePad = () => {
+          const s = $i.value;
+          const len = Math.min(100000, Math.max(0, parseInt($padLen.value, 10) || 0));
+          const ch = $padCh.value || ' ';
+          const dir = $padDir.value;
+          $pad.textContent = s === '' ? '—' : (dir === 'start' ? s.padStart(len, ch) : s.padEnd(len, ch));
+        };
+
+        // 替换
+        const $repFind = root.querySelector('#st-rep-find');
+        const $repWith = root.querySelector('#st-rep-with');
+        const $repRegex = root.querySelector('#st-rep-regex');
+        const $repIcase = root.querySelector('#st-rep-icase');
+        const $replace = root.querySelector('#st-rep');
+        const updateReplace = () => {
+          const s = $i.value;
+          const find = $repFind.value;
+          if (s === '') { $replace.textContent = '—'; return; }
+          if (find === '') { $replace.textContent = s; return; }
+          try {
+            if ($repRegex.checked) {
+              const flags = 'g' + ($repIcase.checked ? 'i' : '');
+              const re = new RegExp(find, flags);
+              $replace.textContent = s.replace(re, $repWith.value);
+            } else if ($repIcase.checked) {
+              // 大小写不敏感的非正则替换：手动实现
+              const out = [];
+              const lowerSrc = s.toLowerCase();
+              const lowerFind = find.toLowerCase();
+              let i = 0;
+              while (i < s.length) {
+                const idx = lowerSrc.indexOf(lowerFind, i);
+                if (idx === -1) { out.push(s.slice(i)); break; }
+                out.push(s.slice(i, idx));
+                out.push($repWith.value);
+                i = idx + find.length;
+              }
+              $replace.textContent = out.join('');
+            } else {
+              $replace.textContent = s.split(find).join($repWith.value);
+            }
+          } catch (e) {
+            $replace.textContent = '正则错误：' + e.message;
+          }
+        };
+
+        // 大小写
+        const $upper = root.querySelector('#st-case-upper');
+        const $lower = root.querySelector('#st-case-lower');
+        const $sent = root.querySelector('#st-case-sent');
+        const $cap = root.querySelector('#st-case-cap');
+        const $title = root.querySelector('#st-case-title');
+        const updateCase = () => {
+          const s = $i.value;
+          $upper.value = s.toUpperCase();
+          $lower.value = s.toLowerCase();
+          // 句首大写：首个字母字符大写，其余不变
+          $sent.value = s.replace(/^(\s*)(\p{L})/u, (_, ws, ch) => ws + ch.toUpperCase());
+          // 首字母大写：只第一个字符大写（不跳过空白）
+          $cap.value = s.length ? s[0].toUpperCase() + s.slice(1) : '';
+          // Title Case：每个单词的首字母大写（处理 Unicode 字母）
+          $title.value = s.toLowerCase().replace(/(^|[\s\p{P}]+)(\p{L})/gu, (_, sep, ch) => sep + ch.toUpperCase());
+        };
+
+        // 统一调度：input 变化触发所有实时 panel 重算
+        let timer;
+        const onInput = () => {
+          clearTimeout(timer);
+          timer = setTimeout(() => {
+            updateStats();
+            updateRev();
+            updateRep();
+            updatePad();
+            updateReplace();
+            updateCase();
+          }, 80);
+        };
+        $i.addEventListener('input', onInput);
+
+        // 反向触发：填充/替换控件变化时只重算对应 panel
+        $revBytes.addEventListener('change', updateRev);
+        $repN.addEventListener('input', updateRep);
+        $repSep.addEventListener('change', updateRep);
+        $padLen.addEventListener('input', updatePad);
+        $padCh.addEventListener('input', updatePad);
+        $padDir.addEventListener('change', updatePad);
+        $repFind.addEventListener('input', updateReplace);
+        $repWith.addEventListener('input', updateReplace);
+        $repRegex.addEventListener('change', updateReplace);
+        $repIcase.addEventListener('change', updateReplace);
+
+        // 复制按钮
+        root.addEventListener('click', e => {
+          const a = e.target.dataset.act;
+          const map = {
+            'copy-rev': $rev,
+            'copy-rep': $rep,
+            'copy-pad': $pad,
+            'copy-replace': $replace,
+            'copy-upper': $upper,
+            'copy-lower': $lower,
+            'copy-sent': $sent,
+            'copy-cap': $cap,
+            'copy-title': $title,
+          };
+          const target = map[a];
+          if (target) copyText(target.value !== undefined ? target.value : target.textContent);
+        });
+
+        // 初始计算
+        updateStats();
+        updateRev();
+        updateRep();
+        updatePad();
+        updateReplace();
+        updateCase();
       }
     };
   },
