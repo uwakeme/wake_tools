@@ -132,6 +132,27 @@ code { font-size: 0.9em; }
   border-radius: var(--radius-sm);
 }
 
+/* Skip link — keyboard users jump past sidebar nav */
+.skip-link {
+  position: absolute;
+  top: -100px;
+  left: 16px;
+  z-index: 9999;
+  padding: 8px 14px;
+  background: var(--primary);
+  color: #fff;
+  border-radius: var(--radius);
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: top var(--transition);
+}
+[data-theme="dark"] .skip-link { color: #09090B; }
+.skip-link:focus-visible {
+  top: 16px;
+  outline-offset: 0;
+}
+
 /* ============================================================
    Layout shell
    ============================================================ */
@@ -245,13 +266,18 @@ code { font-size: 0.9em; }
   right: 8px;
   display: inline-flex;
   align-items: center;
-  padding: 1px 5px;
+  padding: 2px 6px;
   border: 1px solid var(--border-strong);
   border-radius: 4px;
-  background: var(--bg);
+  background: var(--bg-elev);
   font-family: var(--font-mono);
   font-size: 10px;
   color: var(--text-muted);
+  pointer-events: none;
+}
+
+@media (max-width: 768px) {
+  .search-kbd { display: none; }
 }
 
 .nav-list {
@@ -260,10 +286,28 @@ code { font-size: 0.9em; }
   padding: 12px 8px 24px;
 }
 .nav-empty {
-  padding: 24px 14px;
+  padding: 24px 16px;
   color: var(--text-muted);
   font-size: 12.5px;
   text-align: center;
+  line-height: 1.6;
+}
+.nav-empty strong { color: var(--text-secondary); font-weight: 600; }
+.nav-empty button {
+  margin-top: 10px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 4px 10px;
+  color: var(--text-secondary);
+  font-size: 11.5px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all var(--transition-fast);
+}
+.nav-empty button:hover {
+  border-color: var(--primary);
+  color: var(--primary);
 }
 
 .nav-group { margin-bottom: 14px; }
@@ -353,7 +397,7 @@ code { font-size: 0.9em; }
 
 .menu-btn {
   display: none;
-  width: 32px; height: 32px;
+  width: 36px; height: 36px;
   border: 1px solid var(--border);
   background: var(--bg-elev);
   color: var(--text-secondary);
@@ -365,6 +409,10 @@ code { font-size: 0.9em; }
 }
 .menu-btn:hover { background: var(--bg-hover); color: var(--text); }
 .menu-btn svg { width: 16px; height: 16px; stroke-width: 1.8; }
+
+@media (max-width: 768px) {
+  .menu-btn, .icon-btn { width: 44px; height: 44px; }
+}
 
 .breadcrumb {
   font-size: 13px;
@@ -397,7 +445,7 @@ code { font-size: 0.9em; }
 .topbar-actions { display: flex; gap: 6px; align-items: center; }
 
 .icon-btn {
-  width: 32px; height: 32px;
+  width: 36px; height: 36px;
   border: 1px solid var(--border);
   background: var(--bg-elev);
   color: var(--text-secondary);

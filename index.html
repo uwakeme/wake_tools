@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="./css/style.css" />
 </head>
 <body>
+  <a class="skip-link" href="#panel">跳到主内容</a>
   <div class="app">
     <!-- Sidebar -->
     <aside class="sidebar" id="sidebar">
@@ -29,12 +30,13 @@
 
       <div class="search-box">
         <div class="search-input-wrap">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-          <input type="text" id="search" placeholder="搜索工具…" autocomplete="off" />
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="text" id="search" placeholder="搜索工具…" autocomplete="off" aria-label="搜索工具" />
+          <kbd class="search-kbd" aria-hidden="true">⌘ K</kbd>
         </div>
       </div>
 
-      <nav class="nav-list" id="navList"></nav>
+      <nav class="nav-list" id="navList" aria-label="工具导航"></nav>
     </aside>
 
     <!-- Main column -->

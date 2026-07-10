@@ -110,8 +110,17 @@
         </div>`
       )
       .join('');
-    document.getElementById('navList').innerHTML =
-      html || '<div class="nav-empty">没有匹配的工具</div>';
+    if (!html) {
+      const term = escapeHtml(filter.trim());
+      document.getElementById('navList').innerHTML =
+        `<div class="nav-empty">` +
+          `没找到匹配 <strong>“${term}”</strong> 的工具。<br>` +
+          `试试换个关键词，或者` +
+          `<button type="button" data-clear-search>清空搜索</button>` +
+        `</div>`;
+    } else {
+      document.getElementById('navList').innerHTML = html;
+    }
   }
 
   /* ============================================================
@@ -189,12 +198,43 @@
      Wire-up
      ============================================================ */
   function init() {
-    document.getElementById('search').addEventListener('input', (e) =>
-      renderNav(e.target.value)
-    );
+    const search = document.getElementById('search');
+    search.addEventListener('input', (e) => renderNav(e.target.value));
+    search.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        search.value = '';
+        renderNav('');
+        search.blur();
+      }
+    });
+
     document.getElementById('menuBtn').addEventListener('click', () => {
       document.getElementById('sidebar').classList.toggle('open');
     });
+
+    // Cmd/Ctrl+K (or /) → focus search
+    window.addEventListener('keydown', (e) => {
+      const isMac = navigator.platform.toLowerCase().includes('mac');
+      const meta = isMac ? e.metaKey : e.ctrlKey;
+      if (meta && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        search.focus();
+        search.select();
+      } else if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+        e.preventDefault();
+        search.focus();
+      }
+    });
+
+    // Delegate click for "clear search" button inside nav-empty state
+    document.getElementById('navList').addEventListener('click', (e) => {
+      if (e.target.matches('[data-clear-search]')) {
+        search.value = '';
+        renderNav('');
+        search.focus();
+      }
+    });
+
     initTheme();
     window.addEventListener('hashchange', render);
     render();
