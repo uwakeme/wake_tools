@@ -702,10 +702,21 @@
         const fmt = (s) => {
           s = s.replace(/>\s*</g, '><').trim();
           let indent = 0;
+          let first = true;
           return s.replace(/<(\/?)([^>]+?)(\/?)>/g, (_, close, body, self) => {
-            if (self) return '<'.concat(_, close, body, self, '>');
-            if (close) { indent = Math.max(0, indent - 1); return '\n' + '  '.repeat(indent) + '<' + '/' + body + '>'; }
-            const r = '\n' + '  '.repeat(indent) + '<' + body + '>';
+            // 第一个标签不要前导换行,避免首行空行
+            const nl = first ? '' : '\n';
+            first = false;
+            if (self) {
+              // 自闭合: <body/> 不改 indent
+              return nl + '  '.repeat(indent) + '<' + body + '/>';
+            }
+            if (close) {
+              indent = Math.max(0, indent - 1);
+              return nl + '  '.repeat(indent) + '</' + body + '>';
+            }
+            // 开始标签
+            const r = nl + '  '.repeat(indent) + '<' + body + '>';
             indent++;
             return r;
           });
