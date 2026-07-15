@@ -43,7 +43,7 @@ wake_tools/
 
 ## Code style
 
-观察到的约定 (无强制工具,以 PR review 为准):
+观察到的约定 (无强制工具,以代码 review 为准):
 
 - 全局命名空间 `window.WT`,避免污染全局
 - 模块化用 IIFE 或对象挂载,**不用 ES Modules** (无构建工具,`<script>` 标签加载)
@@ -67,12 +67,12 @@ wake_tools/
 3. 键盘可达性:`Tab` 顺序合理、可见 focus ring、`Esc` 关闭弹层 (如有)
 4. 移动端:窗口缩到 375px 宽度不破版
 
-PR 描述里附**手动验证清单截图或文本说明**。
+Commit 信息里附**手动验证清单**(边界用例、浏览器测试等),重大改动也可以截图。
 
-## PR & commit conventions
+## Commit conventions
 
-- 主分支:`main`,**禁止直接 push**
-- 分支命名:`wt/<短描述或 id>`(见历史 `wt/90547cbb`)
+- 主分支:`main`。这是个人小项目,直接 commit + push 到 `main`,**不需要开分支、不要提 PR**
+- 改动大、需要讨论的:可以临时开 `wt/<短描述或 id>` 分支走 PR(参考历史 `wt/90547cbb`),但日常小改动不必
 - Commit message 用 **conventional commits 中文风格**:
   - `feat:` 新功能 / 新工具
   - `fix:` bug 修复
@@ -81,8 +81,6 @@ PR 描述里附**手动验证清单截图或文本说明**。
   - `chore:` 杂项 (清理、配置、依赖)
   - `docs:` 文档
 - 例:`feat: 新增字符串拼接工具,工具总数 30 → 31`
-- PR 通过 `gh pr create` 提交,标题与首个 commit 信息一致
-- 合并策略:目前是 merge commit (看 `f756a05` 历史),保持一致
 
 ## Security
 
