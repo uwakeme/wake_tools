@@ -1231,3 +1231,52 @@ code { font-size: 0.9em; }
     transition-duration: .01ms !important;
   }
 }
+
+/* ============================================================
+   JSON 树形预览 (json tool)
+   ============================================================ */
+.jtree {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.7;
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  min-height: 240px;
+  max-height: 520px;
+  overflow: auto;
+  white-space: nowrap;
+}
+.jtree-row { padding: 0; }
+.jtree-children { padding-left: 18px; border-left: 1px dashed var(--border); margin-left: 6px; }
+.jtree-toggle {
+  display: inline-block;
+  width: 14px;
+  color: var(--text-muted);
+  cursor: pointer;
+  user-select: none;
+  font-size: 9px;
+  text-align: center;
+  transition: color var(--transition-fast);
+  vertical-align: middle;
+}
+.jtree-toggle:hover { color: var(--primary); }
+.jtree-key { color: var(--primary); }
+.jtree-string { color: #16A34A; }
+.jtree-number { color: #EA580C; }
+.jtree-boolean { color: #9333EA; font-weight: 500; }
+.jtree-null { color: var(--text-muted); font-style: italic; }
+.jtree-punct { color: var(--text-secondary); }
+.jtree-summary { color: var(--text-muted); font-size: 12px; }
+
+[data-theme="dark"] .jtree-string  { color: #6EE7B7; }
+[data-theme="dark"] .jtree-number  { color: #FBBF24; }
+[data-theme="dark"] .jtree-boolean { color: #C4B5FD; }
+[data-theme="dark"] .jtree-children { border-left-color: var(--border); }
+
+.jtree-node.jtree-collapsed > .jtree-children,
+.jtree-node.jtree-collapsed > .jtree-tail { display: none; }
+.jtree-node.jtree-collapsed > .jtree-row > .jtree-open { display: none; }
+.jtree-node.jtree-expanded > .jtree-row > .jtree-summary { display: none; }
+.jtree-node.jtree-collapsed > .jtree-row > .jtree-summary { display: inline; }
