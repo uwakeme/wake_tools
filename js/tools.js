@@ -1,6 +1,6 @@
 /* Wake Tools · tool registry
- * WT.TOOLS  - list of tool metadata (id, name, group, icon, desc) shown in nav + home
- * WT.Tools  - factories: each id maps to () => ({ view: () => html, bind: (root) => ... })
+ * WT.TOOLS  — list of tool metadata (id, name, group, icon, desc) shown in nav + home
+ * WT.Tools  — factories: each id maps to () => ({ view: () => html, bind: (root) => ... })
  *
  * Tools use window.WT.utils for formatDate/copyText/toast/escapeHtml, and
  * window.WT.ICONS for inline icons via the IC factory.
@@ -15,21 +15,21 @@
   NS.TOOLS = [
   // 编码转换
   { id: 'base64', group: '编码转换', icon: 'base64', name: 'Base64 编解码',
-    desc: '字符串与 Base64 互转,支持 UTF-8 中文。' },
+    desc: '字符串与 Base64 互转，支持 UTF-8 中文。' },
   { id: 'url', group: '编码转换', icon: 'url', name: 'URL 编解码',
-    desc: 'URL encode / decode,支持完整与组件两种模式。' },
+    desc: 'URL encode / decode，支持完整与组件两种模式。' },
   { id: 'hex', group: '编码转换', icon: 'hex', name: 'Hex 字符串编解码',
     desc: '文本与十六进制字符串互转。' },
   { id: 'unicode', group: '编码转换', icon: 'unicode', name: 'Unicode 编解码',
     desc: '中文字符与 \\uXXXX 转义互转。' },
   { id: 'html', group: '编码转换', icon: 'html', name: 'HTML 实体编解码',
-    desc: 'HTML 实体(&lt; &gt; &amp; 等)转义/反转义。' },
+    desc: 'HTML 实体（&lt; &gt; &amp; 等）转义/反转义。' },
 
   // 时间日期
   { id: 'timestamp', group: '时间日期', icon: 'timestamp', name: '时间戳转换',
-    desc: 'Unix 时间戳与日期时间互转,支持秒/毫秒。' },
+    desc: 'Unix 时间戳与日期时间互转，支持秒/毫秒。' },
   { id: 'duration', group: '时间日期', icon: 'duration', name: '时间单位转换',
-    desc: '秒 / 分 / 时 / 天 / 周换算,支持加减运算。' },
+    desc: '秒 / 分 / 时 / 天 / 周换算，支持加减运算。' },
 
   // 格式化
   { id: 'json', group: '格式化', icon: 'json', name: 'JSON 格式化',
@@ -39,19 +39,19 @@
   { id: 'xml', group: '格式化', icon: 'xml', name: 'XML 格式化',
     desc: 'XML 美化、压缩。' },
   { id: 'markdown', group: '格式化', icon: 'markdown', name: 'Markdown 预览',
-    desc: '左侧写 Markdown,右侧实时渲染预览。' },
+    desc: '左侧写 Markdown，右侧实时渲染预览。' },
   { id: 'yaml', group: '格式化', icon: 'yaml', name: 'YAML ↔ JSON',
-    desc: 'YAML 与 JSON 互转,支持基础语法。' },
+    desc: 'YAML 与 JSON 互转，支持基础语法。' },
 
   // 文本处理
   { id: 'case', group: '文本处理', icon: 'case', name: '命名风格转换',
-    desc: '驼峰、下划线、烤串、帕斯卡等命名互转,JSON Key 批处理。' },
+    desc: '驼峰、下划线、烤串、帕斯卡等命名互转，JSON Key 批处理。' },
   { id: 'textutil', group: '文本处理', icon: 'textutil', name: '文本去重 / 排序',
-    desc: '按行去重、排序,统计行数与字符数。' },
+    desc: '按行去重、排序，统计行数与字符数。' },
   { id: 'diff', group: '文本处理', icon: 'diff', name: '文本 Diff',
     desc: '逐行比较两段文本的差异。' },
   { id: 'regex', group: '文本处理', icon: 'regex', name: '正则测试',
-    desc: '实时测试正则表达式,支持捕获组高亮。' },
+    desc: '实时测试正则表达式，支持捕获组高亮。' },
   { id: 'string', group: '文本处理', icon: 'string', name: '字符串工具',
     desc: '长度统计、反转、重复、填充、替换、大小写等常用字符串操作。' },
 
@@ -59,7 +59,7 @@
   { id: 'uuid', group: '生成器', icon: 'uuid', name: 'UUID 生成',
     desc: '批量生成 UUID v4。' },
   { id: 'password', group: '生成器', icon: 'password', name: '随机密码',
-    desc: '生成高强度随机密码,可选字符集与长度。' },
+    desc: '生成高强度随机密码，可选字符集与长度。' },
   { id: 'lorem', group: '生成器', icon: 'lorem', name: 'Lorem Ipsum',
     desc: '生成占位文本。' },
   { id: 'hash', group: '生成器', icon: 'hash', name: 'Hash 生成',
@@ -69,17 +69,17 @@
 
   // 颜色工具
   { id: 'color', group: '颜色工具', icon: 'color', name: '颜色值转换',
-    desc: 'HEX / RGB / HSL 互转,附带色板预览。' },
+    desc: 'HEX / RGB / HSL 互转，附带色板预览。' },
 
   // 数字工具
   { id: 'radix', group: '数字工具', icon: 'radix', name: '进制转换',
     desc: '2~36 进制互转。' },
   { id: 'bytes', group: '数字工具', icon: 'bytes', name: '字节单位转换',
-    desc: 'B / KB / MB / GB / TB,支持二进制(1024)和十进制(1000)。' },
+    desc: 'B / KB / MB / GB / TB，支持二进制（1024）和十进制（1000）。' },
 
   // 网络调试
   { id: 'jwt', group: '网络调试', icon: 'jwt', name: 'JWT 解码',
-    desc: '解析 JWT 的 Header / Payload / Signature(不验签)。' },
+    desc: '解析 JWT 的 Header / Payload / Signature（不验签）。' },
   { id: 'urlparse', group: '网络调试', icon: 'urlparse', name: 'URL 解析',
     desc: '拆分 URL 的协议、域名、路径、参数等。' },
   { id: 'header', group: '网络调试', icon: 'header', name: 'HTTP Header 解析',
@@ -87,7 +87,7 @@
 
   // 其它
   { id: 'cron', group: '其它', icon: 'cron', name: 'Cron 表达式',
-    desc: '解析 Cron 表达式,展示未来 5 次执行时间。' },
+    desc: '解析 Cron 表达式，展示未来 5 次执行时间。' },
   { id: 'ascii', group: '其它', icon: 'ascii', name: 'ASCII 表',
     desc: '查询 ASCII / Unicode 字符。' },
 ];
@@ -103,12 +103,12 @@
       view: () => `
         <div class="tool-header">
           <h1 class="tool-title">Base64 编解码</h1>
-          <p class="tool-desc">字符串与 Base64 互转,自动处理 UTF-8 中文。</p>
+          <p class="tool-desc">字符串与 Base64 互转，自动处理 UTF-8 中文。</p>
         </div>
         <div class="row">
           <div class="panel">
-            <div class="panel-title">原文(UTF-8)</div>
-            <textarea class="textarea mono" id="b64in" placeholder="输入要编码的字符串...">Hello, 世界!</textarea>
+            <div class="panel-title">原文（UTF-8）</div>
+            <textarea class="textarea mono" id="b64in" placeholder="输入要编码的字符串…">Hello, 世界！</textarea>
             <div class="btn-row">
               <button class="btn btn-primary" data-act="enc">编码 →</button>
               <button class="btn" data-act="clear">清空</button>
@@ -116,7 +116,7 @@
           </div>
           <div class="panel">
             <div class="panel-title">Base64 结果</div>
-            <textarea class="textarea mono" id="b64out" placeholder="Base64 输出..."></textarea>
+            <textarea class="textarea mono" id="b64out" placeholder="Base64 输出…"></textarea>
             <div class="btn-row">
               <button class="btn btn-primary" data-act="dec">← 解码</button>
               <button class="btn" data-act="copy">复制</button>
@@ -129,11 +129,11 @@
         const $o = root.querySelector('#b64out');
         const enc = () => {
           try { $o.value = btoa(unescape(encodeURIComponent($i.value))); toast('已编码'); }
-          catch (e) { toast('编码失败:' + e.message); }
+          catch (e) { toast('编码失败：' + e.message); }
         };
         const dec = () => {
           try { $i.value = decodeURIComponent(escape(atob($o.value.trim()))); toast('已解码'); }
-          catch (e) { toast('解码失败:不是有效的 Base64'); }
+          catch (e) { toast('解码失败：不是有效的 Base64'); }
         };
         root.addEventListener('click', e => {
           const a = e.target.dataset.act;
@@ -152,17 +152,17 @@
       view: () => `
         <div class="tool-header">
           <h1 class="tool-title">URL 编解码</h1>
-          <p class="tool-desc">支持 encodeURIComponent(推荐)和 encodeURI(整体 URL)两种模式。</p>
+          <p class="tool-desc">支持 encodeURIComponent（推荐）和 encodeURI（整体 URL）两种模式。</p>
         </div>
         <div class="row">
           <div class="panel">
             <div class="panel-title">原文</div>
-            <textarea class="textarea mono" id="urlin" placeholder="输入要编码的字符串...">https://example.com/search?q=你好&lang=中文</textarea>
+            <textarea class="textarea mono" id="urlin" placeholder="输入要编码的字符串…">https://example.com/search?q=你好&lang=中文</textarea>
             <div class="field" style="margin-top:12px;">
               <label class="switch">
                 <input type="checkbox" id="urlmode" />
                 <span class="switch-track"></span>
-                <span class="switch-label">encodeURIComponent(更彻底)</span>
+                <span class="switch-label">encodeURIComponent（更彻底）</span>
               </label>
             </div>
             <div class="btn-row">
@@ -172,7 +172,7 @@
           </div>
           <div class="panel">
             <div class="panel-title">编码后</div>
-            <textarea class="textarea mono" id="urlout" placeholder="结果..."></textarea>
+            <textarea class="textarea mono" id="urlout" placeholder="结果…"></textarea>
             <div class="btn-row">
               <button class="btn btn-primary" data-act="dec">← 解码</button>
               <button class="btn" data-act="copy">复制</button>
@@ -190,7 +190,7 @@
         };
         const dec = () => {
           try { $i.value = $m.checked ? decodeURIComponent($o.value) : decodeURI($o.value); toast('已解码'); }
-          catch (e) { toast('解码失败:' + e.message); }
+          catch (e) { toast('解码失败：' + e.message); }
         };
         root.addEventListener('click', e => {
           const a = e.target.dataset.act;
@@ -209,12 +209,12 @@
       view: () => `
         <div class="tool-header">
           <h1 class="tool-title">Hex 字符串编解码</h1>
-          <p class="tool-desc">文本与十六进制字符串互转(UTF-8 字节级)。</p>
+          <p class="tool-desc">文本与十六进制字符串互转（UTF-8 字节级）。</p>
         </div>
         <div class="row">
           <div class="panel">
             <div class="panel-title">文本</div>
-            <textarea class="textarea mono" id="hexin" placeholder="输入文本...">Hi, 早上好</textarea>
+            <textarea class="textarea mono" id="hexin" placeholder="输入文本…">Hi, 早上好</textarea>
             <div class="btn-row">
               <button class="btn btn-primary" data-act="enc">转 Hex →</button>
               <button class="btn" data-act="clear">清空</button>
@@ -222,7 +222,7 @@
           </div>
           <div class="panel">
             <div class="panel-title">Hex</div>
-            <textarea class="textarea mono" id="hexout" placeholder="hex 输出..."></textarea>
+            <textarea class="textarea mono" id="hexout" placeholder="hex 输出…"></textarea>
             <div class="btn-row">
               <button class="btn btn-primary" data-act="dec">← 解码</button>
               <button class="btn" data-act="copy">复制</button>
@@ -246,7 +246,7 @@
             const bytes = new Uint8Array(clean.match(/.{1,2}/g).map(s => parseInt(s, 16)));
             $i.value = new TextDecoder().decode(bytes);
             toast('已解码');
-          } catch (e) { toast('解码失败:' + e.message); }
+          } catch (e) { toast('解码失败：' + e.message); }
         };
         root.addEventListener('click', e => {
           const a = e.target.dataset.act;
@@ -270,7 +270,7 @@
         <div class="row">
           <div class="panel">
             <div class="panel-title">原文</div>
-            <textarea class="textarea mono" id="uin" placeholder="输入中文...">你好,世界</textarea>
+            <textarea class="textarea mono" id="uin" placeholder="输入中文…">你好,世界</textarea>
             <div class="btn-row">
               <button class="btn btn-primary" data-act="enc">转 \\uXXXX →</button>
               <button class="btn" data-act="clear">清空</button>
@@ -278,7 +278,7 @@
           </div>
           <div class="panel">
             <div class="panel-title">转义</div>
-            <textarea class="textarea mono" id="uout" placeholder="..."></textarea>
+            <textarea class="textarea mono" id="uout" placeholder="…"></textarea>
             <div class="btn-row">
               <button class="btn btn-primary" data-act="dec">← 解码</button>
               <button class="btn" data-act="copy">复制</button>
@@ -300,7 +300,7 @@
           try {
             $i.value = $o.value.replace(/\\u([0-9a-fA-F]{4})/g, (_, h) => String.fromCharCode(parseInt(h, 16)));
             toast('已解码');
-          } catch (e) { toast('解码失败:' + e.message); }
+          } catch (e) { toast('解码失败：' + e.message); }
         };
         root.addEventListener('click', e => {
           const a = e.target.dataset.act;
@@ -323,18 +323,18 @@
         return `
           <div class="tool-header">
             <h1 class="tool-title">时间戳转换</h1>
-            <p class="tool-desc">Unix 时间戳 ↔ 日期时间。支持秒(10 位)和毫秒(13 位)。</p>
+            <p class="tool-desc">Unix 时间戳 ↔ 日期时间。支持秒（10 位）和毫秒（13 位）。</p>
           </div>
 
           <div class="panel">
             <div class="panel-title">当前时间</div>
             <div class="stats">
               <div class="stat">
-                <div class="stat-label">秒(10 位)</div>
+                <div class="stat-label">秒（10 位）</div>
                 <div class="stat-value">${sec}</div>
               </div>
               <div class="stat">
-                <div class="stat-label">毫秒(13 位)</div>
+                <div class="stat-label">毫秒（13 位）</div>
                 <div class="stat-value">${ms}</div>
               </div>
               <div class="stat">
@@ -368,15 +368,15 @@
               </div>
               <div class="field" style="margin-top:12px;">
                 <label class="field-label">本地时间</label>
-                <div class="output" id="ts-local">-</div>
+                <div class="output" id="ts-local">—</div>
               </div>
               <div class="field">
                 <label class="field-label">UTC 时间</label>
-                <div class="output" id="ts-utc">-</div>
+                <div class="output" id="ts-utc">—</div>
               </div>
               <div class="field">
                 <label class="field-label">ISO 8601</label>
-                <div class="output" id="ts-iso">-</div>
+                <div class="output" id="ts-iso">—</div>
               </div>
             </div>
 
@@ -392,11 +392,11 @@
               </div>
               <div class="field" style="margin-top:12px;">
                 <label class="field-label">秒时间戳</label>
-                <div class="output" id="dt-sec">-</div>
+                <div class="output" id="dt-sec">—</div>
               </div>
               <div class="field">
                 <label class="field-label">毫秒时间戳</label>
-                <div class="output" id="dt-ms">-</div>
+                <div class="output" id="dt-ms">—</div>
               </div>
             </div>
           </div>
@@ -739,7 +739,7 @@
           try {
             const v = JSON.parse($i.value);
             if (typeof v !== 'string') {
-              show(false, '✗ 去转义只对 JSON 字符串有效，当前是 ' + (Array.isArray(v) ? '数组' : typeof v));
+              show(false, '✗ 去转义只对 JSON 字符串有效,当前是 ' + (Array.isArray(v) ? '数组' : typeof v));
               return;
             }
             currentValue = v;
@@ -873,7 +873,7 @@
       view: () => `
         <div class="tool-header">
           <h1 class="tool-title">XML 格式化</h1>
-          <p class="tool-desc">XML 美化、压缩。轻量级实现(不支持注释嵌套修复等复杂场景)。</p>
+          <p class="tool-desc">XML 美化、压缩。轻量级实现（不支持注释嵌套修复等复杂场景）。</p>
         </div>
         <div class="panel">
           <div class="panel-title">XML</div>
@@ -933,7 +933,7 @@
       view: () => `
         <div class="tool-header">
           <h1 class="tool-title">命名风格转换</h1>
-          <p class="tool-desc">驼峰、下划线、烤串、帕斯卡、常量大小写互转;同时支持 JSON Key 批处理。</p>
+          <p class="tool-desc">驼峰、下划线、烤串、帕斯卡、常量大小写互转；同时支持 JSON Key 批处理。</p>
         </div>
         <div class="panel">
           <div class="panel-title">单字符串转换</div>
@@ -1012,7 +1012,7 @@
             };
             $jcsout.value = JSON.stringify(walk(obj), null, 2);
             toast('已转换为 ' + type);
-          } catch (e) { toast('JSON 解析失败:' + e.message); }
+          } catch (e) { toast('JSON 解析失败：' + e.message); }
         };
         root.addEventListener('click', e => {
           const a = e.target.dataset.act;
@@ -1121,7 +1121,7 @@ date</textarea>
       view: () => `
         <div class="tool-header">
           <h1 class="tool-title">文本 Diff</h1>
-          <p class="tool-desc">逐行比较两段文本的差异(基于 LCS)。</p>
+          <p class="tool-desc">逐行比较两段文本的差异（基于 LCS）。</p>
         </div>
         <div class="diff-container">
           <textarea class="textarea mono" id="da" style="min-height:240px;">function hello() {
@@ -1170,7 +1170,7 @@ date</textarea>
       view: () => `
         <div class="tool-header">
           <h1 class="tool-title">正则测试</h1>
-          <p class="tool-desc">实时高亮匹配项,支持捕获组。包含中文需要加 <code>/u</code> 标志。</p>
+          <p class="tool-desc">实时高亮匹配项，支持捕获组。包含中文需要加 <code>/u</code> 标志。</p>
         </div>
         <div class="panel">
           <div class="field">
@@ -1197,11 +1197,11 @@ date</textarea>
         </div>
         <div class="panel">
           <div class="panel-title">测试文本</div>
-          <textarea class="textarea mono" id="rtxt" style="min-height:160px;">记录:
+          <textarea class="textarea mono" id="rtxt" style="min-height:160px;">记录：
 2024-01-15 项目启动
 2024-03-20 完成 MVP
 2025-12-31 上线计划
-时间:2026-06-05</textarea>
+时间：2026-06-05</textarea>
           <div class="btn-row">
             <button class="btn" data-act="clear">清空</button>
           </div>
@@ -1228,11 +1228,11 @@ date</textarea>
               `#${idx+1}: ${escapeHtml(m[0])}\n` +
               m.slice(1).map((g, i) => `   group[${i+1}]: ${escapeHtml(g || '(空)')}`).join('\n')
             ).join('\n');
-            root.querySelector('#rgroups').textContent = groups || '- 无匹配 -';
+            root.querySelector('#rgroups').textContent = groups || '— 无匹配 —';
           } catch (e) {
             root.querySelector('#rcount').textContent = '×';
-            root.querySelector('#rhil').innerHTML = `<span style="color:var(--danger)">正则错误:${escapeHtml(e.message)}</span>`;
-            root.querySelector('#rgroups').textContent = '-';
+            root.querySelector('#rhil').innerHTML = `<span style="color:var(--danger)">正则错误：${escapeHtml(e.message)}</span>`;
+            root.querySelector('#rgroups').textContent = '—';
           }
         };
         ['rpat','rflag','rtxt','rinsensitive'].forEach(id => {
@@ -1252,12 +1252,12 @@ date</textarea>
       view: () => `
         <div class="tool-header">
           <h1 class="tool-title">字符串工具</h1>
-          <p class="tool-desc">常用字符串操作集合:长度统计、反转、重复、填充、替换、大小写。所有结果实时计算。</p>
+          <p class="tool-desc">常用字符串操作集合：长度统计、反转、重复、填充、替换、大小写。所有结果实时计算。</p>
         </div>
 
         <div class="panel">
           <div class="panel-title">输入</div>
-          <textarea class="textarea mono" id="stin" style="min-height:100px;">Hello, 世界!👋🌏</textarea>
+          <textarea class="textarea mono" id="stin" style="min-height:100px;">Hello, 世界！👋🌏</textarea>
         </div>
 
         <div class="panel">
@@ -1272,10 +1272,10 @@ date</textarea>
               <label class="switch">
                 <input type="checkbox" id="st-rev-bytes" />
                 <span class="switch-track"></span>
-                <span class="switch-label">按字节反转(UTF-8,可能乱码)</span>
+                <span class="switch-label">按字节反转（UTF-8，可能乱码）</span>
               </label>
             </div>
-            <div class="output mono" id="st-rev">-</div>
+            <div class="output mono" id="st-rev">—</div>
             <div class="btn-row">
               <button class="btn" data-act="copy-rev">复制</button>
             </div>
@@ -1296,7 +1296,7 @@ date</textarea>
                 </label>
               </div>
             </div>
-            <div class="output mono" id="st-rep" style="min-height:60px;">-</div>
+            <div class="output mono" id="st-rep" style="min-height:60px;">—</div>
             <div class="btn-row">
               <button class="btn" data-act="copy-rep">复制</button>
             </div>
@@ -1305,7 +1305,7 @@ date</textarea>
 
         <div class="row">
           <div class="panel">
-            <div class="panel-title">填充(padStart / padEnd)</div>
+            <div class="panel-title">填充（padStart / padEnd）</div>
             <div class="row-3">
               <div class="field">
                 <label class="field-label">目标长度</label>
@@ -1323,14 +1323,14 @@ date</textarea>
                 </select>
               </div>
             </div>
-            <div class="output mono" id="st-pad">-</div>
+            <div class="output mono" id="st-pad">—</div>
             <div class="btn-row">
               <button class="btn" data-act="copy-pad">复制</button>
             </div>
           </div>
 
           <div class="panel">
-            <div class="panel-title">替换(replaceAll)</div>
+            <div class="panel-title">替换（replaceAll）</div>
             <div class="field">
               <label class="field-label">查找</label>
               <input class="input mono" id="st-rep-find" value="world" placeholder="要查找的子串..." />
@@ -1343,7 +1343,7 @@ date</textarea>
               <label class="switch">
                 <input type="checkbox" id="st-rep-regex" />
                 <span class="switch-track"></span>
-                <span class="switch-label">正则模式(含捕获组 <code>$1 $2</code>)</span>
+                <span class="switch-label">正则模式（含捕获组 <code>$1 $2</code>）</span>
               </label>
             </div>
             <div class="field">
@@ -1353,7 +1353,7 @@ date</textarea>
                 <span class="switch-label">忽略大小写</span>
               </label>
             </div>
-            <div class="output mono" id="st-replace">-</div>
+            <div class="output mono" id="st-replace">—</div>
             <div class="btn-row">
               <button class="btn" data-act="copy-replace">复制</button>
             </div>
@@ -1406,9 +1406,9 @@ date</textarea>
           const words = (s.trim().match(/\S+/g) || []).length;
           const whites = (s.match(/\s/g) || []).length;
           $stats.innerHTML = `
-            <div class="stat"><div class="stat-label">字符数(length)</div><div class="stat-value">${s.length}</div></div>
-            <div class="stat"><div class="stat-label">码点数(Unicode)</div><div class="stat-value">${codePoints}</div></div>
-            <div class="stat"><div class="stat-label">字节数(UTF-8)</div><div class="stat-value">${bytes}</div></div>
+            <div class="stat"><div class="stat-label">字符数（length）</div><div class="stat-value">${s.length}</div></div>
+            <div class="stat"><div class="stat-label">码点数（Unicode）</div><div class="stat-value">${codePoints}</div></div>
+            <div class="stat"><div class="stat-label">字节数（UTF-8）</div><div class="stat-value">${bytes}</div></div>
             <div class="stat"><div class="stat-label">行数</div><div class="stat-value">${lines}</div></div>
             <div class="stat"><div class="stat-label">单词数</div><div class="stat-value">${words}</div></div>
             <div class="stat"><div class="stat-label">空白字符</div><div class="stat-value">${whites}</div></div>
@@ -1420,13 +1420,13 @@ date</textarea>
         const $rev = root.querySelector('#st-rev');
         const updateRev = () => {
           const s = $i.value;
-          if (s === '') { $rev.textContent = '-'; return; }
+          if (s === '') { $rev.textContent = '—'; return; }
           if ($revBytes.checked) {
-            // 按字节反转:拿到 UTF-8 字节数组,反转,再用 fatal:false 解码
+            // 按字节反转：拿到 UTF-8 字节数组，反转，再用 fatal:false 解码
             const bytes = new TextEncoder().encode(s);
             $rev.textContent = new TextDecoder('utf-8', { fatal: false }).decode(bytes.reverse());
           } else {
-            // 按 Unicode 码点反转,正确处理 emoji / surrogate pair
+            // 按 Unicode 码点反转，正确处理 emoji / surrogate pair
             $rev.textContent = [...s].reverse().join('');
           }
         };
@@ -1438,7 +1438,7 @@ date</textarea>
         const updateRep = () => {
           const n = Math.min(1000, Math.max(0, parseInt($repN.value, 10) || 0));
           const s = $i.value;
-          if (s === '' || n === 0) { $rep.textContent = '-'; return; }
+          if (s === '' || n === 0) { $rep.textContent = '—'; return; }
           $rep.textContent = $repSep.checked ? Array(n).fill(s).join('\n') : s.repeat(n);
         };
 
@@ -1452,7 +1452,7 @@ date</textarea>
           const len = Math.min(100000, Math.max(0, parseInt($padLen.value, 10) || 0));
           const ch = $padCh.value || ' ';
           const dir = $padDir.value;
-          $pad.textContent = s === '' ? '-' : (dir === 'start' ? s.padStart(len, ch) : s.padEnd(len, ch));
+          $pad.textContent = s === '' ? '—' : (dir === 'start' ? s.padStart(len, ch) : s.padEnd(len, ch));
         };
 
         // 替换
@@ -1464,7 +1464,7 @@ date</textarea>
         const updateReplace = () => {
           const s = $i.value;
           const find = $repFind.value;
-          if (s === '') { $replace.textContent = '-'; return; }
+          if (s === '') { $replace.textContent = '—'; return; }
           if (find === '') { $replace.textContent = s; return; }
           try {
             if ($repRegex.checked) {
@@ -1472,7 +1472,7 @@ date</textarea>
               const re = new RegExp(find, flags);
               $replace.textContent = s.replace(re, $repWith.value);
             } else if ($repIcase.checked) {
-              // 大小写不敏感的非正则替换:手动实现
+              // 大小写不敏感的非正则替换：手动实现
               const out = [];
               const lowerSrc = s.toLowerCase();
               const lowerFind = find.toLowerCase();
@@ -1489,7 +1489,7 @@ date</textarea>
               $replace.textContent = s.split(find).join($repWith.value);
             }
           } catch (e) {
-            $replace.textContent = '正则错误:' + e.message;
+            $replace.textContent = '正则错误：' + e.message;
           }
         };
 
@@ -1503,15 +1503,15 @@ date</textarea>
           const s = $i.value;
           $upper.value = s.toUpperCase();
           $lower.value = s.toLowerCase();
-          // 句首大写:首个字母字符大写,其余不变
+          // 句首大写：首个字母字符大写，其余不变
           $sent.value = s.replace(/^(\s*)(\p{L})/u, (_, ws, ch) => ws + ch.toUpperCase());
-          // 首字母大写:只第一个字符大写(不跳过空白)
+          // 首字母大写：只第一个字符大写（不跳过空白）
           $cap.value = s.length ? s[0].toUpperCase() + s.slice(1) : '';
-          // Title Case:每个单词的首字母大写(处理 Unicode 字母)
+          // Title Case：每个单词的首字母大写（处理 Unicode 字母）
           $title.value = s.toLowerCase().replace(/(^|[\s\p{P}]+)(\p{L})/gu, (_, sep, ch) => sep + ch.toUpperCase());
         };
 
-        // 统一调度:input 变化触发所有实时 panel 重算
+        // 统一调度：input 变化触发所有实时 panel 重算
         let timer;
         const onInput = () => {
           clearTimeout(timer);
@@ -1526,7 +1526,7 @@ date</textarea>
         };
         $i.addEventListener('input', onInput);
 
-        // 反向触发:填充/替换控件变化时只重算对应 panel
+        // 反向触发：填充/替换控件变化时只重算对应 panel
         $revBytes.addEventListener('change', updateRev);
         $repN.addEventListener('input', updateRep);
         $repSep.addEventListener('change', updateRep);
@@ -1581,7 +1581,7 @@ date</textarea>
       view: () => `
         <div class="tool-header">
           <h1 class="tool-title">UUID 生成</h1>
-          <p class="tool-desc">基于 <code>crypto.randomUUID</code>,符合 RFC 4122 v4。</p>
+          <p class="tool-desc">基于 <code>crypto.randomUUID</code>，符合 RFC 4122 v4。</p>
         </div>
         <div class="panel">
           <div class="row-3">
@@ -1650,12 +1650,12 @@ date</textarea>
       view: () => `
         <div class="tool-header">
           <h1 class="tool-title">随机密码生成</h1>
-          <p class="tool-desc">使用密码学安全随机数(crypto.getRandomValues)。</p>
+          <p class="tool-desc">使用密码学安全随机数（crypto.getRandomValues）。</p>
         </div>
         <div class="row">
           <div class="panel">
             <div class="field">
-              <label class="field-label">长度:<span id="pwl">16</span></label>
+              <label class="field-label">长度：<span id="pwl">16</span></label>
               <input class="input" type="range" id="pwlen" min="4" max="128" value="16" />
             </div>
             <div class="field">
@@ -1757,7 +1757,7 @@ date</textarea>
           const list = Array.from({ length: n }, () => genOne(len, sets));
           $o.value = list.join('\n');
           const [label, color] = strength(list[0] || '');
-          $strength.textContent = '强度:' + label;
+          $strength.textContent = '强度：' + label;
           $strength.style.background = color + '22';
           $strength.style.color = color;
         };
@@ -1779,7 +1779,7 @@ date</textarea>
       view: () => `
         <div class="tool-header">
           <h1 class="tool-title">Lorem Ipsum 生成</h1>
-          <p class="tool-desc">生成占位文本,可指定段落数和每段句数。</p>
+          <p class="tool-desc">生成占位文本，可指定段落数和每段句数。</p>
         </div>
         <div class="panel">
           <div class="row-3">
@@ -1878,7 +1878,7 @@ date</textarea>
       view: () => `
         <div class="tool-header">
           <h1 class="tool-title">颜色值转换</h1>
-          <p class="tool-desc">HEX / RGB / HSL 互转,附带色板预览。</p>
+          <p class="tool-desc">HEX / RGB / HSL 互转，附带色板预览。</p>
         </div>
         <div class="panel">
           <div class="row-3">
@@ -1970,7 +1970,7 @@ date</textarea>
       view: () => `
         <div class="tool-header">
           <h1 class="tool-title">进制转换</h1>
-          <p class="tool-desc">2 ~ 36 进制互转,支持小数。</p>
+          <p class="tool-desc">2 ~ 36 进制互转，支持小数。</p>
         </div>
         <div class="panel">
           <div class="row-3">
@@ -1992,7 +1992,7 @@ date</textarea>
           </div>
         </div>
         <div class="panel">
-          <div class="panel-title">结果(自动展示 2/8/10/16)</div>
+          <div class="panel-title">结果（自动展示 2/8/10/16）</div>
           <div class="output" id="rout"></div>
           <div class="btn-row">
             <button class="btn" data-act="copy">复制当前</button>
@@ -2048,7 +2048,7 @@ date</textarea>
               `目标 (${t}): ${toBase(dec, t)}`,
             ];
             $o.textContent = lines.join('\n');
-          } catch (e) { $o.textContent = '错误:' + e.message; }
+          } catch (e) { $o.textContent = '错误：' + e.message; }
         };
         $v.addEventListener('input', render);
         $from.addEventListener('input', render);
@@ -2066,7 +2066,7 @@ date</textarea>
     // 计算下次执行
     const next = (expr, count = 5) => {
       const parts = expr.trim().split(/\s+/);
-      if (parts.length !== 5 && parts.length !== 6) throw new Error('需要 5 或 6 段(分 时 日 月 周 [年])');
+      if (parts.length !== 5 && parts.length !== 6) throw new Error('需要 5 或 6 段（分 时 日 月 周 [年]）');
       const [m, h, d, mo, w] = parts;
       const results = [];
       let t = new Date();
@@ -2103,7 +2103,7 @@ date</textarea>
       view: () => `
         <div class="tool-header">
           <h1 class="tool-title">Cron 表达式解析</h1>
-          <p class="tool-desc">展示未来 5 次执行时间。支持 5 段(标准)和 6 段(含年)。</p>
+          <p class="tool-desc">展示未来 5 次执行时间。支持 5 段（标准）和 6 段（含年）。</p>
         </div>
         <div class="panel">
           <div class="field">
@@ -2112,7 +2112,7 @@ date</textarea>
           </div>
           <div class="field">
             <label class="field-label">说明</label>
-            <div id="cexpdesc" class="output">-</div>
+            <div id="cexpdesc" class="output">—</div>
           </div>
           <div class="btn-row">
             <button class="btn" data-act="preset1">每分钟</button>
@@ -2125,7 +2125,7 @@ date</textarea>
         </div>
         <div class="panel">
           <div class="panel-title">未来 5 次执行</div>
-          <div id="cnext" class="output" style="min-height:160px;">-</div>
+          <div id="cnext" class="output" style="min-height:160px;">—</div>
         </div>
       `,
       bind(root) {
@@ -2152,8 +2152,8 @@ date</textarea>
             const list = next($e.value, 5);
             $n.textContent = list.length
               ? list.map((d, i) => `#${i+1}  ${formatDate(d, 'YYYY-MM-DD HH:mm')}  (${['日','一','二','三','四','五','六'][d.getDay()]})`).join('\n')
-              : '- 未匹配到执行时间 -';
-          } catch (e) { $n.textContent = '错误:' + e.message; }
+              : '— 未匹配到执行时间 —';
+          } catch (e) { $n.textContent = '错误：' + e.message; }
         };
         $e.addEventListener('input', render);
         root.addEventListener('click', e => {
@@ -2184,23 +2184,23 @@ date</textarea>
         <div class="panel">
           <div class="field">
             <label class="field-label">字符 → 编码</label>
-            <input class="input" id="achar" placeholder="输入字符..." maxlength="10" />
+            <input class="input" id="achar" placeholder="输入字符…" maxlength="10" />
           </div>
-          <div class="output" id="ainfo">-</div>
+          <div class="output" id="ainfo">—</div>
         </div>
         <div class="panel">
-          <div class="panel-title">ASCII (32-126)</div>
+          <div class="panel-title">ASCII (32–126)</div>
           <div class="ascii-grid" id="aascii"></div>
         </div>
         <div class="panel">
-          <div class="panel-title">中文 Unicode 常用区 (0x4E00-0x4EFF)</div>
+          <div class="panel-title">中文 Unicode 常用区 (0x4E00–0x4EFF)</div>
           <div class="ascii-grid" id="acjk" style="max-height:300px;"></div>
         </div>
       `,
       bind(root) {
         const render = () => {
           const ch = root.querySelector('#achar').value;
-          if (!ch) { root.querySelector('#ainfo').textContent = '-'; return; }
+          if (!ch) { root.querySelector('#ainfo').textContent = '—'; return; }
           const list = [...ch].map(c => {
             const code = c.codePointAt(0);
             return `${escapeHtml(c)}  →  U+${code.toString(16).toUpperCase().padStart(4,'0')}  (${code})  UTF-8: ${[...new TextEncoder().encode(c)].map(b => b.toString(16).padStart(2,'0')).join(' ')}`;
@@ -2218,7 +2218,7 @@ date</textarea>
         for (let i = 0x4E00; i <= 0x4EFF; i++) c.insertAdjacentHTML('beforeend', cell(String.fromCodePoint(i), i));
         document.addEventListener('click', e => {
           const t = e.target.closest('.ascii-cell');
-          if (t) { copyText(t.dataset.ch); toast('已复制:' + t.dataset.ch); }
+          if (t) { copyText(t.dataset.ch); toast('已复制：' + t.dataset.ch); }
         });
         render();
       }
@@ -2236,7 +2236,7 @@ date</textarea>
       view: () => `
         <div class="tool-header">
           <h1 class="tool-title">JWT 解码</h1>
-          <p class="tool-desc">解析 JWT 的 Header / Payload / Signature。本工具<strong>不验签</strong>,仅做结构展示。</p>
+          <p class="tool-desc">解析 JWT 的 Header / Payload / Signature。本工具<strong>不验签</strong>，仅做结构展示。</p>
         </div>
         <div class="panel">
           <div class="panel-title">JWT Token</div>
@@ -2250,15 +2250,15 @@ date</textarea>
         <div class="row-3">
           <div class="panel">
             <div class="panel-title">Header</div>
-            <div class="output" id="jwh">-</div>
+            <div class="output" id="jwh">—</div>
           </div>
           <div class="panel">
             <div class="panel-title">Payload</div>
-            <div class="output" id="jwp">-</div>
+            <div class="output" id="jwp">—</div>
           </div>
           <div class="panel">
             <div class="panel-title">Signature</div>
-            <div class="output" id="jws">-</div>
+            <div class="output" id="jws">—</div>
           </div>
         </div>
       `,
@@ -2266,7 +2266,7 @@ date</textarea>
         const $i = root.querySelector('#jwin');
         const dec = () => {
           const parts = $i.value.trim().split('.');
-          if (parts.length !== 3) { toast('JWT 格式错误(需要 header.payload.signature 三段)'); return; }
+          if (parts.length !== 3) { toast('JWT 格式错误（需要 header.payload.signature 三段）'); return; }
           try {
             const h = JSON.parse(b64urlDecode(parts[0]));
             const p = JSON.parse(b64urlDecode(parts[1]));
@@ -2274,14 +2274,14 @@ date</textarea>
             root.querySelector('#jwp').textContent = JSON.stringify(p, null, 2);
             root.querySelector('#jws').textContent = parts[2];
             toast('已解码');
-          } catch (e) { toast('解码失败:' + e.message); }
+          } catch (e) { toast('解码失败：' + e.message); }
         };
         root.addEventListener('click', e => {
           const a = e.target.dataset.act;
           if (a === 'dec') dec();
           else if (a === 'clear') {
-            $i.value = ''; root.querySelector('#jwh').textContent = '-';
-            root.querySelector('#jwp').textContent = '-'; root.querySelector('#jws').textContent = '-';
+            $i.value = ''; root.querySelector('#jwh').textContent = '—';
+            root.querySelector('#jwp').textContent = '—'; root.querySelector('#jws').textContent = '—';
           }
         });
         dec();
@@ -2388,7 +2388,7 @@ date</textarea>
       view: () => `
         <div class="tool-header">
           <h1 class="tool-title">Hash 生成</h1>
-          <p class="tool-desc">计算文本的 MD5 / SHA-1 / SHA-256 / SHA-512 哈希值(实时计算)。</p>
+          <p class="tool-desc">计算文本的 MD5 / SHA-1 / SHA-256 / SHA-512 哈希值（实时计算）。</p>
         </div>
         <div class="panel">
           <div class="panel-title">输入文本</div>
@@ -2398,22 +2398,22 @@ date</textarea>
           </div>
         </div>
         <div class="panel">
-          <div class="panel-title">MD5 <span style="color:var(--text-muted);font-weight:400;text-transform:none;letter-spacing:normal;">(128 bit)</span></div>
-          <div class="output" id="h-md5">-</div>
+          <div class="panel-title">MD5 <span style="color:var(--text-muted);font-weight:400;text-transform:none;letter-spacing:normal;">（128 bit）</span></div>
+          <div class="output" id="h-md5">—</div>
         </div>
         <div class="row">
           <div class="panel">
-            <div class="panel-title">SHA-1 <span style="color:var(--text-muted);font-weight:400;text-transform:none;letter-spacing:normal;">(160 bit)</span></div>
-            <div class="output" id="h-sha1">-</div>
+            <div class="panel-title">SHA-1 <span style="color:var(--text-muted);font-weight:400;text-transform:none;letter-spacing:normal;">（160 bit）</span></div>
+            <div class="output" id="h-sha1">—</div>
           </div>
           <div class="panel">
-            <div class="panel-title">SHA-256 <span style="color:var(--text-muted);font-weight:400;text-transform:none;letter-spacing:normal;">(256 bit)</span></div>
-            <div class="output" id="h-sha256">-</div>
+            <div class="panel-title">SHA-256 <span style="color:var(--text-muted);font-weight:400;text-transform:none;letter-spacing:normal;">（256 bit）</span></div>
+            <div class="output" id="h-sha256">—</div>
           </div>
         </div>
         <div class="panel">
-          <div class="panel-title">SHA-512 <span style="color:var(--text-muted);font-weight:400;text-transform:none;letter-spacing:normal;">(512 bit)</span></div>
-          <div class="output" id="h-sha512">-</div>
+          <div class="panel-title">SHA-512 <span style="color:var(--text-muted);font-weight:400;text-transform:none;letter-spacing:normal;">（512 bit）</span></div>
+          <div class="output" id="h-sha512">—</div>
         </div>
       `,
       bind(root) {
@@ -2432,7 +2432,7 @@ date</textarea>
             crypto.subtle.digest('SHA-512', enc.encode(text)).then(b => {
               root.querySelector('#h-sha512').textContent = [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join('');
             });
-          } catch (e) { toast('计算失败:' + e.message); }
+          } catch (e) { toast('计算失败：' + e.message); }
         };
         let t;
         $i.addEventListener('input', () => { clearTimeout(t); t = setTimeout(compute, 100); });
@@ -2446,11 +2446,11 @@ date</textarea>
   html() {
     const ENTITIES = {
       '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
-      ' ': '&nbsp;', '©': '&copy;', '®': '&reg;', 'TM': '&trade;',
+      ' ': '&nbsp;', '©': '&copy;', '®': '&reg;', '™': '&trade;',
       '€': '&euro;', '£': '&pound;', '¥': '&yen;', '¢': '&cent;',
       '§': '&sect;', '¶': '&para;', '×': '&times;', '÷': '&divide;',
-      '±': '&plusmn;', 'μ': '&micro;', '·': '&middot;', '°': '&deg;',
-      '1⁄4': '&frac14;', '1⁄2': '&frac12;', '3⁄4': '&frac34;',
+      '±': '&plusmn;', 'µ': '&micro;', '·': '&middot;', '°': '&deg;',
+      '¼': '&frac14;', '½': '&frac12;', '¾': '&frac34;',
       '«': '&laquo;', '»': '&raquo;', '←': '&larr;', '→': '&rarr;',
       '↑': '&uarr;', '↓': '&darr;', '↔': '&harr;',
     };
@@ -2459,7 +2459,7 @@ date</textarea>
       view: () => `
         <div class="tool-header">
           <h1 class="tool-title">HTML 实体编解码</h1>
-          <p class="tool-desc">转义/反转义常见 HTML 实体(&amp;lt; &amp;gt; &amp;amp; &amp;quot; 等)。</p>
+          <p class="tool-desc">转义/反转义常见 HTML 实体（&amp;lt; &amp;gt; &amp;amp; &amp;quot; 等）。</p>
         </div>
         <div class="row">
           <div class="panel">
@@ -2492,9 +2492,9 @@ date</textarea>
             $o.value = $i.value
               .replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(+n))
               .replace(/&#x([0-9a-fA-F]+);/g, (_, n) => String.fromCodePoint(parseInt(n, 16)))
-              .replace(/&(amp|lt|gt|quot|nbsp|copy|reg|trade|euro|pound|yen|cent|sect|para|times|divide|plusmn|micro|middot|deg|frac14|frac12|frac34|laquo|raquo|larr|rarr|uarr|darr|harr);/g, (_, name) => ({ amp:'&',lt:'<',gt:'>',quot:'"',nbsp:'\u00A0',copy:'©',reg:'®',trade:'TM',euro:'€',pound:'£',yen:'¥',cent:'¢',sect:'§',para:'¶',times:'×',divide:'÷',plusmn:'±',micro:'μ',middot:'·',deg:'°',frac14:'1⁄4',frac12:'1⁄2',frac34:'3⁄4',laquo:'«',raquo:'»',larr:'←',rarr:'→',uarr:'↑',darr:'↓',harr:'↔' })[name] || '&' + name + ';');
+              .replace(/&(amp|lt|gt|quot|nbsp|copy|reg|trade|euro|pound|yen|cent|sect|para|times|divide|plusmn|micro|middot|deg|frac14|frac12|frac34|laquo|raquo|larr|rarr|uarr|darr|harr);/g, (_, name) => ({ amp:'&',lt:'<',gt:'>',quot:'"',nbsp:'\u00A0',copy:'©',reg:'®',trade:'™',euro:'€',pound:'£',yen:'¥',cent:'¢',sect:'§',para:'¶',times:'×',divide:'÷',plusmn:'±',micro:'µ',middot:'·',deg:'°',frac14:'¼',frac12:'½',frac34:'¾',laquo:'«',raquo:'»',larr:'←',rarr:'→',uarr:'↑',darr:'↓',harr:'↔' })[name] || '&' + name + ';');
             toast('已解码');
-          } catch (e) { toast('解码失败:' + e.message); }
+          } catch (e) { toast('解码失败：' + e.message); }
         };
         root.addEventListener('click', e => {
           const a = e.target.dataset.act;
@@ -2525,11 +2525,11 @@ date</textarea>
         </div>
         <div class="panel">
           <div class="panel-title">结构</div>
-          <div class="output" id="upstruct">-</div>
+          <div class="output" id="upstruct">—</div>
         </div>
         <div class="panel">
           <div class="panel-title">查询参数</div>
-          <div class="output" id="upquery">-</div>
+          <div class="output" id="upquery">—</div>
         </div>
       `,
       bind(root) {
@@ -2539,28 +2539,28 @@ date</textarea>
             const u = new URL($i.value.trim());
             const struct = [
               `协议 (protocol):  ${u.protocol}`,
-              `用户名 (username): ${u.username || '-'}`,
-              `密码 (password):   ${u.password || '-'}`,
+              `用户名 (username): ${u.username || '—'}`,
+              `密码 (password):   ${u.password || '—'}`,
               `主机 (host):       ${u.host}`,
               `域名 (hostname):   ${u.hostname}`,
               `端口 (port):       ${u.port || '(默认)'}`,
               `源 (origin):       ${u.origin}`,
               `路径 (pathname):   ${u.pathname}`,
-              `查询 (search):     ${u.search || '-'}`,
-              `片段 (hash):       ${u.hash || '-'}`,
+              `查询 (search):     ${u.search || '—'}`,
+              `片段 (hash):       ${u.hash || '—'}`,
             ].join('\n');
             root.querySelector('#upstruct').textContent = struct;
             const params = [...u.searchParams.entries()];
             root.querySelector('#upquery').textContent = params.length
               ? params.map(([k, v]) => `${k}  =  ${v}`).join('\n')
-              : '- 无查询参数 -';
+              : '— 无查询参数 —';
             toast('已解析');
-          } catch (e) { toast('URL 解析失败:' + e.message); }
+          } catch (e) { toast('URL 解析失败：' + e.message); }
         };
         root.addEventListener('click', e => {
           const a = e.target.dataset.act;
           if (a === 'parse') parse();
-          else if (a === 'clear') { $i.value = ''; root.querySelector('#upstruct').textContent = '-'; root.querySelector('#upquery').textContent = '-'; }
+          else if (a === 'clear') { $i.value = ''; root.querySelector('#upstruct').textContent = '—'; root.querySelector('#upquery').textContent = '—'; }
         });
         $i.addEventListener('change', parse);
         parse();
@@ -2574,7 +2574,7 @@ date</textarea>
       view: () => `
         <div class="tool-header">
           <h1 class="tool-title">HTTP Header 解析</h1>
-          <p class="tool-desc">把 HTTP 头部文本(<code>Name: Value</code> 形式)解析为可读表格。</p>
+          <p class="tool-desc">把 HTTP 头部文本（<code>Name: Value</code> 形式）解析为可读表格。</p>
         </div>
         <div class="panel">
           <div class="panel-title">HTTP Headers</div>
@@ -2592,8 +2592,8 @@ X-Request-ID: 550e8400-e29b-41d4-a716-446655440000</textarea>
           </div>
         </div>
         <div class="panel">
-          <div class="panel-title">解析结果(<span id="hdcount">0</span> 项)</div>
-          <div class="output" id="hdout">-</div>
+          <div class="panel-title">解析结果（<span id="hdcount">0</span> 项）</div>
+          <div class="output" id="hdout">—</div>
         </div>
       `,
       bind(root) {
@@ -2611,13 +2611,13 @@ X-Request-ID: 550e8400-e29b-41d4-a716-446655440000</textarea>
           root.querySelector('#hdcount').textContent = rows.length;
           root.querySelector('#hdout').textContent = rows.length
             ? rows.map(([k, v]) => `${k.padEnd(28, ' ')}  ${v}`).join('\n')
-            : '- 未解析到有效 header -';
+            : '— 未解析到有效 header —';
           toast('已解析');
         };
         root.addEventListener('click', e => {
           const a = e.target.dataset.act;
           if (a === 'parse') parse();
-          else if (a === 'clear') { $i.value = ''; root.querySelector('#hdout').textContent = '-'; root.querySelector('#hdcount').textContent = '0'; }
+          else if (a === 'clear') { $i.value = ''; root.querySelector('#hdout').textContent = '—'; root.querySelector('#hdcount').textContent = '0'; }
         });
         parse();
       }
@@ -2651,7 +2651,7 @@ X-Request-ID: 550e8400-e29b-41d4-a716-446655440000</textarea>
               </select>
             </div>
             <div class="field">
-              <label class="field-label">到(输出所有单位)</label>
+              <label class="field-label">到（输出所有单位）</label>
             </div>
           </div>
           <div class="btn-row">
@@ -2660,7 +2660,7 @@ X-Request-ID: 550e8400-e29b-41d4-a716-446655440000</textarea>
         </div>
         <div class="panel">
           <div class="panel-title">结果</div>
-          <div class="output" id="duout">-</div>
+          <div class="output" id="duout">—</div>
         </div>
       `,
       bind(root) {
@@ -2696,7 +2696,7 @@ X-Request-ID: 550e8400-e29b-41d4-a716-446655440000</textarea>
       view: () => `
         <div class="tool-header">
           <h1 class="tool-title">字节单位转换</h1>
-          <p class="tool-desc">B / KB / MB / GB / TB,支持十进制(KB=1000)和二进制(KiB=1024)。</p>
+          <p class="tool-desc">B / KB / MB / GB / TB，支持十进制（KB=1000）和二进制（KiB=1024）。</p>
         </div>
         <div class="panel">
           <div class="field">
@@ -2728,7 +2728,7 @@ X-Request-ID: 550e8400-e29b-41d4-a716-446655440000</textarea>
         </div>
         <div class="panel">
           <div class="panel-title">结果</div>
-          <div class="output" id="bout">-</div>
+          <div class="output" id="bout">—</div>
         </div>
       `,
       bind(root) {
@@ -2759,7 +2759,7 @@ X-Request-ID: 550e8400-e29b-41d4-a716-446655440000</textarea>
 
   /* ---------- Markdown 预览 ---------- */
   markdown() {
-    // 极简 Markdown 渲染(仅支持常用语法)
+    // 极简 Markdown 渲染（仅支持常用语法）
     const escapeHtml = s => s.replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
     const render = (md) => {
       // 提取代码块
@@ -2811,14 +2811,14 @@ X-Request-ID: 550e8400-e29b-41d4-a716-446655440000</textarea>
       view: () => `
         <div class="tool-header">
           <h1 class="tool-title">Markdown 预览</h1>
-          <p class="tool-desc">左侧写 Markdown,右侧实时渲染预览。支持标题、粗体、斜体、代码、链接、列表、引用等。</p>
+          <p class="tool-desc">左侧写 Markdown，右侧实时渲染预览。支持标题、粗体、斜体、代码、链接、列表、引用等。</p>
         </div>
         <div class="row">
           <div class="panel">
             <div class="panel-title">Markdown</div>
             <textarea class="textarea mono" id="mdin" style="min-height:400px;"># Hello Markdown
 
-这是一段 **加粗** 和 *斜体* 文字,还有 \`inline code\`。
+这是一段 **加粗** 和 *斜体* 文字，还有 \`inline code\`。
 
 ## 功能列表
 
@@ -2836,7 +2836,7 @@ function hello(name) {
 }
 \`\`\`
 
-> 引用块:这是一段引用的内容。
+> 引用块：这是一段引用的内容。
 
 ---</textarea>
           </div>
@@ -2858,7 +2858,7 @@ function hello(name) {
 
   /* ---------- YAML ↔ JSON ---------- */
   yaml() {
-    // 极简 YAML 解析(仅支持基本语法:对象、数组、字符串、数字、布尔、null)
+    // 极简 YAML 解析（仅支持基本语法：对象、数组、字符串、数字、布尔、null）
     const parseYaml = (text) => {
       const lines = text.split(/\r?\n/).filter(l => !/^\s*#/.test(l) && l.trim());
       const root = {};
@@ -2925,7 +2925,7 @@ function hello(name) {
       view: () => `
         <div class="tool-header">
           <h1 class="tool-title">YAML ↔ JSON</h1>
-          <p class="tool-desc">YAML 与 JSON 互转,支持基础语法(对象、数组、字符串、数字、布尔、null)。</p>
+          <p class="tool-desc">YAML 与 JSON 互转，支持基础语法（对象、数组、字符串、数字、布尔、null）。</p>
         </div>
         <div class="row">
           <div class="panel">
@@ -2961,11 +2961,11 @@ country: CN</textarea>
         const $o = root.querySelector('#ymout');
         const toJson = () => {
           try { $o.value = JSON.stringify(parseYaml($i.value), null, 2); toast('已转 JSON'); }
-          catch (e) { toast('解析失败:' + e.message); }
+          catch (e) { toast('解析失败：' + e.message); }
         };
         const toYaml = () => {
           try { $o.value = stringifyYaml(JSON.parse($o.value)); toast('已转 YAML'); }
-          catch (e) { toast('解析失败:' + e.message); }
+          catch (e) { toast('解析失败：' + e.message); }
         };
         root.addEventListener('click', e => {
           const a = e.target.dataset.act;
@@ -3021,7 +3021,7 @@ country: CN</textarea>
       view: () => `
         <div class="tool-header">
           <h1 class="tool-title">假数据生成</h1>
-          <p class="tool-desc">批量生成测试用姓名、邮箱、手机号、身份证号、地址。数据完全随机,无业务意义。</p>
+          <p class="tool-desc">批量生成测试用姓名、邮箱、手机号、身份证号、地址。数据完全随机，无业务意义。</p>
         </div>
         <div class="panel">
           <div class="row-3">
