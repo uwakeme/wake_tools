@@ -29,7 +29,7 @@
 
   // 格式化
   { id: 'json', group: '格式化', icon: 'json', name: 'JSON 格式化',
-    desc: 'JSON 格式化、压缩、转义、校验。' },
+    desc: 'JSON 格式化、压缩、去注释、转义、校验。' },
   { id: 'sql', group: '格式化', icon: 'sql', name: 'SQL 格式化',
     desc: 'SQL 语句关键字大写、缩进美化。' },
   { id: 'xml', group: '格式化', icon: 'xml', name: 'XML 格式化',
@@ -38,8 +38,6 @@
     desc: '左侧写 Markdown，右侧实时渲染预览。' },
   { id: 'yaml', group: '格式化', icon: 'yaml', name: 'YAML ↔ JSON',
     desc: 'YAML 与 JSON 互转，支持基础语法。' },
-  { id: 'jsonclean', group: '格式化', icon: 'jsonclean', name: 'JSON 去注释',
-    desc: '去除 JSON 中的 // 和 /* */ 注释，正确处理字符串内的 // 不误删。' },
 
   // 文本处理
   { id: 'case', group: '文本处理', icon: 'case', name: '命名风格转换',
@@ -434,11 +432,66 @@
 
   /* ---------- JSON ---------- */
   json() {
+    // 状态机去注释：识别字符串、// 行注释、/* */ 块注释
+    // 字符串内的 // 不当注释；转义符 \\ 后的引号不结束字符串
+    const stripComments = (input) => {
+      let out = '';
+      let i = 0;
+      let inString = false;
+      let escape = false;
+      while (i < input.length) {
+        const c = input[i];
+        const n = input[i + 1];
+        if (inString) {
+          out += c;
+          if (escape) {
+            escape = false;
+          } else if (c === '\\') {
+            escape = true;
+          } else if (c === '"') {
+            inString = false;
+          }
+          i++;
+          continue;
+        }
+        if (c === '"') {
+          inString = true;
+          out += c;
+          i++;
+          continue;
+        }
+        if (c === '/' && n === '/') {
+          i += 2;
+          while (i < input.length && input[i] !== '\n') i++;
+          continue;
+        }
+        if (c === '/' && n === '*') {
+          i += 2;
+          while (i < input.length && !(input[i] === '*' && input[i + 1] === '/')) {
+            if (input[i] === '\n') out += '\n';
+            i++;
+          }
+          i += 2;
+          continue;
+        }
+        out += c;
+        i++;
+      }
+      return out;
+    };
+    // 清理去注释后残留的多余空白
+    const tidy = (s) => s
+      .replace(/[ \t]+\n/g, '\n')
+      .replace(/,(\s*\n\s*)+/g, ',\n')
+      .replace(/[ \t]{2,}/g, ' ')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim();
+
     return {
       view: () => `
         <div class="tool-header">
           <h1 class="tool-title">JSON 格式化</h1>
-          <p class="tool-desc">格式化、压缩、转义、去除转义、校验。</p>
+          <p class="tool-desc">格式化、压缩、去注释、转义、去除转义、键排序、校验。</p>
         </div>
         <div class="panel">
           <div class="panel-title">输入</div>
@@ -447,6 +500,9 @@
             <button class="btn btn-primary" data-act="fmt">格式化 (2 空格)</button>
             <button class="btn" data-act="fmt4">格式化 (4 空格)</button>
             <button class="btn" data-act="min">压缩</button>
+            <button class="btn" data-act="strip">去注释</button>
+            <button class="btn" data-act="stripfmt">去注释+格式化</button>
+            <button class="btn" data-act="stripmin">去注释+压缩</button>
             <button class="btn" data-act="escape">转义</button>
             <button class="btn" data-act="unescape">去转义</button>
             <button class="btn" data-act="sort">键排序</button>
@@ -489,6 +545,27 @@
             show(true, '✓ 已压缩');
           } catch (e) { show(false, '✗ ' + e.message); }
         };
+        const strip = () => {
+          if (!$i.value.trim()) { $o.value = ''; $s.style.display = 'none'; return; }
+          const cleaned = tidy(stripComments($i.value));
+          $o.value = cleaned;
+          try { JSON.parse(cleaned); show(true, '✓ 已去注释'); }
+          catch (e) { show(false, '✗ ' + e.message); }
+        };
+        const stripFmt = () => {
+          const cleaned = stripComments($i.value);
+          try {
+            $o.value = JSON.stringify(JSON.parse(cleaned), null, 2);
+            show(true, '✓ 已去注释并美化');
+          } catch (e) { show(false, '✗ ' + e.message); }
+        };
+        const stripMin = () => {
+          const cleaned = stripComments($i.value);
+          try {
+            $o.value = JSON.stringify(JSON.parse(cleaned));
+            show(true, '✓ 已去注释并压缩');
+          } catch (e) { show(false, '✗ ' + e.message); }
+        };
         const esc = () => { $o.value = JSON.stringify($i.value); show(true, '已转义'); };
         const unesc = () => {
           try { $o.value = JSON.parse($i.value); show(true, '已去转义'); }
@@ -512,6 +589,9 @@
           if (a === 'fmt') fmt(2);
           else if (a === 'fmt4') fmt(4);
           else if (a === 'min') min();
+          else if (a === 'strip') strip();
+          else if (a === 'stripfmt') stripFmt();
+          else if (a === 'stripmin') stripMin();
           else if (a === 'escape') esc();
           else if (a === 'unescape') unesc();
           else if (a === 'sort') sort();
@@ -2668,151 +2748,6 @@ country: CN</textarea>
           else if (a === 'to-yaml') toYaml();
           else if (a === 'clear') { $i.value = ''; $o.value = ''; }
           else if (a === 'copy') copyText($o.value);
-        });
-      }
-    };
-  },
-
-  /* ---------- JSON 去注释 ---------- */
-  jsonclean() {
-    // 状态机：识别字符串、// 行注释、/* */ 块注释
-    // 字符串内的 // 不当注释；转义符 \\ 后的引号不结束字符串
-    const stripComments = (input) => {
-      let out = '';
-      let i = 0;
-      let inString = false;
-      let escape = false;
-      while (i < input.length) {
-        const c = input[i];
-        const n = input[i + 1];
-        if (inString) {
-          out += c;
-          if (escape) {
-            escape = false;
-          } else if (c === '\\') {
-            escape = true;
-          } else if (c === '"') {
-            inString = false;
-          }
-          i++;
-          continue;
-        }
-        if (c === '"') {
-          inString = true;
-          out += c;
-          i++;
-          continue;
-        }
-        // // 行注释
-        if (c === '/' && n === '/') {
-          i += 2;
-          while (i < input.length && input[i] !== '\n') i++;
-          continue;
-        }
-        // /* 块注释 */
-        if (c === '/' && n === '*') {
-          i += 2;
-          while (i < input.length && !(input[i] === '*' && input[i + 1] === '/')) {
-            if (input[i] === '\n') out += '\n';
-            i++;
-          }
-          i += 2;
-          continue;
-        }
-        out += c;
-        i++;
-      }
-      return out;
-    };
-    // 进一步清理：去掉注释残留产生的多余空白
-    const tidy = (s) => s
-      .replace(/[ \t]+\n/g, '\n')     // 行尾空格
-      .replace(/,(\s*\n\s*)+/g, ',\n') // 多个空行压成一行
-      .replace(/[ \t]{2,}/g, ' ')     // 多空格压成单空格
-      .replace(/\n{3,}/g, '\n\n')    // 多空行压缩
-      .trim();
-
-    return {
-      view: () => `
-        <div class="tool-header">
-          <h1 class="tool-title">JSON 去注释</h1>
-          <p class="tool-desc">去除 JSON 中的 // 和 /* */ 注释，正确识别字符串内的 //（如 URL），不会误删。</p>
-        </div>
-        <div class="panel">
-          <div class="panel-title">含注释的 JSON</div>
-          <textarea class="textarea mono" id="jcin" style="min-height:240px;" placeholder="粘贴带注释的 JSON…">{
-  // 用户信息
-  "name": "wake",       // 用户名
-  "url": "https://example.com",  // 不会误删
-  "age": 18,
-  /* 嵌套配置 */
-  "meta": {
-"v": 1,            // 版本
-"tags": ["a", "b"] // 标签
-  }
-}</textarea>
-          <div class="btn-row">
-            <button class="btn btn-primary" data-act="strip">仅去注释</button>
-            <button class="btn" data-act="fmt">去注释 + 美化</button>
-            <button class="btn" data-act="min">去注释 + 压缩</button>
-            <button class="btn" data-act="clear">清空</button>
-          </div>
-        </div>
-        <div class="panel">
-          <div class="panel-title">结果</div>
-          <textarea class="textarea mono" id="jcout" style="min-height:280px;" placeholder="结果…"></textarea>
-          <div class="field" style="margin-top:8px;">
-            <span id="jcstatus" class="tag" style="display:none;"></span>
-          </div>
-          <div class="btn-row">
-            <button class="btn" data-act="copy">复制结果</button>
-            <button class="btn" data-act="swap">↕ 替换输入</button>
-          </div>
-        </div>
-      `,
-      bind(root) {
-        const $i = root.querySelector('#jcin');
-        const $o = root.querySelector('#jcout');
-        const $s = root.querySelector('#jcstatus');
-        const show = (ok, msg) => {
-          $s.style.display = 'inline-block';
-          $s.textContent = msg;
-          $s.style.background = ok ? 'rgba(0,180,42,.12)' : 'rgba(245,63,63,.12)';
-          $s.style.color = ok ? 'var(--success)' : 'var(--danger)';
-        };
-        const validate = (text) => {
-          try { JSON.parse(text); return { ok: true, msg: '✓ 有效 JSON' }; }
-          catch (e) { return { ok: false, msg: '✗ ' + e.message }; }
-        };
-        const strip = () => {
-          if (!$i.value.trim()) { $o.value = ''; $s.style.display = 'none'; return; }
-          const cleaned = tidy(stripComments($i.value));
-          $o.value = cleaned;
-          const v = validate(cleaned);
-          show(v.ok, v.msg);
-        };
-        const fmt = () => {
-          const cleaned = stripComments($i.value);
-          try {
-            $o.value = JSON.stringify(JSON.parse(cleaned), null, 2);
-            show(true, '✓ 有效 JSON，已美化');
-          } catch (e) { show(false, '✗ ' + e.message); }
-        };
-        const min = () => {
-          const cleaned = stripComments($i.value);
-          try {
-            $o.value = JSON.stringify(JSON.parse(cleaned));
-            show(true, '✓ 有效 JSON，已压缩');
-          } catch (e) { show(false, '✗ ' + e.message); }
-        };
-        root.addEventListener('click', e => {
-          const a = e.target.dataset.act;
-          if (a === 'strip') strip();
-          else if (a === 'fmt') fmt();
-          else if (a === 'min') min();
-          else if (a === 'clear') { $i.value = ''; $o.value = ''; $s.style.display = 'none'; }
-          else if (a === 'copy') copyText($o.value);
-          else if (a === 'swap') { $i.value = $o.value; $o.value = ''; $s.style.display = 'none'; }
         });
       }
     };
