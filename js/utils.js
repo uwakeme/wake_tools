@@ -69,5 +69,22 @@
     return Promise.resolve(fallback());
   };
 
-  NS.utils = { pad, formatDate, escapeHtml, escapeAttr, copyText, toast };
+  // copyTextWithBtn: 跟 copyText 一样复制,但在按钮上闪 '✓ 已复制' / '✗ 复制失败' 1.2s,
+  // 避免 toast 在屏幕底部 1.5s 消失被错过。btn 可以是按钮元素或事件 target (会用 closest 找按钮)
+  const copyTextWithBtn = (text, btnOrTarget) => {
+    const btn = (btnOrTarget && btnOrTarget.closest)
+      ? btnOrTarget.closest('[data-act="copy"]') || btnOrTarget
+      : btnOrTarget;
+    if (!btn) return copyText(text);
+    return copyText(text).then(ok => {
+      const orig = btn.dataset._origText || btn.textContent;
+      btn.dataset._origText = orig;
+      btn.textContent = ok ? '✓ 已复制' : '✗ 复制失败';
+      clearTimeout(btn._copyFlashTimer);
+      btn._copyFlashTimer = setTimeout(() => { btn.textContent = orig; }, 1200);
+      return ok;
+    });
+  };
+
+  NS.utils = { pad, formatDate, escapeHtml, escapeAttr, copyText, copyTextWithBtn, toast };
 })();

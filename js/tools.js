@@ -136,7 +136,7 @@
           if (a === 'enc') enc();
           else if (a === 'dec') dec();
           else if (a === 'clear') { $i.value = ''; $o.value = ''; }
-          else if (a === 'copy') copyText($o.value);
+          else if (a === 'copy') copyTextWithBtn($o.value, e.target);
         });
       }
     };
@@ -193,7 +193,7 @@
           if (a === 'enc') enc();
           else if (a === 'dec') dec();
           else if (a === 'clear') { $i.value = ''; $o.value = ''; }
-          else if (a === 'copy') copyText($o.value);
+          else if (a === 'copy') copyTextWithBtn($o.value, e.target);
         });
       }
     };
@@ -249,7 +249,7 @@
           if (a === 'enc') enc();
           else if (a === 'dec') dec();
           else if (a === 'clear') { $i.value = ''; $o.value = ''; }
-          else if (a === 'copy') copyText($o.value);
+          else if (a === 'copy') copyTextWithBtn($o.value, e.target);
         });
       }
     };
@@ -303,7 +303,7 @@
           if (a === 'enc') enc();
           else if (a === 'dec') dec();
           else if (a === 'clear') { $i.value = ''; $o.value = ''; }
-          else if (a === 'copy') copyText($o.value);
+          else if (a === 'copy') copyTextWithBtn($o.value, e.target);
         });
       }
     };
@@ -525,15 +525,6 @@
         const $i = root.querySelector('#jin');
         const $o = root.querySelector('#jout');
         const $s = root.querySelector('#jstatus');
-        const $copyBtn = root.querySelector('[data-act="copy"]');
-        const origCopyText = $copyBtn ? $copyBtn.textContent : '';
-        let copyFlashTimer = null;
-        const flashCopy = (ok) => {
-          if (!$copyBtn) return;
-          $copyBtn.textContent = ok ? '✓ 已复制' : '✗ 复制失败';
-          clearTimeout(copyFlashTimer);
-          copyFlashTimer = setTimeout(() => { $copyBtn.textContent = origCopyText; }, 1200);
-        };
         const show = (ok, msg) => {
           $s.style.display = 'inline-block';
           $s.textContent = msg;
@@ -614,8 +605,7 @@
           else if (a === 'sort') sort();
           else if (a === 'clear') { $i.value = ''; $o.value = ''; $s.style.display = 'none'; }
           else if (a === 'copy') {
-            // 按钮文字直接反馈比底部 toast 更显眼,toast 容易被错过
-            copyText($o.value).then(ok => flashCopy(ok));
+            copyTextWithBtn($o.value, e.target);
           }
           else if (a === 'swap') { $i.value = $o.value; $o.value = ''; }
         });
@@ -667,7 +657,7 @@
           if (a === 'fmt') $o.value = fmt($i.value);
           else if (a === 'min') $o.value = min($i.value);
           else if (a === 'clear') { $i.value = ''; $o.value = ''; }
-          else if (a === 'copy') copyText($o.value);
+          else if (a === 'copy') copyTextWithBtn($o.value, e.target);
         });
       }
     };
@@ -727,7 +717,7 @@
           if (a === 'fmt') $o.value = fmt($i.value);
           else if (a === 'min') $o.value = min($i.value);
           else if (a === 'clear') { $i.value = ''; $o.value = ''; }
-          else if (a === 'copy') copyText($o.value);
+          else if (a === 'copy') copyTextWithBtn($o.value, e.target);
         });
       }
     };
@@ -826,7 +816,7 @@
           if (a.startsWith('to-')) {
             const type = a.slice(3);
             $csout.value = convert($csin.value, type);
-          } else if (a === 'copy-str') copyText($csout.value);
+          } else if (a === 'copy-str') copyTextWithBtn($csout.value, e.target);
           else if (a.startsWith('jk-')) jkMap(a.slice(3));
         });
       }
@@ -898,7 +888,7 @@ date</textarea>
             render(arr);
           } else if (a === 'rev') render(ls.reverse());
           else if (a === 'clear') { $i.value = ''; $o.value = ''; $s.innerHTML = ''; }
-          else if (a === 'copy') copyText($o.value);
+          else if (a === 'copy') copyTextWithBtn($o.value, e.target);
         });
       }
     };
@@ -1359,7 +1349,7 @@ date</textarea>
             'copy-title': $title,
           };
           const target = map[a];
-          if (target) copyText(target.value !== undefined ? target.value : target.textContent);
+          if (target) copyTextWithBtn(target.value !== undefined ? target.value : target.textContent, e.target);
         });
 
         // 初始计算
@@ -1435,7 +1425,7 @@ date</textarea>
         root.addEventListener('click', e => {
           const a = e.target.dataset.act;
           if (a === 'gen') render();
-          else if (a === 'copy') copyText($o.value);
+          else if (a === 'copy') copyTextWithBtn($o.value, e.target);
           else if (a === 'clear') $o.value = '';
         });
         render();
@@ -1570,7 +1560,7 @@ date</textarea>
         root.addEventListener('click', e => {
           const a = e.target.dataset.act;
           if (a === 'gen') render();
-          else if (a === 'copy') copyText($o.value);
+          else if (a === 'copy') copyTextWithBtn($o.value, e.target);
           else if (a === 'clear') $o.value = '';
         });
         render();
@@ -1633,7 +1623,7 @@ date</textarea>
         root.addEventListener('click', e => {
           const a = e.target.dataset.act;
           if (a === 'gen') render();
-          else if (a === 'copy') copyText($o.value);
+          else if (a === 'copy') copyTextWithBtn($o.value, e.target);
         });
         render();
       }
@@ -1762,9 +1752,9 @@ date</textarea>
         root.addEventListener('click', e => {
           const a = e.target.dataset.act;
           if (a === 'random') { $hex.value = '#' + Math.floor(Math.random() * 0xffffff).toString(16).padStart(6,'0'); fromHex(); }
-          else if (a === 'copy-hex') copyText($hex.value);
-          else if (a === 'copy-rgb') copyText($rgb.value);
-          else if (a === 'copy-hsl') copyText($hsl.value);
+          else if (a === 'copy-hex') copyTextWithBtn($hex.value, e.target);
+          else if (a === 'copy-rgb') copyTextWithBtn($rgb.value, e.target);
+          else if (a === 'copy-hsl') copyTextWithBtn($hsl.value, e.target);
         });
       }
     };
@@ -1860,7 +1850,7 @@ date</textarea>
         $from.addEventListener('input', render);
         $to.addEventListener('input', render);
         root.addEventListener('click', e => {
-          if (e.target.dataset.act === 'copy') copyText($o.textContent);
+          if (e.target.dataset.act === 'copy') copyTextWithBtn($o.textContent, e.target);
         });
         render();
       }
@@ -2307,7 +2297,7 @@ date</textarea>
           if (a === 'enc') enc();
           else if (a === 'dec') dec();
           else if (a === 'clear') { $i.value = ''; $o.value = ''; }
-          else if (a === 'copy') copyText($o.value);
+          else if (a === 'copy') copyTextWithBtn($o.value, e.target);
         });
       }
     };
@@ -2778,7 +2768,7 @@ country: CN</textarea>
           if (a === 'to-json') toJson();
           else if (a === 'to-yaml') toYaml();
           else if (a === 'clear') { $i.value = ''; $o.value = ''; }
-          else if (a === 'copy') copyText($o.value);
+          else if (a === 'copy') copyTextWithBtn($o.value, e.target);
         });
       }
     };
@@ -2871,7 +2861,7 @@ country: CN</textarea>
         root.addEventListener('click', e => {
           const a = e.target.dataset.act;
           if (a === 'gen') gen();
-          else if (a === 'copy') copyText($o.value);
+          else if (a === 'copy') copyTextWithBtn($o.value, e.target);
           else if (a === 'clear') $o.value = '';
         });
         gen();
