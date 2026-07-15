@@ -525,6 +525,15 @@
         const $i = root.querySelector('#jin');
         const $o = root.querySelector('#jout');
         const $s = root.querySelector('#jstatus');
+        const $copyBtn = root.querySelector('[data-act="copy"]');
+        const origCopyText = $copyBtn ? $copyBtn.textContent : '';
+        let copyFlashTimer = null;
+        const flashCopy = (ok) => {
+          if (!$copyBtn) return;
+          $copyBtn.textContent = ok ? '✓ 已复制' : '✗ 复制失败';
+          clearTimeout(copyFlashTimer);
+          copyFlashTimer = setTimeout(() => { $copyBtn.textContent = origCopyText; }, 1200);
+        };
         const show = (ok, msg) => {
           $s.style.display = 'inline-block';
           $s.textContent = msg;
@@ -568,8 +577,16 @@
         };
         const esc = () => { $o.value = JSON.stringify($i.value); show(true, '已转义'); };
         const unesc = () => {
-          try { $o.value = JSON.parse($i.value); show(true, '已去转义'); }
-          catch (e) { show(false, '✗ ' + e.message); }
+          try {
+            const v = JSON.parse($i.value);
+            // 去转义只对 JSON 字符串有意义;对象/数组直接给提示,避免出现 [object Object]
+            if (typeof v !== 'string') {
+              show(false, '✗ 去转义只对 JSON 字符串有效,当前是 ' + (Array.isArray(v) ? '数组' : typeof v));
+              return;
+            }
+            $o.value = v;
+            show(true, '✓ 已去转义');
+          } catch (e) { show(false, '✗ ' + e.message); }
         };
         const sort = () => {
           const sortRec = v => {
@@ -596,7 +613,10 @@
           else if (a === 'unescape') unesc();
           else if (a === 'sort') sort();
           else if (a === 'clear') { $i.value = ''; $o.value = ''; $s.style.display = 'none'; }
-          else if (a === 'copy') copyText($o.value);
+          else if (a === 'copy') {
+            // 按钮文字直接反馈比底部 toast 更显眼,toast 容易被错过
+            copyText($o.value).then(ok => flashCopy(ok));
+          }
           else if (a === 'swap') { $i.value = $o.value; $o.value = ''; }
         });
       }

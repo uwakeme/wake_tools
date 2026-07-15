@@ -35,23 +35,38 @@
     toast._t = setTimeout(() => t.classList.remove('show'), 1500);
   };
 
+  // copyText 永远不抛异常;返回 Promise<boolean> 表示是否真的写入了剪贴板
+  // 同步路径(fallback / 同步成功)用 Promise.resolve 包装,保持调用方一致
   const copyText = (t) => {
     if (!t) {
       toast('内容为空');
-      return;
+      return Promise.resolve(false);
     }
-    navigator.clipboard
-      .writeText(t)
-      .then(() => toast('已复制'))
-      .catch(() => {
+    const fallback = () => {
+      try {
         const ta = document.createElement('textarea');
         ta.value = t;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        ta.style.pointerEvents = 'none';
         document.body.appendChild(ta);
         ta.select();
-        document.execCommand('copy');
+        const ok = document.execCommand('copy');
         ta.remove();
-        toast('已复制');
-      });
+        toast(ok ? '已复制' : '复制失败,请手动复制');
+        return ok;
+      } catch (e) {
+        toast('复制失败,请手动复制');
+        return false;
+      }
+    };
+    if (navigator.clipboard && window.isSecureContext) {
+      return navigator.clipboard.writeText(t).then(
+        () => { toast('已复制'); return true; },
+        () => fallback()
+      );
+    }
+    return Promise.resolve(fallback());
   };
 
   NS.utils = { pad, formatDate, escapeHtml, escapeAttr, copyText, toast };
