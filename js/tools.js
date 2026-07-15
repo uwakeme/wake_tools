@@ -8,6 +8,10 @@
 (function () {
   const NS = (window.WT = window.WT || {});
 
+  // utils.js 是 IIFE,函数都挂在 NS.utils 上;下面 factory 里的 click handler
+  // 直接调 bare 名(copyText/toast/...),不在 IIFE 顶部解构就会 ReferenceError。
+  const { copyText, copyTextWithBtn, toast, escapeHtml, escapeAttr, formatDate, pad } = NS.utils;
+
   NS.TOOLS = [
   // 编码转换
   { id: 'base64', group: '编码转换', icon: 'base64', name: 'Base64 编解码',

@@ -4,3 +4,6 @@
 !.dev.vars.example
 .env*
 !.env.example
+
+# node (jsdom 临时安装,本地验证用,不入仓)
+node_modules/
