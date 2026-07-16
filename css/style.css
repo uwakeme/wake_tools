@@ -755,26 +755,40 @@ code { font-size: 0.9em; }
 
 .toast {
   position: fixed;
-  bottom: 28px;
-  left: 50%;
-  transform: translateX(-50%) translateY(16px);
+  top: 72px;
+  right: 22px;
+  transform: translateX(20px);
+  padding: 9px 18px 9px 16px;
   background: var(--text);
   color: var(--bg-elev);
-  padding: 9px 16px;
+  border: none;
+  border-left: 3px solid var(--text-secondary);
   border-radius: var(--radius);
-  font-size: 13px;
+  font-family: var(--font-sans);
+  font-size: 13.5px;
   font-weight: 500;
+  letter-spacing: -0.01em;
   opacity: 0;
   pointer-events: none;
-  transition: all var(--transition);
+  transition: opacity var(--transition), transform var(--transition);
   z-index: 1000;
   box-shadow: var(--shadow-lg);
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
+  max-width: min(70vw, 420px);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-.toast svg { width: 14px; height: 14px; stroke-width: 2; }
-.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast.show { opacity: 1; transform: translateX(0); }
+.toast-success { border-left-color: var(--success); }
+.toast-error {
+  border-left-color: var(--danger);
+  font-weight: 600;
+}
+/* Dark mode: 反色 — 浅底深字,深色页面里漂浮一块浅色 toast */
+[data-theme="dark"] .toast {
+  background: var(--bg-elev);
+  color: var(--text);
+}
 
 .color-swatch {
   width: 44px; height: 44px;

@@ -7,3 +7,6 @@
 
 # node (jsdom 临时安装,本地验证用,不入仓)
 node_modules/
+
+# 临时调试用的截图/脚本,不入仓
+.screenshots/

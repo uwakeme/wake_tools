@@ -26,13 +26,19 @@
 
   const escapeAttr = (s) => escapeHtml(s);
 
-  const toast = (msg) => {
+  const toast = (msg, type) => {
     const t = document.getElementById('toast');
     if (!t) return;
-    t.innerHTML = NS.ICONS.check + '<span>' + escapeHtml(msg) + '</span>';
+    // 自动识别错误:含"失败/错误/无效/异常/✗"→ error;显式传 type 优先
+    if (!type) {
+      type = /(失败|错误|无效|异常|✗)/.test(msg) ? 'error' : 'success';
+    }
+    t.textContent = msg;
+    t.classList.remove('toast-success', 'toast-error');
+    t.classList.add('toast-' + type);
     t.classList.add('show');
     clearTimeout(toast._t);
-    toast._t = setTimeout(() => t.classList.remove('show'), 1500);
+    toast._t = setTimeout(() => t.classList.remove('show'), 1800);
   };
 
   // copyText 永远不抛异常;返回 Promise<boolean> 表示是否真的写入了剪贴板
