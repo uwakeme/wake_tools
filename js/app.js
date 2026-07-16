@@ -8,15 +8,35 @@
 
   const state = { toolId: null };
 
+  /* Group descriptions — keep in sync with the group field on each tool.
+     Falls back to empty string if a new group is added without description. */
+  const GROUP_DESC = {
+    '编码转换': '字符串与 Base64 / URL / Hex / Unicode / HTML 实体互转',
+    '时间日期': 'Unix 时间戳、时长、日期相关计算',
+    '格式化': 'JSON / SQL / XML / Markdown / YAML 美化与转换',
+    '文本处理': '命名风格、Diff、正则、字符串工具',
+    '生成器': 'UUID、密码、Hash、占位文本、假数据',
+    '颜色工具': 'HEX / RGB / HSL 颜色值互转与色板预览',
+    '数字工具': '进制互转、字节单位换算',
+    '网络调试': 'JWT、URL、HTTP 头解析',
+    '其他': 'Cron 表达式、ASCII / Unicode 字符表',
+  };
+
+  // Anchor id from a group name — only used in home view for in-page jumps
+  function slug(s) {
+    return s.replace(/[^\w一-龥]+/g, '-');
+  }
+
   /* ============================================================
-     Home view — minimal / tech aesthetic
+     Home view — grouped by category, with quick-jump nav
      ============================================================ */
   function homeView() {
     const groups = {};
     TOOLS.forEach((t) => {
       (groups[t.group] = groups[t.group] || []).push(t);
     });
-    const groupCount = Object.keys(groups).length;
+    const groupEntries = Object.entries(groups);
+    const groupCount = groupEntries.length;
 
     // Recent / featured picks (first 4) for the hero strip
     const featured = TOOLS.slice(0, 4);
@@ -52,24 +72,53 @@
         </div>
       </section>
 
-      <section class="home-section">
+      <section class="home-overview">
         <header class="section-head">
-          <h2 class="section-title">全部工具</h2>
-          <span class="section-count">${TOOLS.length} 个 · 按分组浏览</span>
+          <div class="section-head-text">
+            <h2 class="section-title">按分类浏览</h2>
+            <p class="section-sub">${groupCount} 个分类 · ${TOOLS.length} 个工具 · 点分类跳转，或在左侧搜索</p>
+          </div>
+          <span class="section-count">总览</span>
         </header>
-        <div class="home-grid">
-          ${TOOLS.map((t, i) => cardHtml(t, i)).join('')}
-        </div>
+        <nav class="home-toc" aria-label="分类快速跳转">
+          ${groupEntries
+            .map(
+              ([g, list]) => `
+            <a class="home-toc-chip" href="#cat-${slug(g)}">
+              <span class="home-toc-name">${escapeHtml(g)}</span>
+              <span class="home-toc-count">${list.length}</span>
+            </a>`
+            )
+            .join('')}
+        </nav>
       </section>
+
+      ${groupEntries
+        .map(
+          ([g, list]) => `
+        <section class="home-category" id="cat-${slug(g)}">
+          <header class="section-head">
+            <div class="section-head-text">
+              <h2 class="section-title">${escapeHtml(g)}</h2>
+              <p class="section-sub">${escapeHtml(GROUP_DESC[g] || '')}</p>
+            </div>
+            <span class="section-count">${list.length} 个工具</span>
+          </header>
+          <div class="home-grid">
+            ${list.map((t) => cardHtml(t)).join('')}
+          </div>
+        </section>`
+        )
+        .join('')}
     `;
   }
 
-  function cardHtml(t, i) {
+  function cardHtml(t) {
     return `
       <a class="card" href="#/${t.id}">
         <div class="card-head">
-          <span class="card-idx">${String(i + 1).padStart(2, '0')}</span>
           <span class="card-icon">${ICONS[t.icon] || ''}</span>
+          <span class="card-arrow">${ICONS.arrowRight || ''}</span>
         </div>
         <div class="card-body">
           <h3 class="card-title">${escapeHtml(t.name)}</h3>
@@ -77,7 +126,6 @@
         </div>
         <div class="card-foot">
           <span class="card-group">${escapeHtml(t.group)}</span>
-          <span class="card-arrow">${ICONS.arrowRight || ''}</span>
         </div>
       </a>
     `;
@@ -97,7 +145,10 @@
       .map(
         ([g, list]) => `
         <div class="nav-group">
-          <div class="nav-group-title">${escapeHtml(g)}</div>
+          <div class="nav-group-title">
+            <span>${escapeHtml(g)}</span>
+            <span class="nav-group-count">${list.length}</span>
+          </div>
           ${list
             .map(
               (t) => `

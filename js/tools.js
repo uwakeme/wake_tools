@@ -505,12 +505,20 @@
       if (typeof v === 'boolean') return el('span', 'jtree-boolean', String(v));
       return el('span', 'jtree-null', String(v));
     };
+    // 行号计数器:每渲染一个 row 递增 1,在 renderTree 入口重置
+    const lineCounter = { n: 0 };
+    const nextLine = () => {
+      lineCounter.n += 1;
+      return String(lineCounter.n).padStart(3, ' ');
+    };
+
     // 递归构建树节点 DOM
     // inArray=true 表示当前节点在数组里,keyName 不渲染
     const buildNode = (value, keyName, inArray) => {
       const isContainer = value !== null && typeof value === 'object';
       if (!isContainer) {
         const row = el('div', 'jtree-row jtree-leaf');
+        row.appendChild(el('span', 'jtree-lineno', nextLine()));
         if (keyName !== undefined) {
           row.appendChild(el('span', 'jtree-key', JSON.stringify(keyName)));
           row.appendChild(el('span', 'jtree-punct', ': '));
@@ -525,6 +533,7 @@
       const count = entries.length;
       const wrap = el('div', 'jtree-node jtree-expanded');
       const head = el('div', 'jtree-row jtree-head');
+      head.appendChild(el('span', 'jtree-lineno', nextLine()));
       const toggle = el('span', 'jtree-toggle', '▼');
       head.appendChild(toggle);
       if (keyName !== undefined) {
@@ -547,6 +556,7 @@
       wrap.appendChild(childWrap);
       if (count > 0) {
         const tail = el('div', 'jtree-row jtree-tail');
+        tail.appendChild(el('span', 'jtree-lineno', nextLine()));
         tail.appendChild(el('span', 'jtree-punct', isArray ? ']' : '}'));
         wrap.appendChild(tail);
         wrap._tail = tail;
@@ -593,15 +603,7 @@
       view: () => `
         <div class="tool-header">
           <h1 class="tool-title">JSON 格式化</h1>
-          <p class="tool-desc">格式化、压缩、去注释、转义、去除转义、键排序、校验;支持树形预览实时折叠展开。</p>
-          <div class="field" style="margin-top:12px; display:flex; gap:18px; flex-wrap:wrap;">
-            <label style="display:inline-flex; align-items:center; gap:6px; cursor:pointer; user-select:none; font-size:13px;">
-              <input type="checkbox" id="jlive" /> 实时预览
-            </label>
-            <label style="display:inline-flex; align-items:center; gap:6px; cursor:pointer; user-select:none; font-size:13px;">
-              <input type="checkbox" id="jtree-mode" /> 🌳 树形视图
-            </label>
-          </div>
+          <p class="tool-desc">格式化、压缩、去注释、转义、去除转义、键排序、校验;输入后实时生成带行号的可折叠树视图。</p>
         </div>
         <div class="panel">
           <div class="panel-title">输入</div>
@@ -620,36 +622,27 @@
           </div>
         </div>
         <div class="panel">
-          <div class="panel-title">结果</div>
-          <div data-result="text">
-            <textarea class="textarea mono" id="jout" style="min-height:280px;" placeholder="结果…"></textarea>
+          <div class="panel-title" style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
+            <span>结果 · 树形视图</span>
+            <div style="display:flex; gap:6px;">
+              <button class="btn btn-sm" data-act="expand">展开全部</button>
+              <button class="btn btn-sm" data-act="collapse">收起全部</button>
+            </div>
           </div>
-          <div data-result="tree" style="display:none;">
-            <div id="jtree" class="jtree"></div>
-          </div>
+          <div id="jtree" class="jtree"></div>
           <div class="field" style="margin-top:8px;">
             <span id="jstatus" class="tag" style="display:none;"></span>
           </div>
-          <div data-result="text" class="btn-row">
+          <div class="btn-row">
             <button class="btn" data-act="copy">复制结果</button>
             <button class="btn" data-act="swap">↕ 替换输入</button>
-          </div>
-          <div data-result="tree" class="btn-row" style="display:none;">
-            <button class="btn" data-act="expand">展开全部</button>
-            <button class="btn" data-act="collapse">收起全部</button>
-            <button class="btn" data-act="copy">复制结果</button>
           </div>
         </div>
       `,
       bind(root) {
         const $i = root.querySelector('#jin');
-        const $o = root.querySelector('#jout');
         const $t = root.querySelector('#jtree');
         const $s = root.querySelector('#jstatus');
-        const $live = root.querySelector('#jlive');
-        const $treeMode = root.querySelector('#jtree-mode');
-        const $rText = Array.from(root.querySelectorAll('[data-result="text"]'));
-        const $rTree = Array.from(root.querySelectorAll('[data-result="tree"]'));
 
         let currentValue = undefined; // 最近一次成功 parse 的值,供树视图用
         let lastFn = 'fmt'; // 最近一次点击的转换函数,实时模式用
@@ -664,13 +657,8 @@
         const renderTree = () => {
           $t.innerHTML = '';
           if (currentValue === undefined) return;
+          lineCounter.n = 0; // 行号从 1 重新开始
           $t.appendChild(buildNode(currentValue, undefined, false));
-        };
-
-        const setTreeMode = (on) => {
-          $rText.forEach(n => n.style.display = on ? 'none' : '');
-          $rTree.forEach(n => n.style.display = on ? '' : 'none');
-          if (on) renderTree();
         };
 
         // 展开/收起全部(遍历所有非空容器节点)
@@ -684,8 +672,7 @@
           try {
             const v = JSON.parse($i.value);
             currentValue = v;
-            $o.value = JSON.stringify(v, null, indent);
-            if ($treeMode.checked) renderTree();
+            renderTree();
             show(true, '✓ 有效 JSON');
           } catch (e) { show(false, '✗ ' + e.message); }
         };
@@ -693,24 +680,22 @@
           try {
             const v = JSON.parse($i.value);
             currentValue = v;
-            $o.value = JSON.stringify(v);
-            if ($treeMode.checked) renderTree();
+            renderTree();
             show(true, '✓ 已压缩');
           } catch (e) { show(false, '✗ ' + e.message); }
         };
         const strip = () => {
           if (!$i.value.trim()) {
             currentValue = undefined;
-            $o.value = '';
-            if ($treeMode.checked) renderTree();
+            renderTree();
             $s.style.display = 'none';
             return;
           }
           const cleaned = tidy(stripComments($i.value));
-          $o.value = cleaned;
+          $i.value = cleaned;
           try {
             currentValue = JSON.parse(cleaned);
-            if ($treeMode.checked) renderTree();
+            renderTree();
             show(true, '✓ 已去注释');
           } catch (e) { show(false, '✗ ' + e.message); }
         };
@@ -719,8 +704,7 @@
           try {
             const v = JSON.parse(cleaned);
             currentValue = v;
-            $o.value = JSON.stringify(v, null, 2);
-            if ($treeMode.checked) renderTree();
+            renderTree();
             show(true, '✓ 已去注释并美化');
           } catch (e) { show(false, '✗ ' + e.message); }
         };
@@ -729,12 +713,11 @@
           try {
             const v = JSON.parse(cleaned);
             currentValue = v;
-            $o.value = JSON.stringify(v);
-            if ($treeMode.checked) renderTree();
+            renderTree();
             show(true, '✓ 已去注释并压缩');
           } catch (e) { show(false, '✗ ' + e.message); }
         };
-        const esc = () => { $o.value = JSON.stringify($i.value); show(true, '已转义'); };
+        const esc = () => { show(true, '已转义'); };
         const unesc = () => {
           try {
             const v = JSON.parse($i.value);
@@ -743,8 +726,7 @@
               return;
             }
             currentValue = v;
-            $o.value = v;
-            if ($treeMode.checked) renderTree();
+            renderTree();
             show(true, '✓ 已去转义');
           } catch (e) { show(false, '✗ ' + e.message); }
         };
@@ -759,8 +741,7 @@
           try {
             const v = sortRec(JSON.parse($i.value));
             currentValue = v;
-            $o.value = JSON.stringify(v, null, 2);
-            if ($treeMode.checked) renderTree();
+            renderTree();
             show(true, '✓ 已排序');
           } catch (e) { show(false, '✗ ' + e.message); }
         };
@@ -780,30 +761,45 @@
           }
         };
 
-        // 实时预览:输入 200ms 后重跑最近一次函数
+        // 实时预览:输入 200ms 后重跑最近一次函数(默认开启)
         let liveTimer = null;
         $i.addEventListener('input', () => {
-          if (!$live.checked) return;
           clearTimeout(liveTimer);
+          // 空输入时清空结果、隐藏状态,避免中间状态一直闪红
+          if (!$i.value.trim()) {
+            currentValue = undefined;
+            renderTree();
+            $s.style.display = 'none';
+            return;
+          }
           liveTimer = setTimeout(runLastFn, 200);
         });
 
-        // 树形模式切换
-        $treeMode.addEventListener('change', () => setTreeMode($treeMode.checked));
+        // 进入页面时如果有内容,先跑一次默认格式化,避免空白结果
+        if ($i.value.trim()) runLastFn();
 
         root.addEventListener('click', e => {
           const a = e.target.dataset.act;
           if (!a) return;
           if (a === 'clear') {
-            $i.value = ''; $o.value = ''; currentValue = undefined;
-            if ($treeMode.checked) renderTree();
+            $i.value = ''; currentValue = undefined;
+            renderTree();
             $s.style.display = 'none';
             lastFn = 'fmt'; // 清空后回到默认格式化
           } else if (a === 'copy') {
-            copyTextWithBtn($o.value, e.target);
+            // 复制当前 currentValue 的格式化 JSON 字符串
+            const txt = currentValue === undefined
+              ? ''
+              : (typeof currentValue === 'string' ? currentValue : JSON.stringify(currentValue, null, 2));
+            copyTextWithBtn(txt, e.target);
           } else if (a === 'swap') {
-            $i.value = $o.value; $o.value = ''; currentValue = undefined;
-            if ($treeMode.checked) renderTree();
+            // 把树(格式化后的 JSON)塞回输入框,继续编辑
+            if (currentValue !== undefined) {
+              $i.value = typeof currentValue === 'string'
+                ? currentValue
+                : JSON.stringify(currentValue, null, 2);
+              $i.dispatchEvent(new Event('input'));
+            }
           } else if (a === 'expand') {
             setAllFolded(false);
           } else if (a === 'collapse') {
