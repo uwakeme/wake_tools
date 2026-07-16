@@ -2866,10 +2866,15 @@ function hello(name) {
         while (stack.length > 1 && indent <= stack[stack.length - 1].indent) stack.pop();
         const top = stack[stack.length - 1];
         if (line.startsWith('- ')) {
-          if (top.type !== 'arr') {
-            // 转数组
+          if (!Array.isArray(top.container)) {
+            // 当前容器是对象(由空值 k: 产生),要转成数组
+            // 必须新建数组并同步父栈的引用,否则只是给对象加了 key 属性、调用 push 会报错
             const k = top.lastKey;
-            top.container[k] = [];
+            const newArr = [];
+            if (stack.length >= 2) {
+              stack[stack.length - 2].container[k] = newArr;
+            }
+            top.container = newArr;
             top.type = 'arr';
             top.arrKey = k;
           }
@@ -2880,10 +2885,10 @@ function hello(name) {
           const k = line.slice(0, idx).trim();
           const v = line.slice(idx + 1).trim();
           if (v === '' || v === undefined) {
-            // 子结构
+            // 子结构;新栈继承当前 key,这样下一行 '- item' 能找到正确的 lastKey
             top.lastKey = k;
             top.container[k] = {};
-            stack.push({ indent, container: top.container[k], type: 'obj', lastKey: null });
+            stack.push({ indent, container: top.container[k], type: 'obj', lastKey: k });
           } else {
             top.container[k] = parseValue(v);
             top.type = 'obj';
