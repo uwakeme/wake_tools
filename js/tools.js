@@ -1261,72 +1261,70 @@ date</textarea>
           <div class="stats" id="st-stats"></div>
         </div>
 
-        <div class="row">
-          <div class="panel">
-            <div class="panel-title">反转</div>
-            <div class="field">
-              <label class="switch">
-                <input type="checkbox" id="st-rev-bytes" />
-                <span class="switch-track"></span>
-                <span class="switch-label">按字节反转（UTF-8，可能乱码）</span>
-              </label>
-            </div>
-            <div class="output mono" id="st-rev">—</div>
-            <div class="btn-row">
-              <button class="btn" data-act="copy-rev">复制</button>
-            </div>
+        <div class="panel">
+          <div class="panel-title">反转</div>
+          <div class="field">
+            <label class="switch">
+              <input type="checkbox" id="st-rev-bytes" />
+              <span class="switch-track"></span>
+              <span class="switch-label">按字节反转（UTF-8，可能乱码）</span>
+            </label>
           </div>
-
-          <div class="panel">
-            <div class="panel-title">重复</div>
-            <div class="row-3">
-              <div class="field">
-                <label class="field-label">次数 N</label>
-                <input class="input" type="number" id="st-rep-n" value="3" min="0" max="1000" />
-              </div>
-              <div class="field" style="display:flex;align-items:flex-end;">
-                <label class="switch">
-                  <input type="checkbox" id="st-rep-sep" />
-                  <span class="switch-track"></span>
-                  <span class="switch-label">换行分隔</span>
-                </label>
-              </div>
-            </div>
-            <div class="output mono" id="st-rep" style="min-height:60px;">—</div>
-            <div class="btn-row">
-              <button class="btn" data-act="copy-rep">复制</button>
-            </div>
+          <div class="output mono" id="st-rev">—</div>
+          <div class="btn-row">
+            <button class="btn" data-act="copy-rev">复制</button>
           </div>
         </div>
 
-        <div class="row">
-          <div class="panel">
-            <div class="panel-title">填充（padStart / padEnd）</div>
-            <div class="row-3">
-              <div class="field">
-                <label class="field-label">目标长度</label>
-                <input class="input" type="number" id="st-pad-len" value="20" min="0" max="100000" />
-              </div>
-              <div class="field">
-                <label class="field-label">填充字符</label>
-                <input class="input mono" id="st-pad-ch" value=" " maxlength="10" />
-              </div>
-              <div class="field">
-                <label class="field-label">方向</label>
-                <select class="select" id="st-pad-dir">
-                  <option value="end" selected>右填充 padEnd</option>
-                  <option value="start">左填充 padStart</option>
-                </select>
-              </div>
+        <div class="panel">
+          <div class="panel-title">重复</div>
+          <div class="row-3">
+            <div class="field">
+              <label class="field-label">次数 N</label>
+              <input class="input" type="number" id="st-rep-n" value="3" min="0" max="1000" />
             </div>
-            <div class="output mono" id="st-pad">—</div>
-            <div class="btn-row">
-              <button class="btn" data-act="copy-pad">复制</button>
+            <div class="field" style="display:flex;align-items:flex-end;">
+              <label class="switch">
+                <input type="checkbox" id="st-rep-sep" />
+                <span class="switch-track"></span>
+                <span class="switch-label">换行分隔</span>
+              </label>
             </div>
           </div>
+          <div class="output mono" id="st-rep" style="min-height:60px;">—</div>
+          <div class="btn-row">
+            <button class="btn" data-act="copy-rep">复制</button>
+          </div>
+        </div>
 
-          <div class="panel">
-            <div class="panel-title">替换（replaceAll）</div>
+        <div class="panel">
+          <div class="panel-title">填充（padStart / padEnd）</div>
+          <div class="row-3">
+            <div class="field">
+              <label class="field-label">目标长度</label>
+              <input class="input" type="number" id="st-pad-len" value="20" min="0" max="100000" />
+            </div>
+            <div class="field">
+              <label class="field-label">填充字符</label>
+              <input class="input mono" id="st-pad-ch" value=" " maxlength="10" />
+            </div>
+            <div class="field">
+              <label class="field-label">方向</label>
+              <select class="select" id="st-pad-dir">
+                <option value="end" selected>右填充 padEnd</option>
+                <option value="start">左填充 padStart</option>
+              </select>
+            </div>
+          </div>
+          <div class="output mono" id="st-pad">—</div>
+          <div class="btn-row">
+            <button class="btn" data-act="copy-pad">复制</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">替换（replaceAll）</div>
+          <div class="row-3">
             <div class="field">
               <label class="field-label">查找</label>
               <input class="input mono" id="st-rep-find" value="world" placeholder="要查找的子串..." />
@@ -1335,24 +1333,22 @@ date</textarea>
               <label class="field-label">替换为</label>
               <input class="input mono" id="st-rep-with" value="Wake" placeholder="替换成..." />
             </div>
-            <div class="field">
+            <div class="field" style="display:flex;align-items:flex-end;gap:18px;flex-wrap:wrap;">
               <label class="switch">
                 <input type="checkbox" id="st-rep-regex" />
                 <span class="switch-track"></span>
                 <span class="switch-label">正则模式（含捕获组 <code>$1 $2</code>）</span>
               </label>
-            </div>
-            <div class="field">
               <label class="switch">
                 <input type="checkbox" id="st-rep-icase" />
                 <span class="switch-track"></span>
                 <span class="switch-label">忽略大小写</span>
               </label>
             </div>
-            <div class="output mono" id="st-replace">—</div>
-            <div class="btn-row">
-              <button class="btn" data-act="copy-replace">复制</button>
-            </div>
+          </div>
+          <div class="output mono" id="st-replace">—</div>
+          <div class="btn-row">
+            <button class="btn" data-act="copy-replace">复制</button>
           </div>
         </div>
 
