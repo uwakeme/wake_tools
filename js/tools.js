@@ -3146,19 +3146,11 @@ country: CN</textarea>
           <p class="tool-desc">IDE 风格的并排代码对比。输入即比较,行号同步,差异行整行高亮。</p>
         </div>
         <div class="cd-toolbar">
-          <div class="cd-file">
-            <span class="cd-file-dot cd-file-dot-left"></span>
-            <input class="input cd-file-input mono" id="cdLabelA" value="before.js" />
-          </div>
           <div class="cd-toolbar-actions">
             <button class="btn btn-sm" data-act="swap" title="交换两侧内容">↔ 交换</button>
             <button class="btn btn-sm" data-act="clear" title="清空两侧">清空</button>
             <button class="btn btn-sm" data-act="copy" title="复制完整 diff 到剪贴板">复制 diff</button>
             <label class="cd-ignore"><input type="checkbox" id="cdIgnoreWs" /> 忽略空白</label>
-          </div>
-          <div class="cd-file">
-            <input class="input cd-file-input mono" id="cdLabelB" value="after.js" />
-            <span class="cd-file-dot cd-file-dot-right"></span>
           </div>
         </div>
         <div class="cd-input-grid">
@@ -3258,8 +3250,6 @@ try {
           const a = btn.dataset.act;
           if (a === 'swap') {
             [$A.value, $B.value] = [$B.value, $A.value];
-            const la = root.querySelector('#cdLabelA'), lb = root.querySelector('#cdLabelB');
-            [la.value, lb.value] = [lb.value, la.value];
             render();
           } else if (a === 'clear') {
             $A.value = ''; $B.value = '';

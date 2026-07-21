@@ -846,33 +846,11 @@ code { font-size: 0.9em; }
    代码对比 (side-by-side codediff)
    ============================================================ */
 .cd-toolbar {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  gap: 16px;
+  display: flex;
+  justify-content: center;
   align-items: center;
   margin-bottom: 12px;
 }
-.cd-file {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-}
-.cd-file-input {
-  flex: 1;
-  min-width: 0;
-  font-size: 12px;
-  padding: 6px 10px;
-}
-.cd-file-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: var(--radius-full);
-  flex-shrink: 0;
-  border: 1px solid var(--border-strong);
-}
-.cd-file-dot-left  { background: var(--danger);  border-color: var(--danger); }
-.cd-file-dot-right { background: var(--success); border-color: var(--success); }
 .cd-toolbar-actions {
   display: flex;
   gap: 6px;
@@ -998,7 +976,6 @@ code { font-size: 0.9em; }
 }
 
 @media (max-width: 768px) {
-  .cd-toolbar { grid-template-columns: 1fr; }
   .cd-input-grid { grid-template-columns: 1fr; }
   .cd-row { grid-template-columns: 44px minmax(0, 1fr) 22px 44px minmax(0, 1fr); }
   .cd-ln { padding: 0 6px; font-size: 10.5px; }
