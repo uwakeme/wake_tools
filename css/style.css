@@ -36,6 +36,12 @@
   --warning-soft: #FFFBEB;
   --danger:       #EF4444;
   --danger-soft:  #FEF2F2;
+
+  /* Diff 行专用:GitHub 风格的强对比绿/红,比 soft 系列更醒目 */
+  --add-bg:       #E6FFEC;
+  --add-fg:       #1A7F37;
+  --del-bg:       #FFEBE9;
+  --del-fg:       #CF222E;
   --code-bg:      #F4F4F5;
   --code-border:  #E4E4E7;
 
@@ -92,6 +98,11 @@
   --warning-soft: #2A1F0A;
   --danger:       #F87171;
   --danger-soft:  #2A1212;
+
+  --add-bg:       #14432A;
+  --add-fg:       #4AC26B;
+  --del-bg:       #5A1D1D;
+  --del-fg:       #FF7B72;
   --code-bg:      #18181B;
   --code-border:  #27272A;
 
@@ -934,6 +945,8 @@ code { font-size: 0.9em; }
   justify-content: flex-end;
 }
 .cd-row-diff > .cd-ln { background: color-mix(in srgb, var(--primary-soft) 70%, var(--bg-elev-2)); }
+.cd-ln-del { background: color-mix(in srgb, var(--del-bg) 70%, var(--bg-elev-2)); color: var(--del-fg); }
+.cd-ln-add { background: color-mix(in srgb, var(--add-bg) 70%, var(--bg-elev-2)); color: var(--add-fg); }
 .cd-content {
   padding: 0 12px;
   white-space: pre;
@@ -944,11 +957,8 @@ code { font-size: 0.9em; }
   min-width: 0;
 }
 .cd-content.same  { color: var(--text-secondary); }
-.cd-content.add,
-.cd-content.del {
-  background: var(--primary-soft);
-  color: var(--text);
-}
+.cd-content.add   { background: var(--add-bg); color: var(--add-fg); }
+.cd-content.del   { background: var(--del-bg); color: var(--del-fg); }
 .cd-content.empty {
   background: repeating-linear-gradient(
     45deg,

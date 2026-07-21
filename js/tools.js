@@ -3221,15 +3221,17 @@ try {
               const lnB = r.right.ln ?? '';
               const clsA = `cd-content cd-${r.left.t}`;
               const clsB = `cd-content cd-${r.right.t}`;
+              const lnClsA = r.left.t === 'del' ? 'cd-ln cd-ln-del' : 'cd-ln';
+              const lnClsB = r.right.t === 'add' ? 'cd-ln cd-ln-add' : 'cd-ln';
               const tA = r.left.t === 'empty' ? '' : (escapeHtml(r.left.text) || '\u00A0');
               const tB = r.right.t === 'empty' ? '' : (escapeHtml(r.right.text) || '\u00A0');
               const g = r.gutter || '\u00A0';
               const rowCls = r.gutter ? 'cd-row cd-row-diff' : 'cd-row';
               return `<div class="${rowCls}">` +
-                       `<div class="cd-ln">${lnA}</div>` +
+                       `<div class="${lnClsA}">${lnA}</div>` +
                        `<div class="${clsA}">${tA}</div>` +
                        `<div class="cd-gutter">${g}</div>` +
-                       `<div class="cd-ln">${lnB}</div>` +
+                       `<div class="${lnClsB}">${lnB}</div>` +
                        `<div class="${clsB}">${tB}</div>` +
                      `</div>`;
             }).join('');
