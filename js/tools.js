@@ -48,7 +48,7 @@
     desc: '驼峰、下划线、烤串、帕斯卡等命名互转，JSON Key 批处理。' },
   { id: 'textutil', group: '文本处理', icon: 'textutil', name: '文本去重 / 排序',
     desc: '按行去重、排序，统计行数与字符数。' },
-  { id: 'diff', group: '文本处理', icon: 'diff', name: '文本 Diff',
+  { id: 'diff', group: '文本处理', icon: 'diff', name: '代码对比',
     desc: 'LCS 逐行比较两段文本。两种视图:并排(IDE 风格,行号+差异指示器)、流式(git 风格 +/-)。' },
   { id: 'regex', group: '文本处理', icon: 'regex', name: '正则测试',
     desc: '实时测试正则表达式，支持捕获组高亮。' },
@@ -1096,6 +1096,262 @@ date</textarea>
           else if (a === 'clear') { $i.value = ''; $o.value = ''; $s.innerHTML = ''; }
           else if (a === 'copy') copyTextWithBtn($o.value, e.target);
         });
+      }
+    };
+  },
+
+  /* ---------- Diff ---------- */
+  diff() {
+    // 共享 LCS
+    const lcsDiff = (a, b) => {
+      const al = a.split('\n'), bl = b.split('\n');
+      const m = al.length, n = bl.length;
+      const dp = Array.from({ length: m + 1 }, () => new Uint32Array(n + 1));
+      for (let i = 1; i <= m; i++)
+        for (let j = 1; j <= n; j++)
+          dp[i][j] = al[i-1] === bl[j-1] ? dp[i-1][j-1] + 1 : Math.max(dp[i-1][j], dp[i][j-1]);
+      const out = [];
+      let i = m, j = n;
+      while (i > 0 || j > 0) {
+        if (i > 0 && j > 0 && al[i-1] === bl[j-1]) { out.unshift({ t: 'same', v: al[i-1] }); i--; j--; }
+        else if (j > 0 && (i === 0 || dp[i][j-1] >= dp[i-1][j])) { out.unshift({ t: 'add', v: bl[j-1] }); j--; }
+        else { out.unshift({ t: 'del', v: al[i-1] }); i--; }
+      }
+      return out;
+    };
+
+    // 共享:把 ops 序列拆成 side-by-side rows
+    const toSideBySide = (ops) => {
+      const rows = [];
+      let leftLn = 0, rightLn = 0;
+      let i = 0;
+      while (i < ops.length) {
+        const op = ops[i];
+        if (op.t === 'same') {
+          leftLn++; rightLn++;
+          rows.push({
+            left:  { ln: leftLn,  t: 'same', text: op.v },
+            right: { ln: rightLn, t: 'same', text: op.v },
+            gutter: '',
+          });
+          i++;
+          continue;
+        }
+        const dels = [], adds = [];
+        while (i < ops.length && ops[i].t !== 'same') {
+          if (ops[i].t === 'del') dels.push(ops[i].v);
+          else adds.push(ops[i].v);
+          i++;
+        }
+        const max = Math.max(dels.length, adds.length);
+        for (let k = 0; k < max; k++) {
+          const l = dels[k], r = adds[k];
+          if (l != null) leftLn++;
+          if (r != null) rightLn++;
+          rows.push({
+            left:  l != null ? { ln: leftLn,  t: 'del', text: l } : { ln: null, t: 'empty' },
+            right: r != null ? { ln: rightLn, t: 'add', text: r } : { ln: null, t: 'empty' },
+            gutter: '>>',
+          });
+        }
+      }
+      return rows;
+    };
+
+    const SAMPLE_A = `function fetchData(url) {
+  return fetch(url)
+    .then(res => res.json())
+    .then(data => data.results)
+}
+
+fetchData('/api/users')
+  .then(render)`;
+    const SAMPLE_B = `async function fetchData(url, options = {}) {
+  try {
+    const res = await fetch(url, options);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return await res.json();
+  } catch (err) {
+    console.error('fetch failed:', err);
+    throw err;
+  }
+}
+
+try {
+  const data = await fetchData('/api/users');
+  render(data);
+} catch (e) {
+  showError(e);
+}`;
+
+    return {
+      view: () => `
+        <div class="tool-header">
+          <h1 class="tool-title">代码对比</h1>
+          <p class="tool-desc">LCS 逐行比较两段文本。两种视图:并排(IDE 风格,行号+差异指示器)、流式(git 风格 +/-)。</p>
+        </div>
+        <div class="diff-toolbar">
+          <div class="diff-toolbar-actions">
+            <button class="btn btn-sm" data-act="swap" title="交换两侧内容">↔ 交换</button>
+            <button class="btn btn-sm" data-act="clear" title="清空两侧">清空</button>
+            <button class="btn btn-sm" data-act="copy" title="复制 diff 到剪贴板">复制 diff</button>
+            <label class="diff-ignore"><input type="checkbox" id="diffIgnoreWs" /> 忽略空白</label>
+          </div>
+          <div class="diff-view-toggle" role="tablist">
+            <button class="diff-view-btn" data-view="side" title="IDE 风格并排对比">并排</button>
+            <button class="diff-view-btn" data-view="unified" title="git 风格流式对比">流式</button>
+          </div>
+          <div class="diff-summary" id="diffSummary"></div>
+        </div>
+
+        <div class="diff-panel" id="diffPanelSide">
+          <div class="diff-input-row">
+            <div class="diff-ln-spacer"></div>
+            <textarea class="diff-input-merged mono" id="diffA" spellcheck="false" placeholder="左侧原文…"></textarea>
+            <div class="diff-gutter"></div>
+            <div class="diff-ln-spacer"></div>
+            <textarea class="diff-input-merged mono" id="diffB" spellcheck="false" placeholder="右侧修改后…"></textarea>
+          </div>
+          <div class="diff-rows" id="diffRowsSide"></div>
+        </div>
+
+        <div class="diff-panel" id="diffPanelUnified" hidden>
+          <div class="diff-input-grid">
+            <textarea class="diff-input mono" id="diffAU" spellcheck="false" placeholder="原文…"></textarea>
+            <textarea class="diff-input mono" id="diffBU" spellcheck="false" placeholder="修改后…"></textarea>
+          </div>
+          <div class="diff-pane" id="diffPane"></div>
+        </div>
+      `,
+      bind(root) {
+        const VIEW_KEY = 'wt-diff-view';
+        const $A = root.querySelector('#diffA');
+        const $B = root.querySelector('#diffB');
+        const $AU = root.querySelector('#diffAU');
+        const $BU = root.querySelector('#diffBU');
+        const $rowsSide = root.querySelector('#diffRowsSide');
+        const $pane = root.querySelector('#diffPane');
+        const $summary = root.querySelector('#diffSummary');
+        const $ignore = root.querySelector('#diffIgnoreWs');
+        const $panelSide = root.querySelector('#diffPanelSide');
+        const $panelUnified = root.querySelector('#diffPanelUnified');
+
+        $A.value = $AU.value = SAMPLE_A;
+        $B.value = $BU.value = SAMPLE_B;
+
+        let view = localStorage.getItem(VIEW_KEY) || 'side';
+
+        const syncInputs = () => {
+          const a = $A.value, b = $B.value;
+          if ($AU.value !== a) $AU.value = a;
+          if ($BU.value !== b) $BU.value = b;
+        };
+
+        const setView = (v) => {
+          view = v;
+          localStorage.setItem(VIEW_KEY, v);
+          $panelSide.hidden = (v !== 'side');
+          $panelUnified.hidden = (v !== 'unified');
+          root.querySelectorAll('[data-view]').forEach(b => {
+            b.classList.toggle('active', b.dataset.view === v);
+          });
+          syncInputs();
+          render();
+        };
+
+        let timer = null;
+        const schedule = () => {
+          clearTimeout(timer);
+          timer = setTimeout(render, 80);
+        };
+
+        const normalize = (s) => $ignore.checked ? s.replace(/\s+/g, ' ').trim() : s;
+
+        const renderUnified = (ops) => {
+          const html = ops.map(o => {
+            const cls = o.t === 'add' ? 'add' : o.t === 'del' ? 'del' : 'same';
+            const prefix = o.t === 'add' ? '+ ' : o.t === 'del' ? '- ' : '  ';
+            return `<div class="diff-line ${cls}">${prefix}${escapeHtml(o.v) || ' '}</div>`;
+          }).join('');
+          $pane.innerHTML = html || '<div class="diff-line same">没有差异</div>';
+        };
+
+        const renderSide = (rows) => {
+          if (rows.length === 0) {
+            $rowsSide.innerHTML = `<div class="diff-empty">在两侧输入内容,即可看到并排对比</div>`;
+            return;
+          }
+          $rowsSide.innerHTML = rows.map(r => {
+            const lnA = r.left.ln ?? '';
+            const lnB = r.right.ln ?? '';
+            const clsA = `diff-content diff-${r.left.t}`;
+            const clsB = `diff-content diff-${r.right.t}`;
+            const lnClsA = r.left.t === 'del' ? 'diff-ln diff-ln-del' : 'diff-ln';
+            const lnClsB = r.right.t === 'add' ? 'diff-ln diff-ln-add' : 'diff-ln';
+            const tA = r.left.t === 'empty' ? '' : (escapeHtml(r.left.text) || '\u00A0');
+            const tB = r.right.t === 'empty' ? '' : (escapeHtml(r.right.text) || '\u00A0');
+            const g = r.gutter || '\u00A0';
+            const rowCls = r.gutter ? 'diff-row diff-row-diff' : 'diff-row';
+            return `<div class="${rowCls}">` +
+                     `<div class="${lnClsA}">${lnA}</div>` +
+                     `<div class="${clsA}">${tA}</div>` +
+                     `<div class="diff-gutter">${g}</div>` +
+                     `<div class="${lnClsB}">${lnB}</div>` +
+                     `<div class="${clsB}">${tB}</div>` +
+                   `</div>`;
+          }).join('');
+        };
+
+        const render = () => {
+          syncInputs();
+          const ops = lcsDiff(normalize($A.value), normalize($B.value));
+          if (view === 'side') renderSide(toSideBySide(ops));
+          else renderUnified(ops);
+          const addCnt = ops.filter(o => o.t === 'add').length;
+          const delCnt = ops.filter(o => o.t === 'del').length;
+          $summary.innerHTML =
+            `<span class="diff-stat"><b>${ops.length}</b> 行</span>` +
+            `<span class="diff-stat diff-stat-add">+ <b>${addCnt}</b> 新增</span>` +
+            `<span class="diff-stat diff-stat-del">− <b>${delCnt}</b> 删除</span>`;
+        };
+
+        [$A, $B, $AU, $BU].forEach(el => el.addEventListener('input', schedule));
+        $ignore.addEventListener('change', render);
+
+        root.addEventListener('click', e => {
+          const viewBtn = e.target.closest('[data-view]');
+          if (viewBtn) { setView(viewBtn.dataset.view); return; }
+          const btn = e.target.closest('[data-act]');
+          if (!btn) return;
+          const a = btn.dataset.act;
+          if (a === 'swap') {
+            [$A.value, $B.value] = [$B.value, $A.value];
+            [$AU.value, $BU.value] = [$BU.value, $AU.value];
+            render();
+          } else if (a === 'clear') {
+            $A.value = $B.value = $AU.value = $BU.value = '';
+            render();
+          } else if (a === 'copy') {
+            const ops = lcsDiff(normalize($A.value), normalize($B.value));
+            let lines;
+            if (view === 'side') {
+              lines = [];
+              toSideBySide(ops).forEach(r => {
+                if (r.left.t === 'same')  lines.push('  ' + r.left.text);
+                else if (r.left.t === 'del')   lines.push('- ' + r.left.text);
+                if (r.right.t === 'add')  lines.push('+ ' + r.right.text);
+              });
+            } else {
+              lines = ops.map(o => {
+                const prefix = o.t === 'add' ? '+ ' : o.t === 'del' ? '- ' : '  ';
+                return prefix + (o.v || '');
+              });
+            }
+            copyTextWithBtn(lines.join('\n'), btn);
+          }
+        });
+
+        setView(view);
       }
     };
   },
