@@ -856,20 +856,20 @@ code { font-size: 0.9em; }
 /* ============================================================
    代码对比 (side-by-side codediff)
    ============================================================ */
-.cd-toolbar {
+.diff-toolbar {
   display: flex;
   justify-content: center;
   align-items: center;
   margin-bottom: 12px;
 }
-.cd-toolbar-actions {
+.diff-toolbar-actions {
   display: flex;
   gap: 6px;
   align-items: center;
   flex-wrap: wrap;
   justify-content: center;
 }
-.cd-ignore {
+.diff-ignore {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -880,14 +880,17 @@ code { font-size: 0.9em; }
   padding: 4px 8px;
   border-radius: var(--radius-sm);
 }
-.cd-ignore:hover { color: var(--text); }
-.cd-ignore input { margin: 0; cursor: pointer; accent-color: var(--primary); }
+.diff-ignore:hover { color: var(--text); }
+.diff-ignore input { margin: 0; cursor: pointer; accent-color: var(--primary); }
 
-.cd-input-grid {
-  display: none; /* 旧选择器,保留避免破坏,新结构用 .cd-panel */
+.diff-input-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
 }
 
-.cd-summary {
+.diff-summary {
   display: flex;
   gap: 14px;
   align-items: center;
@@ -895,13 +898,41 @@ code { font-size: 0.9em; }
   color: var(--text-secondary);
   font-family: var(--font-mono);
 }
-.cd-summary:empty { display: none; }
-.cd-stat b { color: var(--text); font-weight: 600; }
-.cd-stat-add b { color: var(--success); }
-.cd-stat-del b { color: var(--danger); }
+.diff-summary:empty { display: none; }
+
+.diff-view-toggle {
+  display: inline-flex;
+  background: var(--bg-elev-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 2px;
+  gap: 2px;
+}
+.diff-view-btn {
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all var(--transition-fast);
+}
+.diff-view-btn:hover { color: var(--text); }
+.diff-view-btn.active {
+  background: var(--bg-elev);
+  color: var(--primary);
+  box-shadow: var(--shadow-xs);
+}
+
+.diff-stat b { color: var(--text); font-weight: 600; }
+.diff-stat-add b { color: var(--success); }
+.diff-stat-del b { color: var(--danger); }
 
 /* 统一面板:输入行 sticky 顶部 + diff 渲染,整体一个圆角可滚动容器 */
-.cd-panel {
+.diff-panel {
   border: 1px solid var(--code-border);
   border-radius: var(--radius);
   background: var(--bg-elev);
@@ -912,7 +943,7 @@ code { font-size: 0.9em; }
   line-height: 1.65;
   position: relative;
 }
-.cd-input-row {
+.diff-input-row {
   position: sticky;
   top: 0;
   z-index: 2;
@@ -921,12 +952,12 @@ code { font-size: 0.9em; }
   background: var(--bg-elev);
   border-bottom: 1px solid var(--border);
 }
-.cd-input-row > * { min-width: 0; }
-.cd-ln-spacer {
+.diff-input-row > * { min-width: 0; }
+.diff-ln-spacer {
   background: var(--bg-elev-2);
   border-right: 1px solid var(--border);
 }
-.cd-input-merged {
+.diff-input-merged {
   border: none;
   outline: none;
   resize: none;
@@ -941,29 +972,29 @@ code { font-size: 0.9em; }
   display: block;
   box-sizing: border-box;
 }
-.cd-input-merged:focus { background: var(--bg-elev-2); }
-.cd-input-merged::placeholder { color: var(--text-muted); }
-.cd-input-row > .cd-gutter {
+.diff-input-merged:focus { background: var(--bg-elev-2); }
+.diff-input-merged::placeholder { color: var(--text-muted); }
+.diff-input-row > .diff-gutter {
   background: var(--bg-elev);
   border-left: 1px solid var(--border);
   border-right: 1px solid var(--border);
   border-top: none;
   border-bottom: none;
 }
-.cd-rows { min-width: 100%; }
-.cd-empty {
+.diff-rows { min-width: 100%; }
+.diff-empty {
   padding: 48px 16px;
   text-align: center;
   color: var(--text-muted);
   font-size: 13px;
 }
-.cd-row {
+.diff-row {
   display: grid;
   grid-template-columns: 56px minmax(0, 1fr) 22px 56px minmax(0, 1fr);
   align-items: stretch;
 }
-.cd-row:hover { background: var(--bg-hover); }
-.cd-ln {
+.diff-row:hover { background: var(--bg-hover); }
+.diff-ln {
   text-align: right;
   padding: 0 10px;
   color: var(--text-muted);
@@ -975,10 +1006,10 @@ code { font-size: 0.9em; }
   align-items: center;
   justify-content: flex-end;
 }
-.cd-row-diff > .cd-ln { background: color-mix(in srgb, var(--primary-soft) 70%, var(--bg-elev-2)); }
-.cd-ln-del { background: color-mix(in srgb, var(--del-bg) 70%, var(--bg-elev-2)); color: var(--del-fg); }
-.cd-ln-add { background: color-mix(in srgb, var(--add-bg) 70%, var(--bg-elev-2)); color: var(--add-fg); }
-.cd-content {
+.diff-row-diff > .diff-ln { background: color-mix(in srgb, var(--primary-soft) 70%, var(--bg-elev-2)); }
+.diff-ln-del { background: color-mix(in srgb, var(--del-bg) 70%, var(--bg-elev-2)); color: var(--del-fg); }
+.diff-ln-add { background: color-mix(in srgb, var(--add-bg) 70%, var(--bg-elev-2)); color: var(--add-fg); }
+.diff-content {
   padding: 0 12px;
   white-space: pre;
   overflow: hidden;
@@ -987,10 +1018,10 @@ code { font-size: 0.9em; }
   align-items: center;
   min-width: 0;
 }
-.cd-content.same  { color: var(--text-secondary); }
-.cd-content.add   { background: var(--add-bg); color: var(--add-fg); }
-.cd-content.del   { background: var(--del-bg); color: var(--del-fg); }
-.cd-content.empty {
+.diff-content.same  { color: var(--text-secondary); }
+.diff-content.add   { background: var(--add-bg); color: var(--add-fg); }
+.diff-content.del   { background: var(--del-bg); color: var(--del-fg); }
+.diff-content.empty {
   background: repeating-linear-gradient(
     45deg,
     transparent,
@@ -1000,7 +1031,7 @@ code { font-size: 0.9em; }
   );
   opacity: .6;
 }
-.cd-gutter {
+.diff-gutter {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1011,15 +1042,15 @@ code { font-size: 0.9em; }
   border-right: 1px solid var(--border);
   user-select: none;
 }
-.cd-row-diff .cd-gutter {
+.diff-row-diff .diff-gutter {
   background: var(--primary-soft);
   font-weight: 600;
 }
 
 @media (max-width: 768px) {
-  .cd-row { grid-template-columns: 44px minmax(0, 1fr) 22px 44px minmax(0, 1fr); }
-  .cd-input-row { grid-template-columns: 44px minmax(0, 1fr) 22px 44px minmax(0, 1fr); }
-  .cd-ln { padding: 0 6px; font-size: 10.5px; }
+  .diff-row { grid-template-columns: 44px minmax(0, 1fr) 22px 44px minmax(0, 1fr); }
+  .diff-input-row { grid-template-columns: 44px minmax(0, 1fr) 22px 44px minmax(0, 1fr); }
+  .diff-ln { padding: 0 6px; font-size: 10.5px; }
 }
 
 .cron-table { width: 100%; border-collapse: collapse; font-size: 13px; }

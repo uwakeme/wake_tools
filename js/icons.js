@@ -20,7 +20,6 @@
     case: NS.IC('<polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>'),
     textutil: NS.IC('<polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>'),
     diff: NS.IC('<path d="M16 3h5v5"/><path d="M21 3 14 10"/><path d="M8 21H3v-5"/><path d="M3 21l7-7"/>'),
-    codediff: NS.IC('<rect x="3" y="4" width="7" height="16" rx="1"/><rect x="14" y="4" width="7" height="16" rx="1"/><path d="M11 8l-3 4 3 4"/><path d="M13 8l3 4-3 4"/>'),
     regex: NS.IC('<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 12h6"/><path d="M12 9v6"/>'),
     uuid: NS.IC('<path d="M12 2a10 10 0 1 0 10 10"/><circle cx="12" cy="12" r="2"/><path d="M12 2v10"/><path d="M12 12 7 7"/>'),
     password: NS.IC('<rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>'),
