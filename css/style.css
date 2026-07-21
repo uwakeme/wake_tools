@@ -884,24 +884,15 @@ code { font-size: 0.9em; }
 .cd-ignore input { margin: 0; cursor: pointer; accent-color: var(--primary); }
 
 .cd-input-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin-bottom: 12px;
+  display: none; /* 旧选择器,保留避免破坏,新结构用 .cd-panel */
 }
-.cd-input { min-height: 160px; font-size: 12.5px; }
 
 .cd-summary {
   display: flex;
   gap: 14px;
   align-items: center;
-  padding: 8px 12px;
-  background: var(--bg-elev-2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
   font-size: 12px;
   color: var(--text-secondary);
-  margin-bottom: 12px;
   font-family: var(--font-mono);
 }
 .cd-summary:empty { display: none; }
@@ -909,7 +900,8 @@ code { font-size: 0.9em; }
 .cd-stat-add b { color: var(--success); }
 .cd-stat-del b { color: var(--danger); }
 
-.cd-scroll {
+/* 统一面板:输入行 sticky 顶部 + diff 渲染,整体一个圆角可滚动容器 */
+.cd-panel {
   border: 1px solid var(--code-border);
   border-radius: var(--radius);
   background: var(--bg-elev);
@@ -918,6 +910,45 @@ code { font-size: 0.9em; }
   font-family: var(--font-mono);
   font-size: 12.5px;
   line-height: 1.65;
+  position: relative;
+}
+.cd-input-row {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr) 22px 56px minmax(0, 1fr);
+  background: var(--bg-elev);
+  border-bottom: 1px solid var(--border);
+}
+.cd-input-row > * { min-width: 0; }
+.cd-ln-spacer {
+  background: var(--bg-elev-2);
+  border-right: 1px solid var(--border);
+}
+.cd-input-merged {
+  border: none;
+  outline: none;
+  resize: none;
+  background: transparent;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 12.5px;
+  line-height: 1.65;
+  padding: 12px 12px 14px;
+  min-height: 140px;
+  width: 100%;
+  display: block;
+  box-sizing: border-box;
+}
+.cd-input-merged:focus { background: var(--bg-elev-2); }
+.cd-input-merged::placeholder { color: var(--text-muted); }
+.cd-input-row > .cd-gutter {
+  background: var(--bg-elev);
+  border-left: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  border-top: none;
+  border-bottom: none;
 }
 .cd-rows { min-width: 100%; }
 .cd-empty {
@@ -986,8 +1017,8 @@ code { font-size: 0.9em; }
 }
 
 @media (max-width: 768px) {
-  .cd-input-grid { grid-template-columns: 1fr; }
   .cd-row { grid-template-columns: 44px minmax(0, 1fr) 22px 44px minmax(0, 1fr); }
+  .cd-input-row { grid-template-columns: 44px minmax(0, 1fr) 22px 44px minmax(0, 1fr); }
   .cd-ln { padding: 0 6px; font-size: 10.5px; }
 }
 

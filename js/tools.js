@@ -3152,13 +3152,16 @@ country: CN</textarea>
             <button class="btn btn-sm" data-act="copy" title="复制完整 diff 到剪贴板">复制 diff</button>
             <label class="cd-ignore"><input type="checkbox" id="cdIgnoreWs" /> 忽略空白</label>
           </div>
+          <div class="cd-summary" id="cdSummary"></div>
         </div>
-        <div class="cd-input-grid">
-          <textarea class="textarea mono cd-input" id="cdA" spellcheck="false" placeholder="左侧原文…"></textarea>
-          <textarea class="textarea mono cd-input" id="cdB" spellcheck="false" placeholder="右侧修改后…"></textarea>
-        </div>
-        <div class="cd-summary" id="cdSummary"></div>
-        <div class="cd-scroll" id="cdScroll">
+        <div class="cd-panel">
+          <div class="cd-input-row">
+            <div class="cd-ln-spacer"></div>
+            <textarea class="cd-input-merged mono" id="cdA" spellcheck="false" placeholder="左侧原文…"></textarea>
+            <div class="cd-gutter"></div>
+            <div class="cd-ln-spacer"></div>
+            <textarea class="cd-input-merged mono" id="cdB" spellcheck="false" placeholder="右侧修改后…"></textarea>
+          </div>
           <div class="cd-rows" id="cdRows"></div>
         </div>
       `,
