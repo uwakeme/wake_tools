@@ -3148,7 +3148,7 @@ country: CN</textarea>
         <div class="cd-toolbar">
           <div class="cd-file">
             <span class="cd-file-dot cd-file-dot-left"></span>
-            <input class="input cd-file-input mono" id="cdLabelA" value="left.yaml" />
+            <input class="input cd-file-input mono" id="cdLabelA" value="before.js" />
           </div>
           <div class="cd-toolbar-actions">
             <button class="btn btn-sm" data-act="swap" title="交换两侧内容">↔ 交换</button>
@@ -3157,7 +3157,7 @@ country: CN</textarea>
             <label class="cd-ignore"><input type="checkbox" id="cdIgnoreWs" /> 忽略空白</label>
           </div>
           <div class="cd-file">
-            <input class="input cd-file-input mono" id="cdLabelB" value="right.yaml" />
+            <input class="input cd-file-input mono" id="cdLabelB" value="after.js" />
             <span class="cd-file-dot cd-file-dot-right"></span>
           </div>
         </div>
@@ -3177,30 +3177,34 @@ country: CN</textarea>
         const $summary = root.querySelector('#cdSummary');
         const $ignore = root.querySelector('#cdIgnoreWs');
 
-        // 默认示例:贴近截图,展示 side-by-side 效果
+        // 默认示例:一段 Promise 重构为 async/await,展示 side-by-side 效果
         $A.value =
-`roof:
-  db:
-    data-path: "D:/code/new_lg/data_access/lg_coop_svr/data"
-    work-path: "D:/code/new_lg/data_access/lg_coop_svr/log"
-    schema-xml-file-path: "D:/code/new_lg/env/sql/data_access/lg_coop_s
-url:
-  conn-timeout: 5
-  read-timeout: 30
-cache:
-  type: local`;
+`function fetchData(url) {
+  return fetch(url)
+    .then(res => res.json())
+    .then(data => data.results)
+}
+
+fetchData('/api/users')
+  .then(render)`;
         $B.value =
-`roof:
-  db:
-    data-path: "D:/Workspace/CodeSpace/roof_data/lg/lg_coop_svr"
-    work-path: "D:/Workspace/CodeSpace/roof_log/lg/lg_coop_svr"
-    tool:
-      urls:
-url:
-  conn-timeout: 5
-  read-timeout: 30
-cache:
-  type: redis`;
+`async function fetchData(url, options = {}) {
+  try {
+    const res = await fetch(url, options);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return await res.json();
+  } catch (err) {
+    console.error('fetch failed:', err);
+    throw err;
+  }
+}
+
+try {
+  const data = await fetchData('/api/users');
+  render(data);
+} catch (e) {
+  showError(e);
+}`;
 
         // 防抖:连续输入只渲染最后一次
         let timer = null;
