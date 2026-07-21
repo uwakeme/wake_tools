@@ -50,6 +50,8 @@
     desc: '按行去重、排序，统计行数与字符数。' },
   { id: 'diff', group: '文本处理', icon: 'diff', name: '文本 Diff',
     desc: '逐行比较两段文本的差异。' },
+  { id: 'codediff', group: '文本处理', icon: 'codediff', name: '代码对比',
+    desc: 'IDE 风格并排代码对比，左右行号 + 中间差异指示器。' },
   { id: 'regex', group: '文本处理', icon: 'regex', name: '正则测试',
     desc: '实时测试正则表达式，支持捕获组高亮。' },
   { id: 'string', group: '文本处理', icon: 'string', name: '字符串工具',
@@ -605,37 +607,39 @@
           <h1 class="tool-title">JSON 格式化</h1>
           <p class="tool-desc">格式化、压缩、去注释、转义、去除转义、键排序、校验;输入后实时生成带行号的可折叠树视图。</p>
         </div>
-        <div class="panel">
-          <div class="panel-title">输入</div>
-          <textarea class="textarea mono" id="jin" style="min-height:200px;" placeholder='{"name":"wake","tags":["tools","json"],"meta":{"v":1}}'>{"name":"wake","tags":["tools","json"],"meta":{"v":1}}</textarea>
-          <div class="btn-row">
-            <button class="btn btn-primary" data-act="fmt">格式化 (2 空格)</button>
-            <button class="btn" data-act="fmt4">格式化 (4 空格)</button>
-            <button class="btn" data-act="min">压缩</button>
-            <button class="btn" data-act="strip">去注释</button>
-            <button class="btn" data-act="stripfmt">去注释+格式化</button>
-            <button class="btn" data-act="stripmin">去注释+压缩</button>
-            <button class="btn" data-act="escape">转义</button>
-            <button class="btn" data-act="unescape">去转义</button>
-            <button class="btn" data-act="sort">键排序</button>
-            <button class="btn" data-act="clear">清空</button>
-          </div>
-        </div>
-        <div class="panel">
-          <div class="panel-title" style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
-            <span>结果 · 树形视图</span>
-            <div style="display:flex; gap:6px;">
-              <button class="btn btn-sm" data-act="expand">展开全部</button>
-              <button class="btn btn-sm" data-act="collapse">收起全部</button>
+        <div class="row">
+          <div class="panel">
+            <div class="panel-title">输入</div>
+            <textarea class="textarea mono" id="jin" style="min-height:200px;" placeholder='{"name":"wake","tags":["tools","json"],"meta":{"v":1}}'>{"name":"wake","tags":["tools","json"],"meta":{"v":1}}</textarea>
+            <div class="btn-row">
+              <button class="btn btn-primary" data-act="fmt">格式化 (2 空格)</button>
+              <button class="btn" data-act="fmt4">格式化 (4 空格)</button>
+              <button class="btn" data-act="min">压缩</button>
+              <button class="btn" data-act="strip">去注释</button>
+              <button class="btn" data-act="stripfmt">去注释+格式化</button>
+              <button class="btn" data-act="stripmin">去注释+压缩</button>
+              <button class="btn" data-act="escape">转义</button>
+              <button class="btn" data-act="unescape">去转义</button>
+              <button class="btn" data-act="sort">键排序</button>
+              <button class="btn" data-act="clear">清空</button>
             </div>
           </div>
-          <div id="jtree" class="jtree"></div>
-          <div class="field" style="margin-top:8px;">
-            <span id="jstatus" class="tag" style="display:none;"></span>
-          </div>
-          <div class="btn-row">
-            <button class="btn" data-act="copy">复制结果</button>
-            <button class="btn" data-act="swap">↕ 替换输入</button>
+          <div class="panel">
+            <div class="panel-title" style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
+              <span>结果 · 树形视图</span>
+              <div style="display:flex; gap:6px;">
+                <button class="btn btn-sm" data-act="expand">展开全部</button>
+                <button class="btn btn-sm" data-act="collapse">收起全部</button>
+              </div>
+            </div>
+            <div id="jtree" class="jtree"></div>
+            <div class="field" style="margin-top:8px;">
+              <span id="jstatus" class="tag" style="display:none;"></span>
+            </div>
+            <div class="btn-row">
+              <button class="btn" data-act="copy">复制结果</button>
+              <button class="btn" data-act="swap">↕ 替换输入</button>
+            </div>
           </div>
         </div>
       `,
@@ -821,19 +825,21 @@
           <h1 class="tool-title">SQL 格式化</h1>
           <p class="tool-desc">把 SQL 关键字大写、按主语句换行美化。</p>
         </div>
-        <div class="panel">
-          <div class="panel-title">SQL</div>
-          <textarea class="textarea mono" id="sqlin" style="min-height:180px;">select id, name, email from users where status='active' and created_at > '2024-01-01' order by id desc limit 10</textarea>
-          <div class="btn-row">
-            <button class="btn btn-primary" data-act="fmt">格式化</button>
-            <button class="btn" data-act="min">压缩</button>
-            <button class="btn" data-act="clear">清空</button>
-            <button class="btn" data-act="copy">复制</button>
+        <div class="row">
+          <div class="panel">
+            <div class="panel-title">SQL</div>
+            <textarea class="textarea mono" id="sqlin" style="min-height:240px;">select id, name, email from users where status='active' and created_at > '2024-01-01' order by id desc limit 10</textarea>
+            <div class="btn-row">
+              <button class="btn btn-primary" data-act="fmt">格式化</button>
+              <button class="btn" data-act="min">压缩</button>
+              <button class="btn" data-act="clear">清空</button>
+              <button class="btn" data-act="copy">复制</button>
+            </div>
           </div>
-        </div>
-        <div class="panel">
-          <div class="panel-title">结果</div>
-          <textarea class="textarea mono" id="sqlout" style="min-height:240px;"></textarea>
+          <div class="panel">
+            <div class="panel-title">结果</div>
+            <textarea class="textarea mono" id="sqlout" style="min-height:240px;"></textarea>
+          </div>
         </div>
       `,
       bind(root) {
@@ -871,19 +877,21 @@
           <h1 class="tool-title">XML 格式化</h1>
           <p class="tool-desc">XML 美化、压缩。轻量级实现（不支持注释嵌套修复等复杂场景）。</p>
         </div>
-        <div class="panel">
-          <div class="panel-title">XML</div>
-          <textarea class="textarea mono" id="xmlin" style="min-height:180px;"><root><user name="wake" age="18"><tags><tag>tools</tag><tag>web</tag></tags></user><user name="tools" age="1"/></root></textarea>
-          <div class="btn-row">
-            <button class="btn btn-primary" data-act="fmt">格式化</button>
-            <button class="btn" data-act="min">压缩</button>
-            <button class="btn" data-act="clear">清空</button>
-            <button class="btn" data-act="copy">复制</button>
+        <div class="row">
+          <div class="panel">
+            <div class="panel-title">XML</div>
+            <textarea class="textarea mono" id="xmlin" style="min-height:240px;"><root><user name="wake" age="18"><tags><tag>tools</tag><tag>web</tag></tags></user><user name="tools" age="1"/></root></textarea>
+            <div class="btn-row">
+              <button class="btn btn-primary" data-act="fmt">格式化</button>
+              <button class="btn" data-act="min">压缩</button>
+              <button class="btn" data-act="clear">清空</button>
+              <button class="btn" data-act="copy">复制</button>
+            </div>
           </div>
-        </div>
-        <div class="panel">
-          <div class="panel-title">结果</div>
-          <textarea class="textarea mono" id="xmlout" style="min-height:240px;"></textarea>
+          <div class="panel">
+            <div class="panel-title">结果</div>
+            <textarea class="textarea mono" id="xmlout" style="min-height:240px;"></textarea>
+          </div>
         </div>
       `,
       bind(root) {
@@ -3066,6 +3074,209 @@ country: CN</textarea>
           else if (a === 'clear') $o.value = '';
         });
         gen();
+      }
+    };
+  },
+
+  /* ---------- 代码对比 (side-by-side) ---------- */
+  codediff() {
+    // 与现有 diff 工具的 LCS 算法一致,得到 [{t:'same'|'add'|'del', v:string}]
+    const lcsDiff = (a, b) => {
+      const al = a.split('\n'), bl = b.split('\n');
+      const m = al.length, n = bl.length;
+      const dp = Array.from({ length: m + 1 }, () => new Uint32Array(n + 1));
+      for (let i = 1; i <= m; i++)
+        for (let j = 1; j <= n; j++)
+          dp[i][j] = al[i-1] === bl[j-1] ? dp[i-1][j-1] + 1 : Math.max(dp[i-1][j], dp[i][j-1]);
+      const out = [];
+      let i = m, j = n;
+      while (i > 0 || j > 0) {
+        if (i > 0 && j > 0 && al[i-1] === bl[j-1]) { out.unshift({ t: 'same', v: al[i-1] }); i--; j--; }
+        else if (j > 0 && (i === 0 || dp[i][j-1] >= dp[i-1][j])) { out.unshift({ t: 'add', v: bl[j-1] }); j--; }
+        else { out.unshift({ t: 'del', v: al[i-1] }); i--; }
+      }
+      return out;
+    };
+
+    // 把 ops 序列拆成 side-by-side rows
+    // - same → 左右同内容
+    // - 连续 del+add → 一一配对(不足的一边留空),让差异行尽量并排
+    const toSideBySide = (ops) => {
+      const rows = [];
+      let leftLn = 0, rightLn = 0;
+      let i = 0;
+      while (i < ops.length) {
+        const op = ops[i];
+        if (op.t === 'same') {
+          leftLn++; rightLn++;
+          rows.push({
+            left:  { ln: leftLn,  t: 'same', text: op.v },
+            right: { ln: rightLn, t: 'same', text: op.v },
+            gutter: '',
+          });
+          i++;
+          continue;
+        }
+        // 收集连续的 del 和 add(在遇到下一个 same 或结尾之前)
+        const dels = [], adds = [];
+        while (i < ops.length && ops[i].t !== 'same') {
+          if (ops[i].t === 'del') dels.push(ops[i].v);
+          else adds.push(ops[i].v);
+          i++;
+        }
+        const max = Math.max(dels.length, adds.length);
+        for (let k = 0; k < max; k++) {
+          const l = dels[k], r = adds[k];
+          if (l != null) leftLn++;
+          if (r != null) rightLn++;
+          rows.push({
+            left:  l != null ? { ln: leftLn,  t: 'del', text: l } : { ln: null, t: 'empty' },
+            right: r != null ? { ln: rightLn, t: 'add', text: r } : { ln: null, t: 'empty' },
+            gutter: '>>',
+          });
+        }
+      }
+      return rows;
+    };
+
+    return {
+      view: () => `
+        <div class="tool-header">
+          <h1 class="tool-title">代码对比</h1>
+          <p class="tool-desc">IDE 风格的并排代码对比。输入即比较,行号同步,差异行整行高亮。</p>
+        </div>
+        <div class="cd-toolbar">
+          <div class="cd-file">
+            <span class="cd-file-dot cd-file-dot-left"></span>
+            <input class="input cd-file-input mono" id="cdLabelA" value="left.yaml" />
+          </div>
+          <div class="cd-toolbar-actions">
+            <button class="btn btn-sm" data-act="swap" title="交换两侧内容">↔ 交换</button>
+            <button class="btn btn-sm" data-act="clear" title="清空两侧">清空</button>
+            <button class="btn btn-sm" data-act="copy" title="复制完整 diff 到剪贴板">复制 diff</button>
+            <label class="cd-ignore"><input type="checkbox" id="cdIgnoreWs" /> 忽略空白</label>
+          </div>
+          <div class="cd-file">
+            <input class="input cd-file-input mono" id="cdLabelB" value="right.yaml" />
+            <span class="cd-file-dot cd-file-dot-right"></span>
+          </div>
+        </div>
+        <div class="cd-input-grid">
+          <textarea class="textarea mono cd-input" id="cdA" spellcheck="false" placeholder="左侧原文…"></textarea>
+          <textarea class="textarea mono cd-input" id="cdB" spellcheck="false" placeholder="右侧修改后…"></textarea>
+        </div>
+        <div class="cd-summary" id="cdSummary"></div>
+        <div class="cd-scroll" id="cdScroll">
+          <div class="cd-rows" id="cdRows"></div>
+        </div>
+      `,
+      bind(root) {
+        const $A = root.querySelector('#cdA');
+        const $B = root.querySelector('#cdB');
+        const $rows = root.querySelector('#cdRows');
+        const $summary = root.querySelector('#cdSummary');
+        const $ignore = root.querySelector('#cdIgnoreWs');
+
+        // 默认示例:贴近截图,展示 side-by-side 效果
+        $A.value =
+`roof:
+  db:
+    data-path: "D:/code/new_lg/data_access/lg_coop_svr/data"
+    work-path: "D:/code/new_lg/data_access/lg_coop_svr/log"
+    schema-xml-file-path: "D:/code/new_lg/env/sql/data_access/lg_coop_s
+url:
+  conn-timeout: 5
+  read-timeout: 30
+cache:
+  type: local`;
+        $B.value =
+`roof:
+  db:
+    data-path: "D:/Workspace/CodeSpace/roof_data/lg/lg_coop_svr"
+    work-path: "D:/Workspace/CodeSpace/roof_log/lg/lg_coop_svr"
+    tool:
+      urls:
+url:
+  conn-timeout: 5
+  read-timeout: 30
+cache:
+  type: redis`;
+
+        // 防抖:连续输入只渲染最后一次
+        let timer = null;
+        const schedule = () => {
+          clearTimeout(timer);
+          timer = setTimeout(render, 80);
+        };
+
+        const normalize = (s) => $ignore.checked ? s.replace(/\s+/g, ' ').trim() : s;
+
+        const render = () => {
+          const ops = lcsDiff(normalize($A.value), normalize($B.value));
+          const rows = toSideBySide(ops);
+          // 统计
+          const addCnt = rows.filter(r => r.right.t === 'add').length;
+          const delCnt = rows.filter(r => r.left.t === 'del').length;
+          if (rows.length === 0) {
+            $rows.innerHTML = `<div class="cd-empty">在两侧输入内容,即可看到并排对比</div>`;
+          } else {
+            $rows.innerHTML = rows.map(r => {
+              const lnA = r.left.ln ?? '';
+              const lnB = r.right.ln ?? '';
+              const clsA = `cd-content cd-${r.left.t}`;
+              const clsB = `cd-content cd-${r.right.t}`;
+              const tA = r.left.t === 'empty' ? '' : (escapeHtml(r.left.text) || '\u00A0');
+              const tB = r.right.t === 'empty' ? '' : (escapeHtml(r.right.text) || '\u00A0');
+              const g = r.gutter || '\u00A0';
+              const rowCls = r.gutter ? 'cd-row cd-row-diff' : 'cd-row';
+              return `<div class="${rowCls}">` +
+                       `<div class="cd-ln">${lnA}</div>` +
+                       `<div class="${clsA}">${tA}</div>` +
+                       `<div class="cd-gutter">${g}</div>` +
+                       `<div class="cd-ln">${lnB}</div>` +
+                       `<div class="${clsB}">${tB}</div>` +
+                     `</div>`;
+            }).join('');
+          }
+          $summary.innerHTML =
+            `<span class="cd-stat"><b>${rows.length}</b> 行</span>` +
+            `<span class="cd-stat cd-stat-add">+ <b>${addCnt}</b> 新增</span>` +
+            `<span class="cd-stat cd-stat-del">− <b>${delCnt}</b> 删除</span>`;
+        };
+
+        $A.addEventListener('input', schedule);
+        $B.addEventListener('input', schedule);
+        $ignore.addEventListener('change', render);
+
+        root.addEventListener('click', e => {
+          const btn = e.target.closest('[data-act]');
+          if (!btn) return;
+          const a = btn.dataset.act;
+          if (a === 'swap') {
+            [$A.value, $B.value] = [$B.value, $A.value];
+            const la = root.querySelector('#cdLabelA'), lb = root.querySelector('#cdLabelB');
+            [la.value, lb.value] = [lb.value, la.value];
+            render();
+          } else if (a === 'clear') {
+            $A.value = ''; $B.value = '';
+            render();
+          } else if (a === 'copy') {
+            // 复制为简化 diff 文本(行内带 +/- 标记)
+            const lines = [];
+            const ops = lcsDiff(normalize($A.value), normalize($B.value));
+            const rows = toSideBySide(ops);
+            rows.forEach(r => {
+              if (r.left.t === 'same')  lines.push('  ' + r.left.text);
+              else if (r.left.t === 'del')   lines.push('- ' + r.left.text);
+              if (r.right.t === 'add')  lines.push('+ ' + r.right.text);
+            });
+            copyTextWithBtn(lines.join('\n'), btn);
+          }
+        });
+
+        // 标签改名时实时更新文件色块提示(仅样式变化,无需重渲染 rows)
+        // 这里保持简单:不做
+        render();
       }
     };
   },

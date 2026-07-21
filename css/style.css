@@ -505,7 +505,7 @@ code { font-size: 0.9em; }
   position: relative;
 }
 
-.tool-panel { max-width: 1120px; margin: 0 auto; padding: 40px 32px 80px; }
+.tool-panel { max-width: 1600px; margin: 0 auto; padding: 40px 32px 80px; }
 
 /* ============================================================
    Tool page header — eyebrow + title
@@ -581,6 +581,9 @@ code { font-size: 0.9em; }
   padding: 22px;
 }
 .panel + .panel { margin-top: 16px; }
+/* 补充:.row / .diff-container 不是 .panel,会阻断上面的相邻兄弟选择器
+   这里给 .tool-panel 内所有"主要块"之间补 16px 间距(.row/.diff-container 内部仍由 .row > .panel + .panel 等覆盖) */
+.tool-panel > * + *:is(.panel, .row, .diff-container) { margin-top: 16px; }
 
 .panel-title {
   font-family: var(--font-mono);
@@ -629,8 +632,17 @@ code { font-size: 0.9em; }
 .textarea { resize: vertical; min-height: 120px; line-height: 1.65; }
 .input.mono, .textarea.mono { font-family: var(--font-mono); font-size: 12.5px; }
 
-.row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-.row-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  align-items: stretch;
+}
+/* 覆盖 .panel + .panel { margin-top: 16px } —— 那条规则在 .row grid 容器里也会命中,
+   导致第二个 panel 在 cell 内下移 16px,看起来比第一个低一截 */
+.row > .panel + .panel { margin-top: 0; }
+.row-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; align-items: stretch; }
+.row-3 > .panel + .panel { margin-top: 0; }
 
 .btn {
   display: inline-flex;
@@ -800,7 +812,13 @@ code { font-size: 0.9em; }
 /* ============================================================
    Tool-specific bits
    ============================================================ */
-.diff-container { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.diff-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  align-items: stretch;
+}
+.diff-container > * + * { margin-top: 0; }
 .diff-pane {
   border: 1px solid var(--code-border);
   border-radius: var(--radius);
@@ -823,6 +841,168 @@ code { font-size: 0.9em; }
 .diff-line.del { background: var(--danger-soft); color: var(--danger); }
 .diff-line.same { color: var(--text-secondary); }
 .diff-line.marker { background: transparent; color: var(--text-muted); }
+
+/* ============================================================
+   代码对比 (side-by-side codediff)
+   ============================================================ */
+.cd-toolbar {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.cd-file {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.cd-file-input {
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+  padding: 6px 10px;
+}
+.cd-file-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+  border: 1px solid var(--border-strong);
+}
+.cd-file-dot-left  { background: var(--danger);  border-color: var(--danger); }
+.cd-file-dot-right { background: var(--success); border-color: var(--success); }
+.cd-toolbar-actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.cd-ignore {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  user-select: none;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+}
+.cd-ignore:hover { color: var(--text); }
+.cd-ignore input { margin: 0; cursor: pointer; accent-color: var(--primary); }
+
+.cd-input-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.cd-input { min-height: 160px; font-size: 12.5px; }
+
+.cd-summary {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  padding: 8px 12px;
+  background: var(--bg-elev-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+  font-family: var(--font-mono);
+}
+.cd-summary:empty { display: none; }
+.cd-stat b { color: var(--text); font-weight: 600; }
+.cd-stat-add b { color: var(--success); }
+.cd-stat-del b { color: var(--danger); }
+
+.cd-scroll {
+  border: 1px solid var(--code-border);
+  border-radius: var(--radius);
+  background: var(--bg-elev);
+  max-height: 70vh;
+  overflow: auto;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  line-height: 1.65;
+}
+.cd-rows { min-width: 100%; }
+.cd-empty {
+  padding: 48px 16px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+.cd-row {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr) 22px 56px minmax(0, 1fr);
+  align-items: stretch;
+}
+.cd-row:hover { background: var(--bg-hover); }
+.cd-ln {
+  text-align: right;
+  padding: 0 10px;
+  color: var(--text-muted);
+  user-select: none;
+  background: var(--bg-elev-2);
+  border-right: 1px solid var(--border);
+  font-size: 11.5px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+.cd-row-diff > .cd-ln { background: color-mix(in srgb, var(--primary-soft) 70%, var(--bg-elev-2)); }
+.cd-content {
+  padding: 0 12px;
+  white-space: pre;
+  overflow: hidden;
+  text-overflow: clip;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+.cd-content.same  { color: var(--text-secondary); }
+.cd-content.add,
+.cd-content.del {
+  background: var(--primary-soft);
+  color: var(--text);
+}
+.cd-content.empty {
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 6px,
+    var(--bg-elev-2) 6px,
+    var(--bg-elev-2) 7px
+  );
+  opacity: .6;
+}
+.cd-gutter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
+  font-size: 11px;
+  background: var(--bg-elev);
+  border-left: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  user-select: none;
+}
+.cd-row-diff .cd-gutter {
+  background: var(--primary-soft);
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .cd-toolbar { grid-template-columns: 1fr; }
+  .cd-input-grid { grid-template-columns: 1fr; }
+  .cd-row { grid-template-columns: 44px minmax(0, 1fr) 22px 44px minmax(0, 1fr); }
+  .cd-ln { padding: 0 6px; font-size: 10.5px; }
+}
 
 .cron-table { width: 100%; border-collapse: collapse; font-size: 13px; }
 .cron-table th, .cron-table td {
@@ -1327,7 +1507,8 @@ code { font-size: 0.9em; }
   .tool-title { font-size: 24px; }
   .hero-title { font-size: 32px; }
   .hero { padding: 28px 0 28px; }
-  .row, .row-3, .diff-container { grid-template-columns: 1fr; }
+  .row, .diff-container { grid-template-columns: 1fr; grid-template-rows: auto; }
+  .row-3 { grid-template-columns: 1fr; }
   .stats { grid-template-columns: 1fr; }
   .home-grid { grid-template-columns: 1fr; }
   .home-category { margin-top: 32px; }
