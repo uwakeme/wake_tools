@@ -527,7 +527,7 @@ code { font-size: 0.9em; }
   flex-direction: column;
   flex: 1;
   min-height: 0;
-  padding: 40px 32px;
+  padding: 32px 32px 40px;
   /* 取消 max-width,让面板撑满主区宽度;取消 margin:0 auto 改为左对齐 */
 }
 
@@ -590,7 +590,7 @@ code { font-size: 0.9em; }
 .tool-desc {
   color: var(--text-secondary);
   font-size: 14.5px;
-  margin: 0 0 32px;
+  margin: 0 0 20px;
   max-width: 680px;
   line-height: 1.65;
 }
