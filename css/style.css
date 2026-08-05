@@ -652,8 +652,11 @@ code { font-size: 0.9em; }
 
 .textarea { resize: vertical; min-height: 120px; line-height: 1.65; }
 .input.mono, .textarea.mono { font-family: var(--font-mono); font-size: 12.5px; }
-/* 工具里的 textarea 用 flex:1 撑开,需要 field-sizing:fixed 让它按容器尺寸走,
-   否则默认会按内容高度自增长,把 panel 撑爆 */
+/* 工具里的输入 textarea 外面包了 .input-area(避免被 field-sizing:fixed 兼容性影响):
+   wrapper 是 panel 的 flex 子项,内部 textarea 再 flex:1 填满 wrapper,高度就锁死了 */
+.input-area { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.input-area > .textarea { flex: 1; min-height: 0; resize: none; }
+/* 兼容老浏览器:即便 wrapper 没生效,field-sizing:fixed 也能阻止自增长 */
 #jin, #jtext { field-sizing: fixed; }
 
 .row {
