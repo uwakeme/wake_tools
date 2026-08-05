@@ -664,19 +664,27 @@ code { font-size: 0.9em; }
 
 .row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);  /* minmax(0, 1fr) 关键:
+    1fr track 的默认 min-size 是 auto=内容高度,内容一大(超长 JSON)就被撑爆;
+    改成 minmax(0, 1fr) 把 track 最小尺寸锁 0,grid item 才能被自己的 min-height:0 限制 */
+  grid-template-rows: minmax(0, 1fr);
   gap: 16px;
   align-items: stretch;
   flex: 1;
   min-height: 0;
 }
-.row > .panel { min-width: 0; min-height: 0; }
+.row > * { min-width: 0; min-height: 0; }
 /* 覆盖 .panel + .panel { margin-top: 16px } —— 那条规则在 .row grid 容器里也会命中,
    导致第二个 panel 在 cell 内下移 16px,看起来比第一个低一截 */
 .row > .panel + .panel { margin-top: 0; }
-.row-3 { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: 1fr; gap: 16px; align-items: stretch; }
-.row-3 > .panel { min-width: 0; }
+.row-3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: minmax(0, 1fr);
+  gap: 16px;
+  align-items: stretch;
+}
+.row-3 > * { min-width: 0; min-height: 0; }
 .row-3 > .panel + .panel { margin-top: 0; }
 
 .btn {
