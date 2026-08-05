@@ -516,7 +516,14 @@ code { font-size: 0.9em; }
   position: relative;
 }
 
-.tool-panel { max-width: 1600px; margin: 0 auto; padding: 40px 32px 80px; }
+.tool-panel {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  padding: 40px 32px;
+  /* 取消 max-width,让面板撑满主区宽度;取消 margin:0 auto 改为左对齐 */
+}
 
 /* ============================================================
    Tool page header — eyebrow + title
@@ -590,6 +597,9 @@ code { font-size: 0.9em; }
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 22px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 .panel + .panel { margin-top: 16px; }
 /* 补充:.row / .diff-container 不是 .panel,会阻断上面的相邻兄弟选择器
@@ -646,13 +656,18 @@ code { font-size: 0.9em; }
 .row {
   display: grid;
   grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr;
   gap: 16px;
   align-items: stretch;
+  flex: 1;
+  min-height: 0;
 }
+.row > .panel { min-width: 0; min-height: 0; }
 /* 覆盖 .panel + .panel { margin-top: 16px } —— 那条规则在 .row grid 容器里也会命中,
    导致第二个 panel 在 cell 内下移 16px,看起来比第一个低一截 */
 .row > .panel + .panel { margin-top: 0; }
-.row-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; align-items: stretch; }
+.row-3 { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: 1fr; gap: 16px; align-items: stretch; }
+.row-3 > .panel { min-width: 0; }
 .row-3 > .panel + .panel { margin-top: 0; }
 
 .btn {
@@ -1556,8 +1571,8 @@ code { font-size: 0.9em; }
   .tool-title { font-size: 24px; }
   .hero-title { font-size: 32px; }
   .hero { padding: 28px 0 28px; }
-  .row, .diff-container { grid-template-columns: 1fr; grid-template-rows: auto; }
-  .row-3 { grid-template-columns: 1fr; }
+  .row, .diff-container { grid-template-columns: 1fr; grid-template-rows: auto auto; }
+  .row-3 { grid-template-columns: 1fr; grid-template-rows: auto auto auto; }
   .stats { grid-template-columns: 1fr; }
   .home-grid { grid-template-columns: 1fr; }
   .home-category { margin-top: 32px; }
@@ -1598,8 +1613,8 @@ code { font-size: 0.9em; }
   border-radius: var(--radius);
   padding: 12px 14px;
   min-height: 240px;
-  max-height: 520px;
   overflow: auto;
+  flex: 1;
 }
 /* flex 行里 lineno/键固定,值/标点允许在自身内换行 */
 .jtree-row { padding: 0; display: flex; align-items: baseline; gap: 0; }
@@ -1858,7 +1873,6 @@ code { font-size: 0.9em; }
 .jtext-view {
   width: 100%;
   min-height: 280px;
-  max-height: 520px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--bg-elev-2);
@@ -1872,6 +1886,7 @@ code { font-size: 0.9em; }
   white-space: pre;
   overflow: auto;
   transition: all var(--transition-fast);
+  flex: 1;
 }
 .jtext-view:focus { border-color: var(--primary); background: var(--bg-elev); }
 .jtext-view.empty {

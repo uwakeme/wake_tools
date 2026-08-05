@@ -703,7 +703,7 @@
                 </select>
               </div>
             </div>
-            <textarea class="textarea mono" id="jin" style="min-height:240px;" placeholder='{"name":"wake","tags":["tools","json"],"meta":{"v":1}}'>{"name":"wake","tags":["tools","json"],"meta":{"v":1}}</textarea>
+            <textarea class="textarea mono" id="jin" style="flex:1; min-height:240px; resize:vertical;" placeholder='{"name":"wake","tags":["tools","json"],"meta":{"v":1}}'>{"name":"wake","tags":["tools","json"],"meta":{"v":1}}</textarea>
             <div class="btn-row" style="margin-top:8px; flex-wrap:wrap; gap:6px;">
               <button class="btn btn-primary" data-act="fmt">格式化</button>
               <button class="btn" data-act="min">压缩</button>
