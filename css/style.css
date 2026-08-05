@@ -652,6 +652,9 @@ code { font-size: 0.9em; }
 
 .textarea { resize: vertical; min-height: 120px; line-height: 1.65; }
 .input.mono, .textarea.mono { font-family: var(--font-mono); font-size: 12.5px; }
+/* 工具里的 textarea 用 flex:1 撑开,需要 field-sizing:fixed 让它按容器尺寸走,
+   否则默认会按内容高度自增长,把 panel 撑爆 */
+#jin, #jtext { field-sizing: fixed; }
 
 .row {
   display: grid;
