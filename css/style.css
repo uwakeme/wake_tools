@@ -512,6 +512,9 @@ code { font-size: 0.9em; }
 }
 
 .content {
+  display: flex;            /* 必须:让 .tool-panel 的 flex:1 真正生效,
+                               否则它会按内容自适应,跟 row 形成循环依赖 */
+  flex-direction: column;
   flex: 1;
   min-height: 0;            /* 关键:flex 子项默认 min-height:auto=内容高度,
                                会让 overflow-y:auto 失效,补 0 才能限制在视口内 */
