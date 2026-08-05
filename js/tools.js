@@ -491,7 +491,7 @@
       .replace(/\n{3,}/g, '\n\n')
       .trim();
 
-    // ---- 树形 DOM 构造 ----
+    // ---- DOM 构造小工具 ----
     const el = (tag, cls, text) => {
       const n = document.createElement(tag);
       if (cls) n.className = cls;
@@ -505,16 +505,58 @@
       if (typeof v === 'boolean') return el('span', 'jtree-boolean', String(v));
       return el('span', 'jtree-null', String(v));
     };
-    // 行号计数器:每渲染一个 row 递增 1,在 renderTree 入口重置
-    const lineCounter = { n: 0 };
-    const nextLine = () => {
-      lineCounter.n += 1;
-      return String(lineCounter.n).padStart(3, ' ');
+
+    // ---- 错误位置解析 ----
+    // Chrome/V8: "...at position N" 或 "...in JSON at position N"
+    // Firefox:    "...at line N column M of the JSON data"
+    const parseErrorPos = (input, err) => {
+      const m = String((err && err.message) || '');
+      const mPos = m.match(/(?:at|in JSON at) position (\d+)/);
+      if (mPos) {
+        const pos = parseInt(mPos[1], 10);
+        if (pos >= 0) {
+          const before = input.slice(0, pos);
+          const lines = before.split('\n');
+          return { pos, line: lines.length, col: lines[lines.length - 1].length + 1, msg: m };
+        }
+      }
+      const mLine = m.match(/at line (\d+) column (\d+)/);
+      if (mLine) {
+        return { pos: -1, line: parseInt(mLine[1], 10), col: parseInt(mLine[2], 10), msg: m };
+      }
+      return { pos: -1, line: 0, col: 0, msg: m };
     };
 
-    // 递归构建树节点 DOM
-    // inArray=true 表示当前节点在数组里,keyName 不渲染
-    const buildNode = (value, keyName, inArray) => {
+    // ---- 统计 ----
+    const formatSize = (n) => {
+      if (n < 1024) return n + 'B';
+      if (n < 1024 * 1024) return (n / 1024).toFixed(1) + 'KB';
+      return (n / 1024 / 1024).toFixed(2) + 'MB';
+    };
+    const computeStats = (text, value) => {
+      const chars = text.length;
+      const lines = text === '' ? 0 : text.split('\n').length;
+      const size = new Blob([text]).size;
+      let depth = 0, keys = 0;
+      if (value !== undefined && value !== null) {
+        const walk = (v, d) => {
+          if (d > depth) depth = d;
+          if (Array.isArray(v)) v.forEach(x => walk(x, d + 1));
+          else if (v && typeof v === 'object') {
+            Object.keys(v).forEach(k => { keys++; walk(v[k], d + 1); });
+          }
+        };
+        walk(value, 1);
+      }
+      return { chars, lines, depth, keys, size };
+    };
+
+    // ---- 树行号 ----
+    const lineCounter = { n: 0 };
+    const nextLine = () => { lineCounter.n += 1; return String(lineCounter.n).padStart(3, ' '); };
+
+    // ---- 树节点构造 ----
+    const buildNode = (value, keyName /*, inArray*/) => {
       const isContainer = value !== null && typeof value === 'object';
       if (!isContainer) {
         const row = el('div', 'jtree-row jtree-leaf');
@@ -551,7 +593,7 @@
       wrap.appendChild(head);
       const childWrap = el('div', 'jtree-children');
       for (const [k, v] of entries) {
-        childWrap.appendChild(buildNode(v, isArray ? undefined : k, isArray));
+        childWrap.appendChild(buildNode(v, isArray ? undefined : k));
       }
       wrap.appendChild(childWrap);
       if (count > 0) {
@@ -566,7 +608,6 @@
         openB.style.display = 'none';
         head.appendChild(el('span', 'jtree-punct', isArray ? ']' : '}'));
       }
-      // 折叠/展开相关引用 + 状态方法
       wrap._childWrap = childWrap;
       wrap._openB = openB;
       wrap._summary = summary;
@@ -599,42 +640,128 @@
       return wrap;
     };
 
+    // ---- 示例 JSON(给"加载示例"下拉用) ----
+    const samples = {
+      user: {
+        id: 1024,
+        name: 'wake',
+        email: 'wake@example.com',
+        roles: ['admin', 'developer'],
+        profile: { age: 28, city: 'Shanghai', vip: true, note: null }
+      },
+      api: {
+        code: 0,
+        message: 'success',
+        timestamp: 1717654321,
+        data: {
+          list: [
+            { id: 1, title: 'First', tags: ['a', 'b'] },
+            { id: 2, title: 'Second', tags: ['c'] },
+            { id: 3, title: 'Third', tags: [] }
+          ],
+          pagination: { page: 1, size: 20, total: 3 }
+        }
+      },
+      config: {
+        app: { name: 'wake-tools', version: '1.0.0', debug: false },
+        server: { host: '0.0.0.0', port: 8787, cors: ['*'] },
+        features: { theme: 'auto', analytics: false, i18n: ['zh-CN', 'en'] }
+      },
+      nested: {
+        a: { b: { c: { d: { e: { f: { g: { h: 'deep value reached' } } } } } } },
+        meta: { levels: 8, type: 'recursive' }
+      },
+      array: {
+        items: Array.from({ length: 8 }, (_, i) => ({
+          id: i + 1,
+          name: 'item-' + (i + 1),
+          score: Math.round((i * 13 + 7) % 100),
+          active: i % 2 === 0
+        }))
+      }
+    };
+
     return {
       view: () => `
         <div class="tool-header">
           <h1 class="tool-title">JSON 格式化</h1>
-          <p class="tool-desc">格式化、压缩、去注释、转义、去除转义、键排序、校验;输入后实时生成带行号的可折叠树视图。</p>
+          <p class="tool-desc">格式化、压缩、去注释、转义、键排序、树视图、错误定位、树内搜索。</p>
         </div>
         <div class="row">
           <div class="panel">
-            <div class="panel-title">输入</div>
-            <textarea class="textarea mono" id="jin" style="min-height:200px;" placeholder='{"name":"wake","tags":["tools","json"],"meta":{"v":1}}'>{"name":"wake","tags":["tools","json"],"meta":{"v":1}}</textarea>
-            <div class="btn-row">
-              <button class="btn btn-primary" data-act="fmt">格式化 (2 空格)</button>
-              <button class="btn" data-act="fmt4">格式化 (4 空格)</button>
+            <div class="panel-title" style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+              <span>输入</span>
+              <div class="jsample">
+                <span>示例</span>
+                <select id="jsample">
+                  <option value="">— 加载示例 —</option>
+                  <option value="user">用户信息</option>
+                  <option value="api">API 响应</option>
+                  <option value="config">应用配置</option>
+                  <option value="nested">深层嵌套</option>
+                  <option value="array">数组集合</option>
+                </select>
+              </div>
+            </div>
+            <textarea class="textarea mono" id="jin" style="min-height:240px;" placeholder='{"name":"wake","tags":["tools","json"],"meta":{"v":1}}'>{"name":"wake","tags":["tools","json"],"meta":{"v":1}}</textarea>
+            <div class="btn-row" style="margin-top:8px; flex-wrap:wrap; gap:6px;">
+              <button class="btn btn-primary" data-act="fmt">格式化</button>
               <button class="btn" data-act="min">压缩</button>
-              <button class="btn" data-act="strip">去注释</button>
               <button class="btn" data-act="stripfmt">去注释+格式化</button>
               <button class="btn" data-act="stripmin">去注释+压缩</button>
+              <button class="btn" data-act="strip">仅去注释</button>
               <button class="btn" data-act="escape">转义</button>
               <button class="btn" data-act="unescape">去转义</button>
               <button class="btn" data-act="sort">键排序</button>
-              <button class="btn" data-act="clear">清空</button>
+              <div class="jindent">
+                <span>缩进</span>
+                <select id="jindent">
+                  <option value="1">1</option>
+                  <option value="2" selected>2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                  <option value="tab">Tab</option>
+                </select>
+                <span>空格</span>
+              </div>
+              <button class="btn" data-act="clear" style="margin-left:auto;">清空</button>
             </div>
           </div>
           <div class="panel">
-            <div class="panel-title" style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
-              <span>结果 · 树形视图</span>
-              <div style="display:flex; gap:6px;">
-                <button class="btn btn-sm" data-act="expand">展开全部</button>
-                <button class="btn btn-sm" data-act="collapse">收起全部</button>
+            <div class="panel-title" style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+              <span>结果</span>
+              <div class="jseg" id="jseg" role="tablist">
+                <button type="button" data-act="view-tree" class="active">树视图</button>
+                <button type="button" data-act="view-text">文本视图</button>
               </div>
             </div>
+            <div class="jstats" id="jstats">
+              <div class="jstat"><div class="jstat-label">字符</div><div class="jstat-value">—</div></div>
+              <div class="jstat"><div class="jstat-label">行数</div><div class="jstat-value">—</div></div>
+              <div class="jstat"><div class="jstat-label">深度</div><div class="jstat-value">—</div></div>
+              <div class="jstat"><div class="jstat-label">键数</div><div class="jstat-value">—</div></div>
+              <div class="jstat"><div class="jstat-label">大小</div><div class="jstat-value">—</div></div>
+            </div>
+            <div class="jtree-search" id="jsearch-wrap" style="margin-bottom:8px;">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              <input type="text" id="jsearch" placeholder="在结果中搜索 key 或 value..." />
+              <button class="jtree-search-clear" id="jsearch-clear" type="button" title="清空">×</button>
+            </div>
             <div id="jtree" class="jtree"></div>
+            <textarea id="jtext" class="jtext-view" style="display:none;" readonly placeholder="在左侧输入 JSON 后此处会显示格式化结果"></textarea>
+            <div class="jerror" id="jerror" style="display:none;">
+              <span class="jerror-pos" id="jerror-pos">第 1 行 第 1 列</span>
+              <span class="jerror-msg" id="jerror-msg"></span>
+              <button class="btn btn-sm" data-act="goto-error">跳到错误</button>
+            </div>
             <div class="field" style="margin-top:8px;">
               <span id="jstatus" class="tag" style="display:none;"></span>
             </div>
-            <div class="btn-row">
+            <div class="btn-row" style="margin-top:8px; flex-wrap:wrap; gap:6px;">
+              <button class="btn" data-act="expand">展开全部</button>
+              <button class="btn" data-act="collapse">收起全部</button>
+              <span style="flex:1;"></span>
+              <button class="btn" data-act="download">下载 .json</button>
               <button class="btn" data-act="copy">复制结果</button>
               <button class="btn" data-act="swap">↕ 替换输入</button>
             </div>
@@ -645,81 +772,255 @@
         const $i = root.querySelector('#jin');
         const $t = root.querySelector('#jtree');
         const $s = root.querySelector('#jstatus');
+        const $jstats = root.querySelector('#jstats');
+        const $statCells = $jstats.querySelectorAll('.jstat-value');
+        const $jsearch = root.querySelector('#jsearch');
+        const $jsearchWrap = root.querySelector('#jsearch-wrap');
+        const $jsearchClear = root.querySelector('#jsearch-clear');
+        const $jindent = root.querySelector('#jindent');
+        const $jsample = root.querySelector('#jsample');
+        const $error = root.querySelector('#jerror');
+        const $errorPos = root.querySelector('#jerror-pos');
+        const $errorMsg = root.querySelector('#jerror-msg');
+        const $jseg = root.querySelector('#jseg');
+        const $textView = root.querySelector('#jtext');
 
-        let currentValue = undefined; // 最近一次成功 parse 的值,供树视图用
-        let lastFn = 'fmt'; // 最近一次点击的转换函数,实时模式用
+        // ---- 状态 ----
+        let currentValue = undefined;
+        let view = 'tree';      // 'tree' | 'text'
+        let indent = 2;         // 1|2|3|4
+        let indentChar = ' ';   // ' ' or '\t'
+        let filter = '';
+        let lastFn = 'fmt';
+        let lastError = null;
 
         const show = (ok, msg) => {
           $s.style.display = 'inline-block';
           $s.textContent = msg;
-          $s.style.background = ok ? 'rgba(0,180,42,.12)' : 'rgba(245,63,63,.12)';
-          $s.style.color = ok ? 'var(--success)' : 'var(--danger)';
+          $s.className = `tag ${ok ? 'success' : 'danger'}`;
+        };
+
+        const renderStats = (text, value) => {
+          const s = computeStats(text, value);
+          $statCells[0].textContent = s.chars.toLocaleString();
+          $statCells[1].textContent = s.lines.toLocaleString();
+          $statCells[2].textContent = value !== undefined ? String(s.depth) : '—';
+          $statCells[3].textContent = value !== undefined ? s.keys.toLocaleString() : '—';
+          $statCells[4].textContent = formatSize(s.size);
+        };
+
+        const renderError = (err) => {
+          if (!err || !err.msg) {
+            $error.style.display = 'none';
+            lastError = null;
+            return;
+          }
+          $error.style.display = 'flex';
+          $errorPos.textContent = err.line > 0 ? `第 ${err.line} 行 第 ${err.col} 列` : '未知位置';
+          $errorMsg.textContent = err.msg;
+          lastError = err;
         };
 
         const renderTree = () => {
           $t.innerHTML = '';
-          if (currentValue === undefined) return;
-          lineCounter.n = 0; // 行号从 1 重新开始
-          $t.appendChild(buildNode(currentValue, undefined, false));
+          if (currentValue === undefined) {
+            const hint = document.createElement('div');
+            hint.className = 'jtree-empty-hint';
+            hint.textContent = '在左侧输入 JSON 开始格式化';
+            $t.appendChild(hint);
+            return;
+          }
+          lineCounter.n = 0;
+          $t.appendChild(buildNode(currentValue, undefined));
+          applyFilter();
         };
 
-        // 展开/收起全部(遍历所有非空容器节点)
+        const renderText = () => {
+          if (currentValue === undefined) {
+            $textView.value = '';
+            $textView.placeholder = '在左侧输入 JSON 开始格式化';
+          } else {
+            $textView.value = typeof currentValue === 'string'
+              ? currentValue
+              : JSON.stringify(currentValue, null, indentChar.repeat(indent));
+          }
+        };
+
+        const setView = (v) => {
+          if (v === view) return;
+          view = v;
+          $jseg.querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.act === 'view-' + v));
+          if (v === 'tree') {
+            $t.style.display = '';
+            $textView.style.display = 'none';
+            $jsearchWrap.style.display = '';
+            renderTree();
+          } else {
+            $t.style.display = 'none';
+            $textView.style.display = '';
+            $jsearchWrap.style.display = 'none';
+            renderText();
+          }
+        };
+
+        // 树内搜索/过滤:匹配 key 或 value,递归计算 hasMatch
+        const applyFilter = () => {
+          if (view !== 'tree') return;
+          const q = filter.trim().toLowerCase();
+          // 先清旧状态
+          $t.querySelectorAll('.jtree-row.jtree-match, .jtree-node.jtree-hidden, .jtree-leaf.jtree-hidden')
+            .forEach(el => el.classList.remove('jtree-match', 'jtree-hidden'));
+          if (!q) {
+            $jsearchWrap.classList.remove('has-value');
+            return;
+          }
+          $jsearchWrap.classList.add('has-value');
+          const walk = (node) => {
+            const isWrap = node.classList && node.classList.contains('jtree-node');
+            const headRow = isWrap ? node.querySelector(':scope > .jtree-row') : node;
+            const childContainer = isWrap ? node.querySelector(':scope > .jtree-children') : null;
+            const selfText = headRow ? headRow.textContent.toLowerCase() : '';
+            const selfMatch = selfText.includes(q);
+            let childHasMatch = false;
+            if (childContainer) {
+              for (const c of childContainer.children) {
+                if (walk(c)) childHasMatch = true;
+              }
+            }
+            const hasMatch = selfMatch || childHasMatch;
+            if (hasMatch) {
+              if (isWrap) {
+                node.classList.remove('jtree-hidden');
+                if (selfMatch && headRow) headRow.classList.add('jtree-match');
+                if (childHasMatch && typeof node._setFolded === 'function') node._setFolded(false);
+              } else if (selfMatch) {
+                headRow.classList.add('jtree-match');
+              }
+            } else {
+              if (isWrap) node.classList.add('jtree-hidden');
+              else headRow.classList.add('jtree-hidden');
+            }
+            return hasMatch;
+          };
+          for (const c of $t.children) walk(c);
+        };
+
+        // 跳到错误:在 textarea 中定位光标并滚动
+        const jumpToError = () => {
+          if (!lastError) return;
+          $i.focus();
+          if (lastError.pos >= 0) {
+            $i.setSelectionRange(lastError.pos, lastError.pos);
+            const before = $i.value.slice(0, lastError.pos);
+            const lines = before.split('\n').length;
+            const lh = parseFloat(getComputedStyle($i).lineHeight) || 22;
+            $i.scrollTop = Math.max(0, (lines - 3) * lh);
+          }
+        };
+
+        // 下载结果为 .json
+        const downloadResult = () => {
+          if (currentValue === undefined) {
+            toast('没有可下载的内容');
+            return;
+          }
+          const text = typeof currentValue === 'string'
+            ? currentValue
+            : JSON.stringify(currentValue, null, indentChar.repeat(indent));
+          const blob = new Blob([text], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'result.json';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          setTimeout(() => URL.revokeObjectURL(url), 1000);
+        };
+
+        // 展开/收起全部
         const setAllFolded = (folded) => {
           $t.querySelectorAll('.jtree-node').forEach(n => {
             if (typeof n._setFolded === 'function') n._setFolded(folded);
           });
         };
 
-        const fmt = (indent) => {
+        // ---- 转换函数 ----
+        const tryRender = (text, ok, value, msgOk, msgErr) => {
+          if (ok) {
+            currentValue = value;
+            renderError(null);
+            show(true, msgOk);
+            if (view === 'tree') renderTree(); else renderText();
+            renderStats(text, value);
+          } else {
+            const err = parseErrorPos(text, value);
+            renderError(err);
+            show(false, msgErr || ('✗ ' + (value && value.message || '')));
+            renderStats(text, undefined);
+            if (view === 'tree') renderTree(); else renderText();
+          }
+        };
+        const indentLabel = () => (indentChar === '\t' ? 'Tab' : (indent + ' 空格'));
+
+        const fmt = () => {
           try {
             const v = JSON.parse($i.value);
-            currentValue = v;
-            renderTree();
-            show(true, '✓ 有效 JSON');
-          } catch (e) { show(false, '✗ ' + e.message); }
+            tryRender($i.value, true, v, `✓ 有效 JSON · ${indentLabel()}缩进`);
+          } catch (e) {
+            tryRender($i.value, false, e, '', '✗ ' + e.message);
+          }
         };
         const min = () => {
           try {
             const v = JSON.parse($i.value);
-            currentValue = v;
-            renderTree();
-            show(true, '✓ 已压缩');
-          } catch (e) { show(false, '✗ ' + e.message); }
+            tryRender($i.value, true, v, '✓ 已压缩');
+          } catch (e) {
+            tryRender($i.value, false, e, '', '✗ ' + e.message);
+          }
         };
         const strip = () => {
           if (!$i.value.trim()) {
             currentValue = undefined;
-            renderTree();
+            renderError(null);
             $s.style.display = 'none';
+            if (view === 'tree') renderTree(); else renderText();
+            renderStats('', undefined);
             return;
           }
           const cleaned = tidy(stripComments($i.value));
           $i.value = cleaned;
           try {
-            currentValue = JSON.parse(cleaned);
-            renderTree();
-            show(true, '✓ 已去注释');
-          } catch (e) { show(false, '✗ ' + e.message); }
+            const v = JSON.parse(cleaned);
+            tryRender(cleaned, true, v, '✓ 已去注释');
+          } catch (e) {
+            tryRender(cleaned, false, e, '', '✗ ' + e.message);
+          }
         };
         const stripFmt = () => {
           const cleaned = stripComments($i.value);
           try {
             const v = JSON.parse(cleaned);
-            currentValue = v;
-            renderTree();
-            show(true, '✓ 已去注释并美化');
-          } catch (e) { show(false, '✗ ' + e.message); }
+            tryRender(cleaned, true, v, `✓ 已去注释并美化 · ${indentLabel()}缩进`);
+          } catch (e) {
+            tryRender(cleaned, false, e, '', '✗ ' + e.message);
+          }
         };
         const stripMin = () => {
           const cleaned = stripComments($i.value);
           try {
             const v = JSON.parse(cleaned);
-            currentValue = v;
-            renderTree();
-            show(true, '✓ 已去注释并压缩');
+            tryRender(cleaned, true, v, '✓ 已去注释并压缩');
+          } catch (e) {
+            tryRender(cleaned, false, e, '', '✗ ' + e.message);
+          }
+        };
+        const esc = () => {
+          try {
+            $i.value = JSON.stringify($i.value);
+            show(true, '✓ 已转义(整个输入视为字符串)');
           } catch (e) { show(false, '✗ ' + e.message); }
         };
-        const esc = () => { show(true, '已转义'); };
         const unesc = () => {
           try {
             const v = JSON.parse($i.value);
@@ -728,9 +1029,15 @@
               return;
             }
             currentValue = v;
-            renderTree();
+            renderError(null);
             show(true, '✓ 已去转义');
-          } catch (e) { show(false, '✗ ' + e.message); }
+            if (view === 'tree') renderTree(); else renderText();
+            renderStats($i.value, v);
+          } catch (e) {
+            const err = parseErrorPos($i.value, e);
+            renderError(err);
+            show(false, '✗ ' + e.message);
+          }
         };
         const sort = () => {
           const sortRec = v => {
@@ -742,16 +1049,14 @@
           };
           try {
             const v = sortRec(JSON.parse($i.value));
-            currentValue = v;
-            renderTree();
-            show(true, '✓ 已排序');
-          } catch (e) { show(false, '✗ ' + e.message); }
+            tryRender($i.value, true, v, '✓ 已按字母序排序');
+          } catch (e) {
+            tryRender($i.value, false, e, '', '✗ ' + e.message);
+          }
         };
 
         const runLastFn = () => {
           switch (lastFn) {
-            case 'fmt': fmt(2); break;
-            case 'fmt4': fmt(4); break;
             case 'min': min(); break;
             case 'strip': strip(); break;
             case 'stripfmt': stripFmt(); break;
@@ -759,53 +1064,104 @@
             case 'escape': esc(); break;
             case 'unescape': unesc(); break;
             case 'sort': sort(); break;
-            default: fmt(2);
+            case 'fmt':
+            case 'fmt4':
+            default: fmt(); break;
           }
         };
 
-        // 实时预览:输入 200ms 后重跑最近一次函数(默认开启)
+        // ---- 事件 ----
+        // 实时预览
         let liveTimer = null;
         $i.addEventListener('input', () => {
           clearTimeout(liveTimer);
-          // 空输入时清空结果、隐藏状态,避免中间状态一直闪红
           if (!$i.value.trim()) {
             currentValue = undefined;
-            renderTree();
+            renderError(null);
             $s.style.display = 'none';
+            if (view === 'tree') renderTree(); else renderText();
+            renderStats('', undefined);
             return;
           }
           liveTimer = setTimeout(runLastFn, 200);
         });
 
-        // 进入页面时如果有内容,先跑一次默认格式化,避免空白结果
-        if ($i.value.trim()) runLastFn();
+        // 缩进变化
+        $jindent.addEventListener('change', () => {
+          const v = $jindent.value;
+          if (v === 'tab') { indent = 1; indentChar = '\t'; }
+          else { indent = parseInt(v, 10) || 2; indentChar = ' '; }
+          if ((lastFn === 'fmt' || lastFn === 'fmt4') && $i.value.trim()) {
+            runLastFn();
+          } else if (currentValue !== undefined) {
+            if (view === 'tree') renderTree(); else renderText();
+          }
+        });
 
+        // 示例加载
+        $jsample.addEventListener('change', () => {
+          const key = $jsample.value;
+          if (!key || !samples[key]) return;
+          $i.value = JSON.stringify(samples[key], null, indentChar.repeat(indent));
+          $jsample.value = '';
+          lastFn = 'fmt';
+          fmt();
+        });
+
+        // 树内搜索
+        $jsearch.addEventListener('input', () => {
+          filter = $jsearch.value;
+          applyFilter();
+        });
+        $jsearchClear.addEventListener('click', () => {
+          $jsearch.value = '';
+          filter = '';
+          applyFilter();
+          $jsearch.focus();
+        });
+
+        // 初始:有内容先格式化,空内容显示占位
+        if ($i.value.trim()) runLastFn();
+        else {
+          if (view === 'tree') renderTree();
+          renderStats('', undefined);
+        }
+
+        // 按钮委托
         root.addEventListener('click', e => {
           const a = e.target.dataset.act;
           if (!a) return;
           if (a === 'clear') {
             $i.value = ''; currentValue = undefined;
-            renderTree();
+            renderError(null);
             $s.style.display = 'none';
-            lastFn = 'fmt'; // 清空后回到默认格式化
+            lastFn = 'fmt';
+            if (view === 'tree') renderTree(); else renderText();
+            renderStats('', undefined);
           } else if (a === 'copy') {
-            // 复制当前 currentValue 的格式化 JSON 字符串
             const txt = currentValue === undefined
               ? ''
-              : (typeof currentValue === 'string' ? currentValue : JSON.stringify(currentValue, null, 2));
+              : (typeof currentValue === 'string' ? currentValue : JSON.stringify(currentValue, null, indentChar.repeat(indent)));
             copyTextWithBtn(txt, e.target);
           } else if (a === 'swap') {
-            // 把树(格式化后的 JSON)塞回输入框,继续编辑
             if (currentValue !== undefined) {
               $i.value = typeof currentValue === 'string'
                 ? currentValue
-                : JSON.stringify(currentValue, null, 2);
+                : JSON.stringify(currentValue, null, indentChar.repeat(indent));
               $i.dispatchEvent(new Event('input'));
             }
           } else if (a === 'expand') {
             setAllFolded(false);
           } else if (a === 'collapse') {
             setAllFolded(true);
+          } else if (a === 'view-tree') {
+            setView('tree');
+          } else if (a === 'view-text') {
+            setView('text');
+          } else if (a === 'goto-error') {
+            jumpToError();
+          } else if (a === 'download') {
+            downloadResult();
           } else {
             lastFn = a;
             runLastFn();

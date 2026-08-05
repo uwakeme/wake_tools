@@ -1649,3 +1649,260 @@ code { font-size: 0.9em; }
 .jtree-node.jtree-collapsed > .jtree-row > .jtree-open { display: none; }
 .jtree-node.jtree-expanded > .jtree-row > .jtree-summary { display: none; }
 .jtree-node.jtree-collapsed > .jtree-row > .jtree-summary { display: inline; }
+
+/* ============================================================
+   JSON 工具增强:统计、视图切换、搜索、错误提示、下载按钮
+   ============================================================ */
+.jstats {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.jstat {
+  padding: 8px 10px;
+  background: var(--bg-elev-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  min-width: 0;
+}
+.jstat-label {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.jstat-value {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+@media (max-width: 720px) {
+  .jstats { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* 视图切换:树 / 文本 */
+.jseg {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--bg-elev-2);
+}
+.jseg button {
+  border: 0;
+  background: transparent;
+  color: var(--text-secondary);
+  padding: 5px 11px;
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  font-weight: 500;
+}
+.jseg button + button { border-left: 1px solid var(--border); }
+.jseg button:hover { color: var(--text); background: var(--bg-hover); }
+.jseg button.active {
+  background: var(--bg-elev);
+  color: var(--primary);
+  font-weight: 600;
+}
+
+/* 树内搜索/过滤 */
+.jtree-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.jtree-search svg {
+  position: absolute;
+  left: 9px;
+  width: 13px;
+  height: 13px;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+.jtree-search input {
+  flex: 1;
+  padding: 6px 28px 6px 28px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-elev-2);
+  color: var(--text);
+  font-size: 12.5px;
+  font-family: inherit;
+  outline: none;
+  transition: all var(--transition-fast);
+}
+.jtree-search input:focus {
+  border-color: var(--primary);
+  background: var(--bg-elev);
+  box-shadow: 0 0 0 3px var(--primary-softer);
+}
+.jtree-search .jtree-search-clear {
+  position: absolute;
+  right: 4px;
+  width: 20px;
+  height: 20px;
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  line-height: 1;
+  padding: 0;
+}
+.jtree-search .jtree-search-clear:hover { background: var(--bg-hover); color: var(--text); }
+.jtree-search.has-value .jtree-search-clear { display: inline-flex; }
+.jtree-search-match-count {
+  margin-left: 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* 树节点命中/隐藏 */
+.jtree-row.jtree-match,
+.jtree-node.jtree-match > .jtree-row {
+  background: rgba(245, 158, 11, 0.10);
+  border-radius: 2px;
+}
+.jtree-row.jtree-match-hl,
+.jtree-node.jtree-match-hl > .jtree-row {
+  background: rgba(245, 158, 11, 0.18);
+  border-radius: 2px;
+}
+.jtree-node.jtree-hidden { display: none; }
+.jtree-empty-hint {
+  padding: 24px 12px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 12.5px;
+  font-family: var(--font-mono);
+}
+
+/* 错误提示(行:列 + 跳到错误) */
+.jerror {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--danger);
+}
+.jerror .jerror-pos {
+  padding: 2px 7px;
+  background: var(--danger-soft);
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+}
+.jerror-msg {
+  color: var(--text-secondary);
+  flex: 1;
+  min-width: 0;
+  word-break: break-word;
+}
+
+/* 缩进选择器 - 紧凑版(放在 .btn-row 边上) */
+.jindent {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+.jindent select {
+  padding: 4px 6px;
+  font-size: 12px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-elev-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  font-family: var(--font-mono);
+  cursor: pointer;
+  outline: none;
+  transition: all var(--transition-fast);
+}
+.jindent select:hover { border-color: var(--border-strong); }
+.jindent select:focus { border-color: var(--primary); }
+
+/* 文本视图(可复制的格式化 JSON) */
+.jtext-view {
+  width: 100%;
+  min-height: 280px;
+  max-height: 520px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-elev-2);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  line-height: 1.55;
+  padding: 12px 14px;
+  resize: vertical;
+  outline: none;
+  white-space: pre;
+  overflow: auto;
+  transition: all var(--transition-fast);
+}
+.jtext-view:focus { border-color: var(--primary); background: var(--bg-elev); }
+.jtext-view.empty {
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-style: italic;
+}
+
+/* 示例选择器 - 紧凑 inline select */
+.jsample {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+.jsample select {
+  padding: 4px 6px;
+  font-size: 12px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-elev-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  font-family: var(--font-mono);
+  cursor: pointer;
+  outline: none;
+}
+.jsample select:hover { border-color: var(--border-strong); }
+.jsample select:focus { border-color: var(--primary); }
+
+/* 工具条:把示例/缩进/视图切换放在一行,小按钮用 btn-sm */
+.jtoolbar {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.jtoolbar > .jspacer { flex: 1; }
