@@ -1600,9 +1600,10 @@ code { font-size: 0.9em; }
   min-height: 240px;
   max-height: 520px;
   overflow: auto;
-  white-space: nowrap;
 }
+/* flex 行里 lineno/键固定,值/标点允许在自身内换行 */
 .jtree-row { padding: 0; display: flex; align-items: baseline; gap: 0; }
+.jtree-row > * { min-width: 0; }
 .jtree-lineno {
   flex-shrink: 0;
   display: inline-block;
@@ -1637,6 +1638,15 @@ code { font-size: 0.9em; }
 .jtree-boolean { color: #9333EA; font-weight: 500; }
 .jtree-null { color: var(--text-muted); font-style: italic; }
 .jtree-punct { color: var(--text-secondary); }
+/* 长字符串/数字(典型如 UUID)在自身内部换行,不撑出横向滚动条 */
+.jtree-key,
+.jtree-string,
+.jtree-number,
+.jtree-boolean,
+.jtree-null {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
 .jtree-summary { color: var(--text-muted); font-size: 12px; }
 
 [data-theme="dark"] .jtree-string  { color: #6EE7B7; }
