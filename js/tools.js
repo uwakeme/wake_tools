@@ -703,8 +703,7 @@
                 </select>
               </div>
             </div>
-            <div class="input-area"><textarea class="textarea mono" id="jin" placeholder='{"name":"wake","tags":["tools","json"],"meta":{"v":1}}'>{"name":"wake","tags":["tools","json"],"meta":{"v":1}}</textarea></div>
-            <div class="btn-row" style="margin-top:8px; flex-wrap:wrap; gap:6px;">
+            <div class="btn-row panel-toolbar" style="flex-wrap:wrap; gap:6px;">
               <button class="btn btn-primary" data-act="fmt">格式化</button>
               <button class="btn" data-act="min">压缩</button>
               <button class="btn" data-act="stripfmt">去注释+格式化</button>
@@ -726,6 +725,7 @@
               </div>
               <button class="btn" data-act="clear" style="margin-left:auto;">清空</button>
             </div>
+            <div class="input-area"><textarea class="textarea mono" id="jin" placeholder='{"name":"wake","tags":["tools","json"],"meta":{"v":1}}'>{"name":"wake","tags":["tools","json"],"meta":{"v":1}}</textarea></div>
           </div>
           <div class="panel">
             <div class="panel-title" style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
@@ -734,6 +734,14 @@
                 <button type="button" data-act="view-tree" class="active">树视图</button>
                 <button type="button" data-act="view-text">文本视图</button>
               </div>
+            </div>
+            <div class="btn-row panel-toolbar" style="flex-wrap:wrap; gap:6px;">
+              <button class="btn" data-act="expand">展开全部</button>
+              <button class="btn" data-act="collapse">收起全部</button>
+              <span style="flex:1;"></span>
+              <button class="btn" data-act="download">下载 .json</button>
+              <button class="btn" data-act="copy">复制结果</button>
+              <button class="btn" data-act="swap">↕ 替换输入</button>
             </div>
             <div class="jstats" id="jstats">
               <div class="jstat"><div class="jstat-label">字符</div><div class="jstat-value">—</div></div>
@@ -756,14 +764,6 @@
             </div>
             <div class="field" style="margin-top:8px;">
               <span id="jstatus" class="tag" style="display:none;"></span>
-            </div>
-            <div class="btn-row" style="margin-top:8px; flex-wrap:wrap; gap:6px;">
-              <button class="btn" data-act="expand">展开全部</button>
-              <button class="btn" data-act="collapse">收起全部</button>
-              <span style="flex:1;"></span>
-              <button class="btn" data-act="download">下载 .json</button>
-              <button class="btn" data-act="copy">复制结果</button>
-              <button class="btn" data-act="swap">↕ 替换输入</button>
             </div>
           </div>
         </div>
