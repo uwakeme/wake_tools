@@ -28,6 +28,48 @@
   }
 
   /* ============================================================
+     Recent-visit history (localStorage)
+     - Stored as { toolId: timestamp } sorted by recency.
+     - Capped at 8 entries to keep storage bounded.
+     - Read failure → treat as empty (no history → fallback to featured).
+     ============================================================ */
+  const RECENT_KEY = 'wt-recent';
+  const RECENT_MAX = 8;
+
+  function recordToolVisit(toolId) {
+    try {
+      const raw = localStorage.getItem(RECENT_KEY);
+      const map = raw ? JSON.parse(raw) : {};
+      map[toolId] = Date.now();
+      // Keep only the RECENT_MAX most-recent entries.
+      const trimmed = Object.fromEntries(
+        Object.entries(map)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, RECENT_MAX)
+      );
+      localStorage.setItem(RECENT_KEY, JSON.stringify(trimmed));
+    } catch (e) {
+      // localStorage disabled or quota exceeded — silently no-op.
+    }
+  }
+
+  function getRecentTools(limit) {
+    try {
+      const raw = localStorage.getItem(RECENT_KEY);
+      if (!raw) return null;
+      const map = JSON.parse(raw);
+      const ids = Object.entries(map)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, limit)
+        .map(([id]) => id);
+      const tools = ids.map((id) => TOOLS.find((t) => t.id === id)).filter(Boolean);
+      return tools.length > 0 ? tools : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /* ============================================================
      Home view — grouped by category, with quick-jump nav
      ============================================================ */
   function homeView() {
@@ -38,8 +80,10 @@
     const groupEntries = Object.entries(groups);
     const groupCount = groupEntries.length;
 
-    // Recent / featured picks (first 4) for the hero strip
-    const featured = TOOLS.slice(0, 4);
+    // Hero strip: most recently used tools (fallback to first 4 on first visit)
+    const recent = getRecentTools(4);
+    const stripItems = recent || TOOLS.slice(0, 4);
+    const stripLabel = recent ? '最近使用' : 'Quick start';
 
     return `
       <section class="hero">
@@ -60,8 +104,8 @@
           <span>支持明暗切换</span>
         </div>
         <div class="hero-strip">
-          <span class="hero-strip-label">Quick start</span>
-          ${featured
+          <span class="hero-strip-label">${stripLabel}</span>
+          ${stripItems
             .map(
               (t) =>
                 `<a class="hero-chip" href="#/${t.id}">${ICONS[t.icon] || ''}<span>${escapeHtml(
@@ -189,6 +233,7 @@
       panel.innerHTML = homeView();
     } else {
       state.toolId = tool.id;
+      recordToolVisit(tool.id);
       breadcrumb.innerHTML = `<span class="crumb-tag">${escapeHtml(tool.group)}</span> <strong>${escapeHtml(tool.name)}</strong>`;
       const factory = Tools[tool.id]();
       panel.innerHTML = factory.view();
