@@ -108,19 +108,19 @@
         <div class="row">
           <div class="panel">
             <div class="panel-title">原文（UTF-8）</div>
-            <textarea class="textarea mono" id="b64in" placeholder="输入要编码的字符串…">Hello, 世界！</textarea>
-            <div class="btn-row">
+            <div class="btn-row panel-toolbar" style="flex-wrap:wrap; gap:6px;">
               <button class="btn btn-primary" data-act="enc">编码 →</button>
               <button class="btn" data-act="clear">清空</button>
             </div>
+            <div class="input-area"><textarea class="textarea mono" id="b64in" placeholder="输入要编码的字符串…">Hello, 世界！</textarea></div>
           </div>
           <div class="panel">
             <div class="panel-title">Base64 结果</div>
-            <textarea class="textarea mono" id="b64out" placeholder="Base64 输出…"></textarea>
-            <div class="btn-row">
+            <div class="btn-row panel-toolbar" style="flex-wrap:wrap; gap:6px;">
               <button class="btn btn-primary" data-act="dec">← 解码</button>
               <button class="btn" data-act="copy">复制</button>
             </div>
+            <div class="input-area"><textarea class="textarea mono" id="b64out" placeholder="Base64 输出…"></textarea></div>
           </div>
         </div>
       `,
@@ -157,26 +157,24 @@
         <div class="row">
           <div class="panel">
             <div class="panel-title">原文</div>
-            <textarea class="textarea mono" id="urlin" placeholder="输入要编码的字符串…">https://example.com/search?q=你好&lang=中文</textarea>
-            <div class="field" style="margin-top:12px;">
-              <label class="switch">
+            <div class="btn-row panel-toolbar" style="flex-wrap:wrap; gap:6px; align-items:center;">
+              <button class="btn btn-primary" data-act="enc">编码 →</button>
+              <button class="btn" data-act="clear">清空</button>
+              <label class="switch" style="margin-left:8px;">
                 <input type="checkbox" id="urlmode" />
                 <span class="switch-track"></span>
                 <span class="switch-label">encodeURIComponent（更彻底）</span>
               </label>
             </div>
-            <div class="btn-row">
-              <button class="btn btn-primary" data-act="enc">编码 →</button>
-              <button class="btn" data-act="clear">清空</button>
-            </div>
+            <div class="input-area"><textarea class="textarea mono" id="urlin" placeholder="输入要编码的字符串…">https://example.com/search?q=你好&lang=中文</textarea></div>
           </div>
           <div class="panel">
             <div class="panel-title">编码后</div>
-            <textarea class="textarea mono" id="urlout" placeholder="结果…"></textarea>
-            <div class="btn-row">
+            <div class="btn-row panel-toolbar" style="flex-wrap:wrap; gap:6px;">
               <button class="btn btn-primary" data-act="dec">← 解码</button>
               <button class="btn" data-act="copy">复制</button>
             </div>
+            <div class="input-area"><textarea class="textarea mono" id="urlout" placeholder="结果…"></textarea></div>
           </div>
         </div>
       `,
@@ -214,19 +212,19 @@
         <div class="row">
           <div class="panel">
             <div class="panel-title">文本</div>
-            <textarea class="textarea mono" id="hexin" placeholder="输入文本…">Hi, 早上好</textarea>
-            <div class="btn-row">
+            <div class="btn-row panel-toolbar" style="flex-wrap:wrap; gap:6px;">
               <button class="btn btn-primary" data-act="enc">转 Hex →</button>
               <button class="btn" data-act="clear">清空</button>
             </div>
+            <div class="input-area"><textarea class="textarea mono" id="hexin" placeholder="输入文本…">Hi, 早上好</textarea></div>
           </div>
           <div class="panel">
             <div class="panel-title">Hex</div>
-            <textarea class="textarea mono" id="hexout" placeholder="hex 输出…"></textarea>
-            <div class="btn-row">
+            <div class="btn-row panel-toolbar" style="flex-wrap:wrap; gap:6px;">
               <button class="btn btn-primary" data-act="dec">← 解码</button>
               <button class="btn" data-act="copy">复制</button>
             </div>
+            <div class="input-area"><textarea class="textarea mono" id="hexout" placeholder="hex 输出…"></textarea></div>
           </div>
         </div>
       `,
@@ -270,19 +268,19 @@
         <div class="row">
           <div class="panel">
             <div class="panel-title">原文</div>
-            <textarea class="textarea mono" id="uin" placeholder="输入中文…">你好,世界</textarea>
-            <div class="btn-row">
+            <div class="btn-row panel-toolbar" style="flex-wrap:wrap; gap:6px;">
               <button class="btn btn-primary" data-act="enc">转 \\uXXXX →</button>
               <button class="btn" data-act="clear">清空</button>
             </div>
+            <div class="input-area"><textarea class="textarea mono" id="uin" placeholder="输入中文…">你好,世界</textarea></div>
           </div>
           <div class="panel">
             <div class="panel-title">转义</div>
-            <textarea class="textarea mono" id="uout" placeholder="…"></textarea>
-            <div class="btn-row">
+            <div class="btn-row panel-toolbar" style="flex-wrap:wrap; gap:6px;">
               <button class="btn btn-primary" data-act="dec">← 解码</button>
               <button class="btn" data-act="copy">复制</button>
             </div>
+            <div class="input-area"><textarea class="textarea mono" id="uout" placeholder="…"></textarea></div>
           </div>
         </div>
       `,
@@ -1154,17 +1152,17 @@
         <div class="row">
           <div class="panel">
             <div class="panel-title">SQL</div>
-            <textarea class="textarea mono" id="sqlin" style="min-height:240px;">select id, name, email from users where status='active' and created_at > '2024-01-01' order by id desc limit 10</textarea>
-            <div class="btn-row">
+            <div class="btn-row panel-toolbar" style="flex-wrap:wrap; gap:6px;">
               <button class="btn btn-primary" data-act="fmt">格式化</button>
               <button class="btn" data-act="min">压缩</button>
               <button class="btn" data-act="clear">清空</button>
               <button class="btn" data-act="copy">复制</button>
             </div>
+            <div class="input-area"><textarea class="textarea mono" id="sqlin">select id, name, email from users where status='active' and created_at > '2024-01-01' order by id desc limit 10</textarea></div>
           </div>
           <div class="panel">
             <div class="panel-title">结果</div>
-            <textarea class="textarea mono" id="sqlout" style="min-height:240px;"></textarea>
+            <div class="input-area"><textarea class="textarea mono" id="sqlout"></textarea></div>
           </div>
         </div>
       `,
@@ -1206,17 +1204,17 @@
         <div class="row">
           <div class="panel">
             <div class="panel-title">XML</div>
-            <textarea class="textarea mono" id="xmlin" style="min-height:240px;"><root><user name="wake" age="18"><tags><tag>tools</tag><tag>web</tag></tags></user><user name="tools" age="1"/></root></textarea>
-            <div class="btn-row">
+            <div class="btn-row panel-toolbar" style="flex-wrap:wrap; gap:6px;">
               <button class="btn btn-primary" data-act="fmt">格式化</button>
               <button class="btn" data-act="min">压缩</button>
               <button class="btn" data-act="clear">清空</button>
               <button class="btn" data-act="copy">复制</button>
             </div>
+            <div class="input-area"><textarea class="textarea mono" id="xmlin"><root><user name="wake" age="18"><tags><tag>tools</tag><tag>web</tag></tags></user><user name="tools" age="1"/></root></textarea></div>
           </div>
           <div class="panel">
             <div class="panel-title">结果</div>
-            <textarea class="textarea mono" id="xmlout" style="min-height:240px;"></textarea>
+            <div class="input-area"><textarea class="textarea mono" id="xmlout"></textarea></div>
           </div>
         </div>
       `,
@@ -1288,21 +1286,20 @@
 
         <div class="panel">
           <div class="panel-title">JSON Key 批处理</div>
-          <div class="row">
+          <div class="btn-row panel-toolbar" style="flex-wrap:wrap; gap:6px; margin-bottom:0;">
+            <button class="btn" data-act="jk-camel">camelCase</button>
+            <button class="btn" data-act="jk-snake">snake_case</button>
+            <button class="btn" data-act="jk-pascal">PascalCase</button>
+            <button class="btn" data-act="jk-kebab">kebab-case</button>
+          </div>
+          <div class="row" style="margin-top:12px;">
             <div>
               <div class="field-label">输入 JSON</div>
-              <textarea class="textarea mono" id="jcsin" style="min-height:200px;">{"userName":"wake","userProfile":{"ageRange":[1,2],"isActive":true,"createdAt":"2024-01-01"}}</textarea>
+              <div class="input-area"><textarea class="textarea mono" id="jcsin">{"userName":"wake","userProfile":{"ageRange":[1,2],"isActive":true,"createdAt":"2024-01-01"}}</textarea></div>
             </div>
             <div>
-              <div class="field-label">目标风格</div>
-              <div class="btn-row" style="margin-bottom:8px;">
-                <button class="btn" data-act="jk-camel">camelCase</button>
-                <button class="btn" data-act="jk-snake">snake_case</button>
-                <button class="btn" data-act="jk-pascal">PascalCase</button>
-                <button class="btn" data-act="jk-kebab">kebab-case</button>
-              </div>
               <div class="field-label">结果</div>
-              <textarea class="textarea mono" id="jcsout" style="min-height:200px;"></textarea>
+              <div class="input-area"><textarea class="textarea mono" id="jcsout"></textarea></div>
             </div>
           </div>
         </div>
@@ -1368,13 +1365,7 @@
         <div class="row">
           <div class="panel">
             <div class="panel-title">输入</div>
-            <textarea class="textarea mono" id="tuin" style="min-height:240px;">banana
-apple
-banana
-cherry
-apple
-date</textarea>
-            <div class="btn-row">
+            <div class="btn-row panel-toolbar" style="flex-wrap:wrap; gap:6px;">
               <button class="btn btn-primary" data-act="dedup">去重</button>
               <button class="btn" data-act="sort-az">A→Z 排序</button>
               <button class="btn" data-act="sort-za">Z→A 排序</button>
@@ -1382,12 +1373,18 @@ date</textarea>
               <button class="btn" data-act="rev">反序</button>
               <button class="btn" data-act="clear">清空</button>
             </div>
+            <div class="input-area"><textarea class="textarea mono" id="tuin">banana
+apple
+banana
+cherry
+apple
+date</textarea></div>
           </div>
           <div class="panel">
             <div class="panel-title">结果</div>
-            <textarea class="textarea mono" id="tuout" style="min-height:240px;"></textarea>
+            <div class="input-area"><textarea class="textarea mono" id="tuout"></textarea></div>
             <div class="stats" id="tustats"></div>
-            <div class="btn-row">
+            <div class="btn-row" style="margin-top:8px;">
               <button class="btn" data-act="copy">复制</button>
             </div>
           </div>
@@ -1717,14 +1714,14 @@ try {
         </div>
         <div class="panel">
           <div class="panel-title">测试文本</div>
-          <textarea class="textarea mono" id="rtxt" style="min-height:160px;">记录：
+          <div class="btn-row panel-toolbar" style="flex-wrap:wrap; gap:6px;">
+            <button class="btn" data-act="clear">清空</button>
+          </div>
+          <div class="input-area"><textarea class="textarea mono" id="rtxt">记录：
 2024-01-15 项目启动
 2024-03-20 完成 MVP
 2025-12-31 上线计划
-时间：2026-06-05</textarea>
-          <div class="btn-row">
-            <button class="btn" data-act="clear">清空</button>
-          </div>
+时间：2026-06-05</textarea></div>
         </div>
         <div class="panel">
           <div class="panel-title">高亮结果</div>
@@ -1777,7 +1774,7 @@ try {
 
         <div class="panel">
           <div class="panel-title">输入</div>
-          <textarea class="textarea mono" id="stin" style="min-height:100px;">Hello, 世界！👋🌏</textarea>
+          <div class="input-area"><textarea class="textarea mono" id="stin">Hello, 世界！👋🌏</textarea></div>
         </div>
 
         <div class="panel">
@@ -2202,11 +2199,11 @@ try {
           </div>
           <div class="panel">
             <div class="panel-title">结果</div>
-            <textarea class="textarea mono" id="pwout" style="min-height:240px;"></textarea>
+            <div class="input-area"><textarea class="textarea mono" id="pwout"></textarea></div>
             <div class="field" style="margin-top:8px;">
               <span class="tag" id="pwstrength"></span>
             </div>
-            <div class="btn-row">
+            <div class="btn-row" style="margin-top:8px;">
               <button class="btn" data-act="copy">复制</button>
               <button class="btn" data-act="clear">清空</button>
             </div>
@@ -2314,8 +2311,8 @@ try {
         </div>
         <div class="panel">
           <div class="panel-title">结果</div>
-          <textarea class="textarea mono" id="lout" style="min-height:240px;"></textarea>
-          <div class="btn-row">
+          <div class="input-area"><textarea class="textarea mono" id="lout"></textarea></div>
+          <div class="btn-row" style="margin-top:8px;">
             <button class="btn" data-act="copy">复制</button>
           </div>
         </div>
@@ -2756,12 +2753,12 @@ try {
         </div>
         <div class="panel">
           <div class="panel-title">JWT Token</div>
-          <textarea class="textarea mono" id="jwin" style="min-height:120px;">eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkrDgWlod-S4reaWh-aVsCIsImlhdCI6MTUxNjIzOTAyMn0.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c</textarea>
-          <div class="btn-row">
+          <div class="btn-row panel-toolbar" style="flex-wrap:wrap; gap:6px;">
             <button class="btn btn-primary" data-act="dec">解码</button>
             <button class="btn" data-act="sample">示例</button>
             <button class="btn" data-act="clear">清空</button>
           </div>
+          <div class="input-area"><textarea class="textarea mono" id="jwin">eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkrDgWlod-S4reaWh-aVsCIsImlhdCI6MTUxNjIzOTAyMn0.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c</textarea></div>
         </div>
         <div class="row-3">
           <div class="panel">
@@ -2908,10 +2905,10 @@ try {
         </div>
         <div class="panel">
           <div class="panel-title">输入文本</div>
-          <textarea class="textarea mono" id="hin" style="min-height:120px;">Hello, 世界</textarea>
-          <div class="btn-row">
+          <div class="btn-row panel-toolbar" style="flex-wrap:wrap; gap:6px;">
             <button class="btn" data-act="clear">清空</button>
           </div>
+          <div class="input-area"><textarea class="textarea mono" id="hin">Hello, 世界</textarea></div>
         </div>
         <div class="panel">
           <div class="panel-title">MD5 <span style="color:var(--text-muted);font-weight:400;text-transform:none;letter-spacing:normal;">（128 bit）</span></div>
@@ -2980,19 +2977,19 @@ try {
         <div class="row">
           <div class="panel">
             <div class="panel-title">原文</div>
-            <textarea class="textarea mono" id="hein" style="min-height:160px;">&lt;div class="test"&gt;你好 "世界"&amp;你好&lt;/div&gt;</textarea>
-            <div class="btn-row">
+            <div class="btn-row panel-toolbar" style="flex-wrap:wrap; gap:6px;">
               <button class="btn btn-primary" data-act="enc">转义 →</button>
               <button class="btn" data-act="clear">清空</button>
             </div>
+            <div class="input-area"><textarea class="textarea mono" id="hein">&lt;div class="test"&gt;你好 "世界"&amp;你好&lt;/div&gt;</textarea></div>
           </div>
           <div class="panel">
             <div class="panel-title">实体</div>
-            <textarea class="textarea mono" id="heout" style="min-height:160px;"></textarea>
-            <div class="btn-row">
+            <div class="btn-row panel-toolbar" style="flex-wrap:wrap; gap:6px;">
               <button class="btn btn-primary" data-act="dec">← 解码</button>
               <button class="btn" data-act="copy">复制</button>
             </div>
+            <div class="input-area"><textarea class="textarea mono" id="heout"></textarea></div>
           </div>
         </div>
       `,
@@ -3094,18 +3091,18 @@ try {
         </div>
         <div class="panel">
           <div class="panel-title">HTTP Headers</div>
-          <textarea class="textarea mono" id="hdin" style="min-height:200px;">Content-Type: application/json; charset=utf-8
+          <div class="btn-row panel-toolbar" style="flex-wrap:wrap; gap:6px;">
+            <button class="btn btn-primary" data-act="parse">解析</button>
+            <button class="btn" data-act="clear">清空</button>
+          </div>
+          <div class="input-area"><textarea class="textarea mono" id="hdin">Content-Type: application/json; charset=utf-8
 Content-Length: 1234
 Cache-Control: no-cache, no-store, must-revalidate
 Date: Mon, 08 Jun 2026 05:00:00 GMT
 Server: nginx/1.24.0
 Set-Cookie: session=abc123; Path=/; HttpOnly; Secure
 Access-Control-Allow-Origin: *
-X-Request-ID: 550e8400-e29b-41d4-a716-446655440000</textarea>
-          <div class="btn-row">
-            <button class="btn btn-primary" data-act="parse">解析</button>
-            <button class="btn" data-act="clear">清空</button>
-          </div>
+X-Request-ID: 550e8400-e29b-41d4-a716-446655440000</textarea></div>
         </div>
         <div class="panel">
           <div class="panel-title">解析结果（<span id="hdcount">0</span> 项）</div>
@@ -3332,7 +3329,7 @@ X-Request-ID: 550e8400-e29b-41d4-a716-446655440000</textarea>
         <div class="row">
           <div class="panel">
             <div class="panel-title">Markdown</div>
-            <textarea class="textarea mono" id="mdin" style="min-height:400px;"># Hello Markdown
+            <div class="input-area"><textarea class="textarea mono" id="mdin"># Hello Markdown
 
 这是一段 **加粗** 和 *斜体* 文字，还有 \`inline code\`。
 
@@ -3354,7 +3351,7 @@ function hello(name) {
 
 > 引用块：这是一段引用的内容。
 
----</textarea>
+---</textarea></div>
           </div>
           <div class="panel">
             <div class="panel-title">预览</div>
@@ -3451,7 +3448,11 @@ function hello(name) {
         <div class="row">
           <div class="panel">
             <div class="panel-title">YAML</div>
-            <textarea class="textarea mono" id="ymin" style="min-height:300px;">name: wake
+            <div class="btn-row panel-toolbar" style="flex-wrap:wrap; gap:6px;">
+              <button class="btn btn-primary" data-act="to-json">转 JSON →</button>
+              <button class="btn" data-act="clear">清空</button>
+            </div>
+            <div class="input-area"><textarea class="textarea mono" id="ymin">name: wake
 age: 18
 active: true
 tags:
@@ -3461,19 +3462,15 @@ profile:
   email: wake@example.com
   address:
 city: Beijing
-country: CN</textarea>
-            <div class="btn-row">
-              <button class="btn btn-primary" data-act="to-json">转 JSON →</button>
-              <button class="btn" data-act="clear">清空</button>
-            </div>
+country: CN</textarea></div>
           </div>
           <div class="panel">
             <div class="panel-title">JSON</div>
-            <textarea class="textarea mono" id="ymout" style="min-height:300px;"></textarea>
-            <div class="btn-row">
+            <div class="btn-row panel-toolbar" style="flex-wrap:wrap; gap:6px;">
               <button class="btn btn-primary" data-act="to-yaml">← 转 YAML</button>
               <button class="btn" data-act="copy">复制</button>
             </div>
+            <div class="input-area"><textarea class="textarea mono" id="ymout"></textarea></div>
           </div>
         </div>
       `,
@@ -3567,8 +3564,8 @@ country: CN</textarea>
         </div>
         <div class="panel">
           <div class="panel-title">结果</div>
-          <textarea class="textarea mono" id="fdout" style="min-height:300px;"></textarea>
-          <div class="btn-row">
+          <div class="input-area"><textarea class="textarea mono" id="fdout"></textarea></div>
+          <div class="btn-row" style="margin-top:8px;">
             <button class="btn" data-act="copy">复制</button>
             <button class="btn" data-act="clear">清空</button>
           </div>
