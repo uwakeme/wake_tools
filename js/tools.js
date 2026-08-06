@@ -665,7 +665,6 @@
           <div class="panel">
             <div class="panel-title">输入</div>
             <div class="btn-row panel-toolbar" style="flex-wrap:wrap; gap:6px;">
-              <button class="btn" data-act="load-sample">加载示例</button>
               <button class="btn btn-primary" data-act="fmt">格式化</button>
               <button class="btn" data-act="min">压缩</button>
               <button class="btn" data-act="stripfmt">去注释+格式化</button>
@@ -685,7 +684,8 @@
                 </select>
                 <span>空格</span>
               </div>
-              <button class="btn" data-act="clear" style="margin-left:auto;">清空</button>
+              <button class="btn" data-act="load-sample" style="margin-left:auto;">加载示例</button>
+              <button class="btn" data-act="clear">清空</button>
             </div>
             <div class="input-area"><textarea class="textarea mono" id="jin" placeholder='{"name":"wake","tags":["tools","json"],"meta":{"v":1}}'>{"name":"wake","tags":["tools","json"],"meta":{"v":1}}</textarea></div>
           </div>
