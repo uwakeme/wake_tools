@@ -663,17 +663,9 @@
         </div>
         <div class="row">
           <div class="panel">
-            <div class="panel-title" style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
-              <span>输入</span>
-              <div class="jsample">
-                <span>示例</span>
-                <select id="jsample">
-                  <option value="">— 加载示例 —</option>
-                  <option value="api">API 响应</option>
-                </select>
-              </div>
-            </div>
+            <div class="panel-title">输入</div>
             <div class="btn-row panel-toolbar" style="flex-wrap:wrap; gap:6px;">
+              <button class="btn" data-act="load-sample">加载示例</button>
               <button class="btn btn-primary" data-act="fmt">格式化</button>
               <button class="btn" data-act="min">压缩</button>
               <button class="btn" data-act="stripfmt">去注释+格式化</button>
@@ -748,7 +740,6 @@
         const $jsearchWrap = root.querySelector('#jsearch-wrap');
         const $jsearchClear = root.querySelector('#jsearch-clear');
         const $jindent = root.querySelector('#jindent');
-        const $jsample = root.querySelector('#jsample');
         const $error = root.querySelector('#jerror');
         const $errorPos = root.querySelector('#jerror-pos');
         const $errorMsg = root.querySelector('#jerror-msg');
@@ -1068,12 +1059,10 @@
           }
         });
 
-        // 示例加载
-        $jsample.addEventListener('change', () => {
-          const key = $jsample.value;
-          if (!key || !samples[key]) return;
-          $i.value = JSON.stringify(samples[key], null, indentChar.repeat(indent));
-          $jsample.value = '';
+        // 示例加载(目前只有一个示例,直接固定加载;若以后多示例再改回下拉/菜单)
+        const $loadSample = root.querySelector('[data-act="load-sample"]');
+        $loadSample.addEventListener('click', () => {
+          $i.value = JSON.stringify(samples.api, null, indentChar.repeat(indent));
           lastFn = 'fmt';
           fmt();
         });
