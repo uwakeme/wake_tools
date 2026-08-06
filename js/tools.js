@@ -640,15 +640,8 @@
       return wrap;
     };
 
-    // ---- 示例 JSON(给"加载示例"下拉用) ----
+    // ---- 示例 JSON(给"加载示例"用,只保留一个最具代表性的) ----
     const samples = {
-      user: {
-        id: 1024,
-        name: 'wake',
-        email: 'wake@example.com',
-        roles: ['admin', 'developer'],
-        profile: { age: 28, city: 'Shanghai', vip: true, note: null }
-      },
       api: {
         code: 0,
         message: 'success',
@@ -661,23 +654,6 @@
           ],
           pagination: { page: 1, size: 20, total: 3 }
         }
-      },
-      config: {
-        app: { name: 'wake-tools', version: '1.0.0', debug: false },
-        server: { host: '0.0.0.0', port: 8787, cors: ['*'] },
-        features: { theme: 'auto', analytics: false, i18n: ['zh-CN', 'en'] }
-      },
-      nested: {
-        a: { b: { c: { d: { e: { f: { g: { h: 'deep value reached' } } } } } } },
-        meta: { levels: 8, type: 'recursive' }
-      },
-      array: {
-        items: Array.from({ length: 8 }, (_, i) => ({
-          id: i + 1,
-          name: 'item-' + (i + 1),
-          score: Math.round((i * 13 + 7) % 100),
-          active: i % 2 === 0
-        }))
       }
     };
 
@@ -695,11 +671,7 @@
                 <span>示例</span>
                 <select id="jsample">
                   <option value="">— 加载示例 —</option>
-                  <option value="user">用户信息</option>
                   <option value="api">API 响应</option>
-                  <option value="config">应用配置</option>
-                  <option value="nested">深层嵌套</option>
-                  <option value="array">数组集合</option>
                 </select>
               </div>
             </div>
