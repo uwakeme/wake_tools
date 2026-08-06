@@ -611,6 +611,15 @@ code { font-size: 0.9em; }
 /* 补充:.row / .diff-container 不是 .panel,会阻断上面的相邻兄弟选择器
    这里给 .tool-panel 内所有"主要块"之间补 16px 间距(.row/.diff-container 内部仍由 .row > .panel + .panel 等覆盖) */
 .tool-panel > * + *:is(.panel, .row, .diff-container) { margin-top: 16px; }
+/* 直接挂在 .tool-panel 下的 .panel(不放在 .row 里,如 header / regex / case / markdown / yaml 等)
+   默认按内容高度收缩,textarea 撑不开。
+   只对"含主内容区(.input-area / .output / .jtext-view / .jtree)"的 panel 补 flex:1,
+   让它跟兄弟 panel 平分剩余高度;控件类小 panel(只有 .field/.btn-row/.switch 等)保持原高。
+   .row 里的 .panel 走 grid track 高度,不命中这条规则。 */
+.tool-panel > .panel:has(.input-area),
+.tool-panel > .panel:has(.output),
+.tool-panel > .panel:has(.jtext-view),
+.tool-panel > .panel:has(.jtree) { flex: 1; min-height: 0; }
 
 .panel-title {
   font-family: var(--font-mono);
