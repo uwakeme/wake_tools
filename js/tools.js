@@ -601,10 +601,11 @@
         wrap.appendChild(tail);
         wrap._tail = tail;
       } else {
-        // 空容器:head 行直接显示 {}
+        // 空容器:head 行直接显示 {} 或 [] —— 千万别藏 openB 又只追加 },
+        // 不然视觉上就成了"只显示右括号"漏了左括号
         toggle.style.visibility = 'hidden';
-        openB.style.display = 'none';
-        head.appendChild(el('span', 'jtree-punct', isArray ? ']' : '}'));
+        openB.textContent = isArray ? '[]' : '{}';
+        openB.style.display = '';
       }
       wrap._childWrap = childWrap;
       wrap._openB = openB;
