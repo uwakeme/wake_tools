@@ -44,8 +44,6 @@
     desc: 'YAML 与 JSON 互转，支持基础语法。' },
 
   // 文本处理
-  { id: 'case', group: '文本处理', icon: 'case', name: '命名风格转换',
-    desc: '驼峰、下划线、烤串、帕斯卡等命名互转，JSON Key 批处理。' },
   { id: 'textutil', group: '文本处理', icon: 'textutil', name: '文本去重 / 排序',
     desc: '按行去重、排序，统计行数与字符数。' },
   { id: 'diff', group: '文本处理', icon: 'diff', name: '代码对比',
@@ -674,6 +672,11 @@
               <button class="btn" data-act="escape">转义</button>
               <button class="btn" data-act="unescape">去转义</button>
               <button class="btn" data-act="sort">键排序</button>
+              <span style="color: var(--text-muted); font-size: 11px; padding: 0 6px; user-select: none; font-family: var(--font-mono);">key 风格</span>
+              <button class="btn" data-act="key-camel">camelCase</button>
+              <button class="btn" data-act="key-snake">snake_case</button>
+              <button class="btn" data-act="key-pascal">PascalCase</button>
+              <button class="btn" data-act="key-kebab">kebab-case</button>
               <div class="jindent">
                 <span>缩进</span>
                 <select id="jindent">
@@ -934,9 +937,24 @@
           }
         };
         const min = () => {
+          if (!$i.value.trim()) {
+            currentValue = undefined;
+            renderError(null);
+            $s.style.display = 'none';
+            if (view === 'tree') renderTree(); else renderText();
+            renderStats('', undefined);
+            return;
+          }
           try {
             const v = JSON.parse($i.value);
-            tryRender($i.value, true, v, '✓ 已压缩');
+            const minified = JSON.stringify(v);
+            $i.value = minified;
+            // 压缩结果以字符串形式存,文本视图直接显示压缩文本,树视图显示为字符串叶子
+            currentValue = minified;
+            renderError(null);
+            show(true, '✓ 已压缩');
+            if (view === 'tree') renderTree(); else renderText();
+            renderStats(minified, v);
           } catch (e) {
             tryRender($i.value, false, e, '', '✗ ' + e.message);
           }
@@ -960,7 +978,16 @@
           }
         };
         const stripFmt = () => {
-          const cleaned = stripComments($i.value);
+          if (!$i.value.trim()) {
+            currentValue = undefined;
+            renderError(null);
+            $s.style.display = 'none';
+            if (view === 'tree') renderTree(); else renderText();
+            renderStats('', undefined);
+            return;
+          }
+          const cleaned = tidy(stripComments($i.value));
+          $i.value = cleaned;
           try {
             const v = JSON.parse(cleaned);
             tryRender(cleaned, true, v, `✓ 已去注释并美化 · ${indentLabel()}缩进`);
@@ -969,10 +996,25 @@
           }
         };
         const stripMin = () => {
+          if (!$i.value.trim()) {
+            currentValue = undefined;
+            renderError(null);
+            $s.style.display = 'none';
+            if (view === 'tree') renderTree(); else renderText();
+            renderStats('', undefined);
+            return;
+          }
           const cleaned = stripComments($i.value);
           try {
             const v = JSON.parse(cleaned);
-            tryRender(cleaned, true, v, '✓ 已去注释并压缩');
+            const minified = JSON.stringify(v);
+            $i.value = minified;
+            // 与 min() 一致:压缩结果以字符串形式存
+            currentValue = minified;
+            renderError(null);
+            show(true, '✓ 已去注释并压缩');
+            if (view === 'tree') renderTree(); else renderText();
+            renderStats(minified, v);
           } catch (e) {
             tryRender(cleaned, false, e, '', '✗ ' + e.message);
           }
@@ -1011,10 +1053,57 @@
           };
           try {
             const v = sortRec(JSON.parse($i.value));
-            tryRender($i.value, true, v, '✓ 已按字母序排序');
+            const sorted = JSON.stringify(v, null, indentChar.repeat(indent));
+            $i.value = sorted;
+            tryRender(sorted, true, v, '✓ 已按字母序排序');
           } catch (e) {
             tryRender($i.value, false, e, '', '✗ ' + e.message);
           }
+        };
+
+        // ---- key 命名风格转换 (camelCase / snake_case / PascalCase / kebab-case) ----
+        const toWords = (s) => String(s)
+          .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+          .replace(/[_\-\s]+/g, ' ')
+          .trim().toLowerCase().split(/\s+/).filter(Boolean);
+        const joinWords = (words, sep, capitalize) => words.map((w, i) => {
+          const c = w[0].toUpperCase() + w.slice(1);
+          return (capitalize || i > 0) ? c : w;
+        });
+        const keyCaseMap = {
+          camel:  w => joinWords(w, '', false).join(''),
+          pascal: w => joinWords(w, '', true).join(''),
+          snake:  w => w.join('_'),
+          kebab:  w => w.join('-'),
+        };
+        const labelMap = { camel: 'camelCase', pascal: 'PascalCase', snake: 'snake_case', kebab: 'kebab-case' };
+        const convertKey = (s, type) => (keyCaseMap[type] || (() => s))(toWords(s));
+        const convertKeys = (type) => {
+          let v;
+          try {
+            v = JSON.parse($i.value);
+          } catch (e) {
+            tryRender($i.value, false, e, '', '✗ ' + e.message);
+            return;
+          }
+          if (v === null || typeof v !== 'object') {
+            tryRender($i.value, false, new Error('只对 object / array 有效'), '', '✗ 只对 object / array 有效');
+            return;
+          }
+          const walk = (val) => {
+            if (Array.isArray(val)) return val.map(walk);
+            if (val && typeof val === 'object') {
+              const out = {};
+              for (const k of Object.keys(val)) out[convertKey(k, type)] = walk(val[k]);
+              return out;
+            }
+            return val;
+          };
+          const result = walk(v);
+          const text = JSON.stringify(result, null, indentChar.repeat(indent));
+          $i.value = text;
+          tryRender(text, true, result, '✓ key 已转换为 ' + labelMap[type]);
+          lastFn = 'fmt'; // 一次性操作:转换完后重置,后续编辑走格式化预览
         };
 
         const runLastFn = () => {
@@ -1026,6 +1115,10 @@
             case 'escape': esc(); break;
             case 'unescape': unesc(); break;
             case 'sort': sort(); break;
+            case 'key-camel': convertKeys('camel'); break;
+            case 'key-snake': convertKeys('snake'); break;
+            case 'key-pascal': convertKeys('pascal'); break;
+            case 'key-kebab': convertKeys('kebab'); break;
             case 'fmt':
             case 'fmt4':
             default: fmt(); break;
@@ -1240,105 +1333,6 @@
           else if (a === 'min') $o.value = min($i.value);
           else if (a === 'clear') { $i.value = ''; $o.value = ''; }
           else if (a === 'copy') copyTextWithBtn($o.value, e.target);
-        });
-      }
-    };
-  },
-
-  /* ---------- Case (命名风格转换) ---------- */
-  case() {
-    return {
-      view: () => `
-        <div class="tool-header">
-          <h1 class="tool-title">命名风格转换</h1>
-          <p class="tool-desc">驼峰、下划线、烤串、帕斯卡、常量大小写互转；同时支持 JSON Key 批处理。</p>
-        </div>
-        <div class="panel">
-          <div class="panel-title">单字符串转换</div>
-          <div class="field">
-            <input class="input mono" id="csin" value="user_profile_name" />
-            <div class="btn-row">
-              <button class="btn" data-act="to-camel">camelCase</button>
-              <button class="btn" data-act="to-pascal">PascalCase</button>
-              <button class="btn" data-act="to-snake">snake_case</button>
-              <button class="btn" data-act="to-kebab">kebab-case</button>
-              <button class="btn" data-act="to-const">CONST_CASE</button>
-            </div>
-          </div>
-          <div class="field" style="margin-top:12px;">
-            <label class="field-label">转换结果</label>
-            <input class="input mono" id="csout" />
-            <div class="btn-row">
-              <button class="btn btn-primary" data-act="copy-str">复制</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="panel">
-          <div class="panel-title">JSON Key 批处理</div>
-          <div class="btn-row panel-toolbar" style="flex-wrap:wrap; gap:6px; margin-bottom:0;">
-            <button class="btn" data-act="jk-camel">camelCase</button>
-            <button class="btn" data-act="jk-snake">snake_case</button>
-            <button class="btn" data-act="jk-pascal">PascalCase</button>
-            <button class="btn" data-act="jk-kebab">kebab-case</button>
-          </div>
-          <div class="row" style="margin-top:12px;">
-            <div>
-              <div class="field-label">输入 JSON</div>
-              <div class="input-area"><textarea class="textarea mono" id="jcsin">{"userName":"wake","userProfile":{"ageRange":[1,2],"isActive":true,"createdAt":"2024-01-01"}}</textarea></div>
-            </div>
-            <div>
-              <div class="field-label">结果</div>
-              <div class="input-area"><textarea class="textarea mono" id="jcsout"></textarea></div>
-            </div>
-          </div>
-        </div>
-      `,
-      bind(root) {
-        const $csin = root.querySelector('#csin');
-        const $csout = root.querySelector('#csout');
-        const toWords = (s) => s
-          .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
-          .replace(/[_\-\s]+/g, ' ')
-          .trim().toLowerCase().split(/\s+/).filter(Boolean);
-        const join = (words, sep, capitalize) => words.map((w, i) => {
-          const c = w[0].toUpperCase() + w.slice(1);
-          return (capitalize || i > 0) ? c : w;
-        });
-        const map = {
-          camel: w => join(w, '', false).join(''),
-          pascal: w => join(w, '', true).join(''),
-          snake: w => w.join('_'),
-          kebab: w => w.join('-'),
-          const: w => w.join('_').toUpperCase(),
-        };
-        const convert = (s, type) => (map[type] || (() => s))(toWords(s));
-        const $jcsin = root.querySelector('#jcsin');
-        const $jcsout = root.querySelector('#jcsout');
-        const jkMap = (type) => {
-          try {
-            const obj = JSON.parse($jcsin.value);
-            const walk = (v) => {
-              if (Array.isArray(v)) return v.map(walk);
-              if (v && typeof v === 'object') {
-                const out = {};
-                for (const k of Object.keys(v)) out[convert(k, type)] = walk(v[k]);
-                return out;
-              }
-              return v;
-            };
-            $jcsout.value = JSON.stringify(walk(obj), null, 2);
-            toast('已转换为 ' + type);
-          } catch (e) { toast('JSON 解析失败：' + e.message); }
-        };
-        root.addEventListener('click', e => {
-          const a = e.target.dataset.act;
-          if (!a) return;
-          if (a.startsWith('to-')) {
-            const type = a.slice(3);
-            $csout.value = convert($csin.value, type);
-          } else if (a === 'copy-str') copyTextWithBtn($csout.value, e.target);
-          else if (a.startsWith('jk-')) jkMap(a.slice(3));
         });
       }
     };
@@ -2885,7 +2879,10 @@ try {
         b = II(b, c, d, a, x[i + 9], 21, -343485551);
         a = addUnsigned(a, oa); b = addUnsigned(b, ob); c = addUnsigned(c, oc); d = addUnsigned(d, od);
       }
-      return [a, b, c, d].map(v => ('00000000' + (v >>> 0).toString(16)).slice(-8)).join('');
+      return [a, b, c, d].map(v => {
+        const s = ('00000000' + (v >>> 0).toString(16)).slice(-8);
+        return s.match(/../g).reverse().join('');
+      }).join('');
     };
     return {
       view: () => `
