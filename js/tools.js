@@ -1238,6 +1238,10 @@
         let lastError = null;
         let lastConvExt = null; // 生成代码后下载用的扩展名(null = .json)
         let lastTextLen = 0;    // 最近一次解析文本长度,树视图大文档保护用
+        // resultText:最近一次操作的输出文本(格式化/压缩/转GET/生成代码等),
+        // 覆盖"文本视图/复制/下载"的显示;null 时回落到 currentValue 的序列化。
+        // 任何输入编辑都会清空它,回到实时 JSON 预览。
+        let resultText = null;
         const TREE_CHAR_LIMIT = 300 * 1024;
 
         // 结果区字号(树 + 文本视图共用,localStorage 持久化)
@@ -1296,13 +1300,15 @@
         };
 
         const renderText = () => {
+          if (resultText !== null) {
+            $textView.value = resultText;
+            return;
+          }
           if (currentValue === undefined) {
             $textView.value = '';
             $textView.placeholder = '在左侧输入 JSON 开始格式化';
           } else {
-            $textView.value = typeof currentValue === 'string'
-              ? currentValue
-              : JSON.stringify(currentValue, null, indentChar.repeat(indent));
+            $textView.value = JSON.stringify(currentValue, null, indentChar.repeat(indent));
           }
         };
 
@@ -1380,13 +1386,11 @@
 
         // 下载结果(生成代码后按语言扩展名下载)
         const downloadResult = () => {
-          if (currentValue === undefined) {
+          if (currentValue === undefined && resultText === null) {
             toast('没有可下载的内容');
             return;
           }
-          const text = typeof currentValue === 'string'
-            ? currentValue
-            : JSON.stringify(currentValue, null, indentChar.repeat(indent));
+          const text = outputText();
           const ext = lastConvExt || 'json';
           const blob = new Blob([text], { type: ext === 'json' ? 'application/json' : 'text/plain;charset=utf-8' });
           const url = URL.createObjectURL(blob);
@@ -1441,123 +1445,140 @@
         };
         const indentLabel = () => (indentChar === '\t' ? 'Tab' : (indent + ' 空格'));
 
-        const fmt = () => {
+        // 输入为空时的统一重置
+        const handleEmpty = () => {
+          currentValue = undefined;
+          resultText = null;
+          renderError(null);
+          $s.style.display = 'none';
+          if (view === 'tree') renderTree(); else renderText();
+          renderStats('', undefined);
+        };
+        // 输出文本统一入口:操作输出(resultText)优先,否则序列化 currentValue
+        const outputText = () => (resultText !== null
+          ? resultText
+          : (currentValue === undefined ? '' : JSON.stringify(currentValue, null, indentChar.repeat(indent))));
+        // 操作结果的统一渲染(currentValue + resultText 已就位)
+        const renderResult = (msg, statsText, v) => {
+          renderError(null);
+          show(true, msg);
+          if (view === 'tree') renderTree(); else renderText();
+          renderStats(statsText, v);
+        };
+
+        /* ---- 操作函数:点击(preview=false)把输出写回左侧输入框,
+           键入防抖(preview=true)只把输出预览到结果区,不动输入框 ---- */
+        const fmt = (opts) => {
+          const preview = !!(opts && opts.preview);
           try {
             const v = JSON.parse($i.value);
+            const pretty = JSON.stringify(v, null, indentChar.repeat(indent));
+            resultText = null;
             lastConvExt = null;
-            tryRender($i.value, true, v, `✓ 有效 JSON · ${indentLabel()}缩进`);
+            if (!preview && $i.value !== pretty) $i.value = pretty;
+            currentValue = v;
+            tryRender(preview ? $i.value : pretty, true, v,
+              preview ? `✓ 有效 JSON · ${indentLabel()}缩进` : `✓ 已格式化 · ${indentLabel()}缩进`);
           } catch (e) {
             tryRender($i.value, false, e, '', '✗ ' + e.message);
           }
         };
-        const min = () => {
-          if (!$i.value.trim()) {
-            currentValue = undefined;
-            renderError(null);
-            $s.style.display = 'none';
-            if (view === 'tree') renderTree(); else renderText();
-            renderStats('', undefined);
-            return;
-          }
+        const min = (opts) => {
+          const preview = !!(opts && opts.preview);
+          if (!$i.value.trim()) { handleEmpty(); return; }
           try {
             const v = JSON.parse($i.value);
             const minified = JSON.stringify(v);
-            $i.value = minified;
-            // 压缩结果以字符串形式存,文本视图直接显示压缩文本,树视图显示为字符串叶子
-            currentValue = minified;
-            renderError(null);
-            show(true, '✓ 已压缩');
-            if (view === 'tree') renderTree(); else renderText();
-            renderStats(minified, v);
+            resultText = minified;
+            lastConvExt = null;
+            if (!preview) $i.value = minified;
+            currentValue = v;
+            renderResult(preview ? '✓ 有效 JSON · 压缩预览' : '✓ 已压缩', preview ? $i.value : minified, v);
           } catch (e) {
             tryRender($i.value, false, e, '', '✗ ' + e.message);
           }
         };
-        const strip = () => {
-          if (!$i.value.trim()) {
-            currentValue = undefined;
-            renderError(null);
-            $s.style.display = 'none';
-            if (view === 'tree') renderTree(); else renderText();
-            renderStats('', undefined);
-            return;
-          }
+        const strip = (opts) => {
+          const preview = !!(opts && opts.preview);
+          if (!$i.value.trim()) { handleEmpty(); return; }
           const cleaned = tidy(stripComments($i.value));
-          $i.value = cleaned;
           try {
             const v = JSON.parse(cleaned);
-            tryRender(cleaned, true, v, '✓ 已去注释');
+            resultText = cleaned;
+            lastConvExt = null;
+            if (!preview) $i.value = cleaned;
+            currentValue = v;
+            renderResult(preview ? '✓ 去注释预览' : '✓ 已去注释', cleaned, v);
           } catch (e) {
             tryRender(cleaned, false, e, '', '✗ ' + e.message);
           }
         };
-        const stripFmt = () => {
-          if (!$i.value.trim()) {
-            currentValue = undefined;
-            renderError(null);
-            $s.style.display = 'none';
-            if (view === 'tree') renderTree(); else renderText();
-            renderStats('', undefined);
-            return;
-          }
-          const cleaned = tidy(stripComments($i.value));
-          $i.value = cleaned;
+        const stripFmt = (opts) => {
+          const preview = !!(opts && opts.preview);
+          if (!$i.value.trim()) { handleEmpty(); return; }
+          const cleaned = stripComments($i.value);
           try {
             const v = JSON.parse(cleaned);
-            tryRender(cleaned, true, v, `✓ 已去注释并美化 · ${indentLabel()}缩进`);
+            const pretty = JSON.stringify(v, null, indentChar.repeat(indent));
+            resultText = pretty;
+            lastConvExt = null;
+            if (!preview) $i.value = pretty;
+            currentValue = v;
+            renderResult(preview ? `✓ 去注释+格式化预览 · ${indentLabel()}缩进` : `✓ 已去注释并格式化 · ${indentLabel()}缩进`, pretty, v);
           } catch (e) {
             tryRender(cleaned, false, e, '', '✗ ' + e.message);
           }
         };
-        const stripMin = () => {
-          if (!$i.value.trim()) {
-            currentValue = undefined;
-            renderError(null);
-            $s.style.display = 'none';
-            if (view === 'tree') renderTree(); else renderText();
-            renderStats('', undefined);
-            return;
-          }
+        const stripMin = (opts) => {
+          const preview = !!(opts && opts.preview);
+          if (!$i.value.trim()) { handleEmpty(); return; }
           const cleaned = stripComments($i.value);
           try {
             const v = JSON.parse(cleaned);
             const minified = JSON.stringify(v);
-            $i.value = minified;
-            // 与 min() 一致:压缩结果以字符串形式存
-            currentValue = minified;
-            renderError(null);
-            show(true, '✓ 已去注释并压缩');
-            if (view === 'tree') renderTree(); else renderText();
-            renderStats(minified, v);
+            resultText = minified;
+            lastConvExt = null;
+            if (!preview) $i.value = minified;
+            currentValue = v;
+            renderResult(preview ? '✓ 去注释+压缩预览' : '✓ 已去注释并压缩', minified, v);
           } catch (e) {
             tryRender(cleaned, false, e, '', '✗ ' + e.message);
           }
         };
-        const esc = () => {
-          try {
-            $i.value = JSON.stringify($i.value);
-            show(true, '✓ 已转义(整个输入视为字符串)');
-          } catch (e) { show(false, '✗ ' + e.message); }
+        const esc = (opts) => {
+          const preview = !!(opts && opts.preview);
+          const escaped = JSON.stringify($i.value);
+          resultText = escaped;
+          if (!preview) $i.value = escaped;
+          // 转义不产生新 JSON,树视图保持原值不动
+          renderError(null);
+          show(true, preview ? '✓ 转义预览(整个输入视为字符串)' : '✓ 已转义(整个输入视为字符串)');
+          if (view === 'tree') renderTree(); else renderText();
         };
-        const unesc = () => {
+        const unesc = (opts) => {
+          const preview = !!(opts && opts.preview);
           try {
             const v = JSON.parse($i.value);
             if (typeof v !== 'string') {
               show(false, '✗ 去转义只对 JSON 字符串有效,当前是 ' + (Array.isArray(v) ? '数组' : typeof v));
               return;
             }
-            currentValue = v;
-            renderError(null);
-            show(true, '✓ 已去转义');
-            if (view === 'tree') renderTree(); else renderText();
-            renderStats($i.value, v);
+            resultText = v;
+            lastConvExt = null;
+            if (!preview) $i.value = v;
+            // 去转义结果常见是"转义过的 JSON 字符串",能解析就按对象渲染树
+            let parsed;
+            try { parsed = JSON.parse(v); } catch (e2) { parsed = undefined; }
+            currentValue = parsed !== undefined ? parsed : v;
+            renderResult('✓ 已去转义', v, currentValue);
           } catch (e) {
             const err = parseErrorPos($i.value, e);
             renderError(err);
             show(false, '✗ ' + e.message);
           }
         };
-        const sort = () => {
+        const sort = (opts) => {
+          const preview = !!(opts && opts.preview);
           const sortRec = v => {
             if (Array.isArray(v)) return v.map(sortRec);
             if (v && typeof v === 'object') {
@@ -1568,8 +1589,11 @@
           try {
             const v = sortRec(JSON.parse($i.value));
             const sorted = JSON.stringify(v, null, indentChar.repeat(indent));
-            $i.value = sorted;
-            tryRender(sorted, true, v, '✓ 已按字母序排序');
+            resultText = sorted;
+            lastConvExt = null;
+            if (!preview) $i.value = sorted;
+            currentValue = v;
+            renderResult(preview ? '✓ 键排序预览' : '✓ 已按字母序排序', sorted, v);
           } catch (e) {
             tryRender($i.value, false, e, '', '✗ ' + e.message);
           }
@@ -1581,6 +1605,9 @@
             const v = JSON.parse($i.value);
             const text = escapeNonAscii(JSON.stringify(v, null, indentChar.repeat(indent)));
             $i.value = text;
+            resultText = null;
+            lastConvExt = null;
+            currentValue = v;
             tryRender(text, true, v, '✓ 非 ASCII 字符已转为 \\uXXXX');
             lastFn = 'fmt'; // 一次性操作,后续编辑回到格式化预览
           } catch (e) {
@@ -1592,6 +1619,9 @@
             const v = JSON.parse($i.value); // JSON.parse 自动解码 \uXXXX
             const text = JSON.stringify(v, null, indentChar.repeat(indent));
             $i.value = text;
+            resultText = null;
+            lastConvExt = null;
+            currentValue = v;
             tryRender(text, true, v, '✓ \\uXXXX 转义已解码为实际字符');
             lastFn = 'fmt';
           } catch (e) {
@@ -1609,7 +1639,8 @@
             return;
           }
           const qs = toQueryString(v);
-          currentValue = qs;
+          resultText = qs;
+          currentValue = v;
           renderError(null);
           show(true, '✓ 已转 GET 参数 · ' + qs.split('&').length + ' 项');
           if (view === 'text') renderText(); else setView('text');
@@ -1626,7 +1657,8 @@
           let code;
           try { code = def.fn(v, { indent: indentChar.repeat(indent) }); }
           catch (e2) { show(false, '✗ ' + (e2.message || '生成失败')); return; }
-          currentValue = code;
+          resultText = code;
+          currentValue = v;
           renderError(null);
           show(true, '✓ 已生成 ' + def.label + ' · 可复制 / 下载 / 替换输入');
           if (view === 'text') renderText(); else setView('text');
@@ -1644,7 +1676,8 @@
         };
         const labelMap = { camel: 'camelCase', pascal: 'PascalCase', snake: 'snake_case', kebab: 'kebab-case' };
         const convertKey = (s, type) => (keyCaseMap[type] || (() => s))(toWords(s));
-        const convertKeys = (type) => {
+        const convertKeys = (type, opts) => {
+          const preview = !!(opts && opts.preview);
           let v;
           try {
             v = JSON.parse($i.value);
@@ -1667,44 +1700,45 @@
           };
           const result = walk(v);
           const text = JSON.stringify(result, null, indentChar.repeat(indent));
-          $i.value = text;
-          tryRender(text, true, result, '✓ key 已转换为 ' + labelMap[type]);
+          resultText = text;
+          lastConvExt = null;
+          if (!preview) $i.value = text;
+          currentValue = result;
+          renderResult('✓ key 已转换为 ' + labelMap[type], text, result);
           lastFn = 'fmt'; // 一次性操作:转换完后重置,后续编辑走格式化预览
         };
 
-        const runLastFn = () => {
+        const runLastFn = (preview) => {
+          const o = preview ? { preview: true } : undefined;
           switch (lastFn) {
-            case 'min': min(); break;
-            case 'strip': strip(); break;
-            case 'stripfmt': stripFmt(); break;
-            case 'stripmin': stripMin(); break;
-            case 'escape': esc(); break;
-            case 'unescape': unesc(); break;
-            case 'sort': sort(); break;
-            case 'key-camel': convertKeys('camel'); break;
-            case 'key-snake': convertKeys('snake'); break;
-            case 'key-pascal': convertKeys('pascal'); break;
-            case 'key-kebab': convertKeys('kebab'); break;
+            case 'min': min(o); break;
+            case 'strip': strip(o); break;
+            case 'stripfmt': stripFmt(o); break;
+            case 'stripmin': stripMin(o); break;
+            case 'escape': esc(o); break;
+            case 'unescape': unesc(o); break;
+            case 'sort': sort(o); break;
+            case 'key-camel': convertKeys('camel', o); break;
+            case 'key-snake': convertKeys('snake', o); break;
+            case 'key-pascal': convertKeys('pascal', o); break;
+            case 'key-kebab': convertKeys('kebab', o); break;
             case 'fmt':
             case 'fmt4':
-            default: fmt(); break;
+            default: fmt(o); break;
           }
         };
 
         // ---- 事件 ----
-        // 实时预览
+        // 实时预览:键入只预览到结果区,绝不改写输入框(避免光标跳动/编辑被吞)
         let liveTimer = null;
         $i.addEventListener('input', () => {
           clearTimeout(liveTimer);
+          resultText = null;
           if (!$i.value.trim()) {
-            currentValue = undefined;
-            renderError(null);
-            $s.style.display = 'none';
-            if (view === 'tree') renderTree(); else renderText();
-            renderStats('', undefined);
+            handleEmpty();
             return;
           }
-          liveTimer = setTimeout(runLastFn, 200);
+          liveTimer = setTimeout(() => runLastFn(true), 200);
         });
 
         // 缩进变化
@@ -1752,7 +1786,7 @@
           const a = e.target.dataset.act;
           if (!a) return;
           if (a === 'clear') {
-            $i.value = ''; currentValue = undefined;
+            $i.value = ''; currentValue = undefined; resultText = null;
             renderError(null);
             $s.style.display = 'none';
             lastFn = 'fmt';
@@ -1760,15 +1794,11 @@
             if (view === 'tree') renderTree(); else renderText();
             renderStats('', undefined);
           } else if (a === 'copy') {
-            const txt = currentValue === undefined
-              ? ''
-              : (typeof currentValue === 'string' ? currentValue : JSON.stringify(currentValue, null, indentChar.repeat(indent)));
-            copyTextWithBtn(txt, e.target);
+            copyTextWithBtn(outputText(), e.target);
           } else if (a === 'swap') {
-            if (currentValue !== undefined) {
-              $i.value = typeof currentValue === 'string'
-                ? currentValue
-                : JSON.stringify(currentValue, null, indentChar.repeat(indent));
+            const txt = outputText();
+            if (txt) {
+              $i.value = txt;
               $i.dispatchEvent(new Event('input'));
             }
           } else if (a === 'expand') {
