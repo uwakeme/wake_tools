@@ -1698,6 +1698,62 @@ code { font-size: 0.9em; }
 }
 .jtree-summary { color: var(--text-muted); font-size: 12px; }
 
+/* 树内编辑:点击 key/value 原地修改 */
+.jtree-editable {
+  cursor: text;
+  border-radius: 2px;
+  padding: 0 2px;
+  margin: 0 -2px;
+  transition: background var(--transition-fast);
+}
+.jtree-editable:hover {
+  background: var(--primary-softer);
+  outline: 1px dashed var(--border-strong);
+}
+.jtree-edit-input {
+  font-family: var(--font-mono);
+  font-size: inherit;
+  line-height: 1.4;
+  padding: 1px 4px;
+  border: 1px solid var(--primary);
+  border-radius: var(--radius-sm);
+  background: var(--bg-elev);
+  color: var(--text);
+  outline: none;
+  flex: 0 1 16em;
+  min-width: 80px;
+  max-width: 100%;
+}
+.jtree-edit-input:focus {
+  box-shadow: 0 0 0 3px var(--primary-softer);
+}
+
+/* 树行删除按钮:悬停显示,触屏设备常显 */
+.jtree-del {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  margin-left: 8px;
+  margin-top: 3px;
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  padding: 0;
+  opacity: 0;
+  transition: opacity var(--transition-fast), color var(--transition-fast), background var(--transition-fast);
+}
+.jtree-del svg { width: 11px; height: 11px; stroke-width: 2; }
+.jtree-row:hover .jtree-del, .jtree-del:focus-visible { opacity: 1; }
+.jtree-del:hover { color: var(--danger); background: var(--danger-soft); }
+@media (hover: none) {
+  .jtree-del { opacity: 1; }
+}
+
 [data-theme="dark"] .jtree-string  { color: #6EE7B7; }
 [data-theme="dark"] .jtree-number  { color: #FBBF24; }
 [data-theme="dark"] .jtree-boolean { color: #C4B5FD; }

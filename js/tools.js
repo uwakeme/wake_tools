@@ -33,7 +33,7 @@
 
   // 格式化
   { id: 'json', group: '格式化', icon: 'json', name: 'JSON 格式化',
-    desc: 'JSON 格式化、压缩、去注释、转义、转 GET 参数、生成 TS/Java/Go 等类型代码。' },
+    desc: '格式化、压缩、去注释、转义、转GET、生成类型代码、树内编辑删除。' },
   { id: 'sql', group: '格式化', icon: 'sql', name: 'SQL 格式化',
     desc: 'SQL 语句关键字大写、缩进美化。' },
   { id: 'xml', group: '格式化', icon: 'xml', name: 'XML 格式化',
@@ -497,11 +497,33 @@
       return n;
     };
     const fmtVal = (v) => {
-      if (v === null) return el('span', 'jtree-null', 'null');
-      if (typeof v === 'string') return el('span', 'jtree-string', JSON.stringify(v));
-      if (typeof v === 'number') return el('span', 'jtree-number', String(v));
-      if (typeof v === 'boolean') return el('span', 'jtree-boolean', String(v));
-      return el('span', 'jtree-null', String(v));
+      let cls, text;
+      if (v === null) { cls = 'jtree-null'; text = 'null'; }
+      else if (typeof v === 'string') { cls = 'jtree-string'; text = JSON.stringify(v); }
+      else if (typeof v === 'number') { cls = 'jtree-number'; text = String(v); }
+      else if (typeof v === 'boolean') { cls = 'jtree-boolean'; text = String(v); }
+      else { cls = 'jtree-null'; text = String(v); }
+      const s = el('span', cls + ' jtree-editable', text);
+      s.dataset.edit = 'val';
+      s.title = '点击编辑值';
+      return s;
+    };
+    // 可编辑 key(数组元素没有 key,不生成)
+    const makeKeySpan = (keyName) => {
+      const s = el('span', 'jtree-key jtree-editable', JSON.stringify(keyName));
+      s.dataset.edit = 'key';
+      s.title = '点击编辑 key';
+      return s;
+    };
+    // 行尾删除按钮(悬停显示;触屏设备常显)
+    const makeDelBtn = () => {
+      const b = document.createElement('button');
+      b.className = 'jtree-del';
+      b.type = 'button';
+      b.title = '删除';
+      b.setAttribute('aria-label', '删除');
+      b.innerHTML = NS.ICONS.x;
+      return b;
     };
 
     // ---- 错误位置解析 ----
@@ -649,17 +671,19 @@
     const lineCounter = { n: 0 };
     const nextLine = () => { lineCounter.n += 1; return String(lineCounter.n).padStart(3, ' '); };
 
-    // ---- 树节点构造 ----
-    const buildNode = (value, keyName /*, inArray*/) => {
+    // ---- 树节点构造(path:从根到当前节点的 key/下标路径,树内编辑用) ----
+    const buildNode = (value, keyName, path = []) => {
       const isContainer = value !== null && typeof value === 'object';
       if (!isContainer) {
         const row = el('div', 'jtree-row jtree-leaf');
+        row.dataset.path = JSON.stringify(path);
         row.appendChild(el('span', 'jtree-lineno', nextLine()));
         if (keyName !== undefined) {
-          row.appendChild(el('span', 'jtree-key', JSON.stringify(keyName)));
+          row.appendChild(makeKeySpan(keyName));
           row.appendChild(el('span', 'jtree-punct', ': '));
         }
         row.appendChild(fmtVal(value));
+        if (path.length) row.appendChild(makeDelBtn());
         return row;
       }
       const isArray = Array.isArray(value);
@@ -669,11 +693,12 @@
       const count = entries.length;
       const wrap = el('div', 'jtree-node jtree-expanded');
       const head = el('div', 'jtree-row jtree-head');
+      head.dataset.path = JSON.stringify(path);
       head.appendChild(el('span', 'jtree-lineno', nextLine()));
       const toggle = el('span', 'jtree-toggle', '▼');
       head.appendChild(toggle);
       if (keyName !== undefined) {
-        head.appendChild(el('span', 'jtree-key', JSON.stringify(keyName)));
+        head.appendChild(makeKeySpan(keyName));
         head.appendChild(el('span', 'jtree-punct', ': '));
       }
       const openB = el('span', 'jtree-punct jtree-open', isArray ? '[' : '{');
@@ -684,10 +709,11 @@
       const summary = el('span', 'jtree-summary', ` ${count} ${label} `);
       summary.style.display = 'none';
       head.appendChild(summary);
+      if (path.length) head.appendChild(makeDelBtn());
       wrap.appendChild(head);
       const childWrap = el('div', 'jtree-children');
       for (const [k, v] of entries) {
-        childWrap.appendChild(buildNode(v, isArray ? undefined : k));
+        childWrap.appendChild(buildNode(v, isArray ? undefined : k, path.concat(k)));
       }
       wrap.appendChild(childWrap);
       if (count > 0) {
@@ -729,6 +755,8 @@
       if (count > 0) {
         head.addEventListener('click', (ev) => {
           if (ev.target === wrap._toggle) return;
+          // 点删除按钮/key/value 时是编辑操作,不触发折叠
+          if (ev.target.closest && ev.target.closest('.jtree-del, .jtree-editable, .jtree-edit-input')) return;
           wrap._setFolded(wrap.classList.contains('jtree-expanded'));
         });
       }
@@ -1116,7 +1144,7 @@
       view: () => `
         <div class="tool-header">
           <h1 class="tool-title">JSON 格式化</h1>
-          <p class="tool-desc">格式化、压缩、去注释、转义、中文⇌Unicode、转 GET 参数、生成 TS/Java/Python/Go 等类型代码、键排序、树视图、错误定位、树内搜索。</p>
+          <p class="tool-desc">格式化、压缩、去注释、转义、中文⇌Unicode、转 GET 参数、生成 TS/Java/Python/Go 等类型代码、键排序、错误定位、树内搜索。树视图可直接点击 key/value 编辑，悬停行尾可删除节点。</p>
         </div>
         <div class="row">
           <div class="panel">
@@ -1295,7 +1323,7 @@
             $t.appendChild(warn);
             return;
           }
-          $t.appendChild(buildNode(currentValue, undefined));
+          $t.appendChild(buildNode(currentValue, undefined, []));
           applyFilter();
         };
 
@@ -1423,6 +1451,110 @@
             if (typeof n._setFolded === 'function') n._setFolded(folded);
           });
         };
+
+        /* ---- 树内编辑:点击 key/value 修改,悬停删除;改动写回输入框 ---- */
+        const getAtPath = (path) => path.reduce((o, k) => (o == null ? o : o[k]), currentValue);
+
+        // 树编辑后的统一同步:序列化回输入框 + 重渲树(保持滚动位置)+ 更新统计
+        const syncAfterTreeEdit = (msg) => {
+          const pretty = JSON.stringify(currentValue, null, indentChar.repeat(indent));
+          $i.value = pretty;
+          resultText = null;
+          lastConvExt = null;
+          lastFn = 'fmt';
+          renderError(null);
+          show(true, msg);
+          const sc = $t.scrollTop;
+          if (view === 'tree') renderTree(); else renderText();
+          renderStats(pretty, currentValue);
+          $t.scrollTop = sc;
+        };
+
+        // 把 span 原地替换为输入框:Enter/失焦提交,Esc 取消
+        const startEdit = (span, initial, commit) => {
+          const input = document.createElement('input');
+          input.className = 'jtree-edit-input';
+          input.type = 'text';
+          input.value = initial;
+          input.setAttribute('aria-label', '树内编辑');
+          span.style.display = 'none';
+          span.parentNode.insertBefore(input, span.nextSibling);
+          input.focus();
+          input.select();
+          let done = false;
+          const finish = (save) => {
+            if (done) return;
+            done = true;
+            const val = input.value;
+            input.remove();
+            span.style.display = '';
+            if (save) commit(val);
+          };
+          input.addEventListener('keydown', (ev) => {
+            ev.stopPropagation();
+            if (ev.key === 'Enter') { ev.preventDefault(); finish(true); }
+            else if (ev.key === 'Escape') { ev.preventDefault(); finish(false); }
+          });
+          input.addEventListener('blur', () => finish(true));
+          input.addEventListener('click', (ev) => ev.stopPropagation());
+        };
+
+        $t.addEventListener('click', (ev) => {
+          // 输入框是非法 JSON 时禁止树内编辑,避免静默丢弃用户未完成的修改
+          if (lastError) {
+            if (ev.target.closest('.jtree-del, .jtree-editable')) toast('✗ 请先修正 JSON 错误再编辑');
+            return;
+          }
+          const del = ev.target.closest('.jtree-del');
+          if (del) {
+            const path = JSON.parse(del.closest('.jtree-row').dataset.path || '[]');
+            if (!path.length) return;
+            const parent = getAtPath(path.slice(0, -1));
+            const last = path[path.length - 1];
+            if (Array.isArray(parent)) parent.splice(last, 1);
+            else if (parent && typeof parent === 'object') delete parent[last];
+            syncAfterTreeEdit('✓ 已删除 ' + (typeof last === 'number' ? '数组第 ' + (last + 1) + ' 项' : 'key "' + last + '"'));
+            return;
+          }
+          const editSpan = ev.target.closest('.jtree-editable');
+          if (!editSpan) return;
+          const path = JSON.parse(editSpan.closest('.jtree-row').dataset.path || '[]');
+          const oldKey = path[path.length - 1];
+
+          if (editSpan.dataset.edit === 'key') {
+            if (typeof oldKey === 'number') return; // 数组元素没有 key
+            startEdit(editSpan, String(oldKey), (raw) => {
+              const newKey = raw.trim();
+              if (!newKey || newKey === String(oldKey)) return;
+              const parent = getAtPath(path.slice(0, -1));
+              if (parent == null || typeof parent !== 'object') return;
+              if (Object.prototype.hasOwnProperty.call(parent, newKey)) {
+                toast('✗ 已存在同名 key:' + newKey);
+                return;
+              }
+              parent[newKey] = parent[oldKey];
+              delete parent[oldKey];
+              syncAfterTreeEdit('✓ key 已重命名:' + oldKey + ' → ' + newKey);
+            });
+          } else {
+            // 值编辑:字符串显示原文,其他显示 JSON 字面量;提交先按 JSON 解析,失败则视为字符串
+            const target = getAtPath(path);
+            const initial = typeof target === 'string' ? target : JSON.stringify(target);
+            startEdit(editSpan, initial, (raw) => {
+              let v;
+              try { v = JSON.parse(raw); } catch (e) { v = raw; }
+              if (!path.length) {
+                currentValue = v;
+                syncAfterTreeEdit('✓ 根值已修改');
+                return;
+              }
+              const parent = getAtPath(path.slice(0, -1));
+              if (parent == null) return;
+              parent[oldKey] = v;
+              syncAfterTreeEdit('✓ 值已修改');
+            });
+          }
+        });
 
         // ---- 转换函数 ----
         const tryRender = (text, ok, value, msgOk, msgErr) => {
