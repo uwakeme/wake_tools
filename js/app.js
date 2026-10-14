@@ -13,7 +13,7 @@
   const GROUP_DESC = {
     '编码转换': '字符串与 Base64 / URL / Hex / Unicode / HTML 实体互转',
     '时间日期': 'Unix 时间戳、时长、日期相关计算',
-    '格式化': 'JSON / SQL / XML / Markdown / YAML 美化与转换',
+    '格式化': 'JSON / SQL / XML / Markdown / YAML / CSV 美化与转换',
     '文本处理': 'Diff、正则、字符串工具',
     '生成器': 'UUID、密码、Hash、占位文本、假数据',
     '颜色工具': 'HEX / RGB / HSL 颜色值互转与色板预览',

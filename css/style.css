@@ -1879,8 +1879,9 @@ code { font-size: 0.9em; }
   word-break: break-word;
 }
 
-/* 缩进选择器 - 紧凑版(放在 .btn-row 边上) */
-.jindent {
+/* 缩进/转换目标选择器 - 紧凑版(放在 .btn-row 边上) */
+.jindent,
+.jconv {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -1888,7 +1889,8 @@ code { font-size: 0.9em; }
   color: var(--text-muted);
   font-family: var(--font-mono);
 }
-.jindent select {
+.jindent select,
+.jconv select {
   padding: 4px 6px;
   font-size: 12px;
   border-radius: var(--radius-sm);
@@ -1900,8 +1902,10 @@ code { font-size: 0.9em; }
   outline: none;
   transition: all var(--transition-fast);
 }
-.jindent select:hover { border-color: var(--border-strong); }
-.jindent select:focus { border-color: var(--primary); }
+.jindent select:hover,
+.jconv select:hover { border-color: var(--border-strong); }
+.jindent select:focus,
+.jconv select:focus { border-color: var(--primary); }
 
 /* 文本视图(可复制的格式化 JSON) */
 .jtext-view {

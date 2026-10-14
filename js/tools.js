@@ -33,7 +33,7 @@
 
   // 格式化
   { id: 'json', group: '格式化', icon: 'json', name: 'JSON 格式化',
-    desc: 'JSON 格式化、压缩、去注释、转义、校验。' },
+    desc: 'JSON 格式化、压缩、去注释、转义、转 GET 参数、生成 TS/Java/Go 等类型代码。' },
   { id: 'sql', group: '格式化', icon: 'sql', name: 'SQL 格式化',
     desc: 'SQL 语句关键字大写、缩进美化。' },
   { id: 'xml', group: '格式化', icon: 'xml', name: 'XML 格式化',
@@ -42,6 +42,8 @@
     desc: '左侧写 Markdown，右侧实时渲染预览。' },
   { id: 'yaml', group: '格式化', icon: 'yaml', name: 'YAML ↔ JSON',
     desc: 'YAML 与 JSON 互转，支持基础语法。' },
+  { id: 'jsoncsv', group: '格式化', icon: 'csv', name: 'JSON ↔ CSV',
+    desc: 'JSON 对象数组与 CSV 互转，支持引号转义与类型推断。' },
 
   // 文本处理
   { id: 'textutil', group: '文本处理', icon: 'textutil', name: '文本去重 / 排序',
@@ -503,8 +505,10 @@
     };
 
     // ---- 错误位置解析 ----
-    // Chrome/V8: "...at position N" 或 "...in JSON at position N"
-    // Firefox:    "...at line N column M of the JSON data"
+    // Chrome/V8 老版: "...at position N" / "...in JSON at position N"
+    // 新版 V8:     "...(line 1 column 9)" 或完全不带位置("Unexpected token ... is not valid JSON")
+    // Firefox:     "...at line N column M of the JSON data"
+    // 无位置消息 → 用下方 scanJsonError 兜底定位
     const parseErrorPos = (input, err) => {
       const m = String((err && err.message) || '');
       const mPos = m.match(/(?:at|in JSON at) position (\d+)/);
@@ -516,11 +520,105 @@
           return { pos, line: lines.length, col: lines[lines.length - 1].length + 1, msg: m };
         }
       }
-      const mLine = m.match(/at line (\d+) column (\d+)/);
+      const mLine = m.match(/line (\d+) column (\d+)/);
       if (mLine) {
         return { pos: -1, line: parseInt(mLine[1], 10), col: parseInt(mLine[2], 10), msg: m };
       }
+      const scanned = scanJsonError(input);
+      if (scanned) {
+        return { pos: scanned.pos, line: scanned.line, col: scanned.col, msg: m || scanned.msg };
+      }
       return { pos: -1, line: 0, col: 0, msg: m };
+    };
+
+    // 轻量 JSON 扫描器:只负责找出第一个语法错误的位置(行/列/偏移),
+    // 不构建 AST。用于新版 V8 错误消息不带位置时的兜底定位。
+    const scanJsonError = (s) => {
+      let i = 0;
+      const err = (msg) => {
+        const before = s.slice(0, i);
+        const lines = before.split('\n');
+        return { pos: i, line: lines.length, col: lines[lines.length - 1].length + 1, msg };
+      };
+      const skipWs = () => { while (i < s.length && ' \t\n\r'.includes(s[i])) i++; };
+      const parseString = () => {
+        i++; // 开引号
+        for (;;) {
+          if (i >= s.length) return err('Unterminated string');
+          const c = s[i];
+          if (c === '\\') {
+            const n = s[i + 1];
+            if (n === undefined || !'"\\/bfnrtu'.includes(n)) return err('Bad escaped character');
+            i += (n === 'u') ? 6 : 2;
+            continue;
+          }
+          if (c === '"') { i++; return null; }
+          if (c.charCodeAt(0) < 0x20) return err('Bad control character in string literal');
+          i++;
+        }
+      };
+      const parseNumber = () => {
+        const start = i;
+        if (s[i] === '-') i++;
+        while (i < s.length && s[i] >= '0' && s[i] <= '9') i++;
+        if (s[i] === '.') { i++; while (i < s.length && s[i] >= '0' && s[i] <= '9') i++; }
+        if (s[i] === 'e' || s[i] === 'E') {
+          i++;
+          if (s[i] === '+' || s[i] === '-') i++;
+          while (i < s.length && s[i] >= '0' && s[i] <= '9') i++;
+        }
+        const tok = s.slice(start, i);
+        if (!/^-?(0|[1-9]\d*)(\.\d+)?([eE][+-]?\d+)?$/.test(tok)) return err('Invalid number ' + tok);
+        return null;
+      };
+      const parseValue = () => {
+        skipWs();
+        if (i >= s.length) return err('Unexpected end of JSON input');
+        const c = s[i];
+        if (c === '{') return parseObject();
+        if (c === '[') return parseArray();
+        if (c === '"') return parseString();
+        if (c === '-' || (c >= '0' && c <= '9')) return parseNumber();
+        for (const lit of ['true', 'false', 'null']) {
+          if (s.startsWith(lit, i)) { i += lit.length; return null; }
+        }
+        return err("Unexpected token '" + c + "'");
+      };
+      const parseObject = () => {
+        i++; // {
+        skipWs();
+        if (s[i] === '}') { i++; return null; }
+        for (;;) {
+          skipWs();
+          if (s[i] !== '"') return err("Expected property name");
+          let e = parseString(); if (e) return e;
+          skipWs();
+          if (s[i] !== ':') return err("Expected ':' after property name");
+          i++;
+          e = parseValue(); if (e) return e;
+          skipWs();
+          if (s[i] === ',') { i++; continue; }
+          if (s[i] === '}') { i++; return null; }
+          return err("Expected ',' or '}' after property value");
+        }
+      };
+      const parseArray = () => {
+        i++; // [
+        skipWs();
+        if (s[i] === ']') { i++; return null; }
+        for (;;) {
+          const e = parseValue(); if (e) return e;
+          skipWs();
+          if (s[i] === ',') { i++; continue; }
+          if (s[i] === ']') { i++; return null; }
+          return err("Expected ',' or ']' after array element");
+        }
+      };
+      const e = parseValue();
+      if (e) return e;
+      skipWs();
+      if (i < s.length) return err('Unexpected trailing characters');
+      return null;
     };
 
     // ---- 统计 ----
@@ -637,6 +735,366 @@
       return wrap;
     };
 
+    // ---- 中文 ⇌ Unicode 转义 ----
+    // 只转义非 ASCII 字符(\uXXXX),括号/引号等结构字符不动,结果仍是合法 JSON
+    const escapeNonAscii = (s) => s.replace(/[^\x00-\x7F]/g, (ch) => {
+      let out = '';
+      for (const c of ch) out += '\\u' + c.codePointAt(0).toString(16).padStart(4, '0');
+      return out;
+    });
+
+    // ---- key 拆词(供键风格转换与类型命名的 PascalCase 复用) ----
+    const toWords = (s) => String(s)
+      .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+      .replace(/[_\-\s]+/g, ' ')
+      .trim().toLowerCase().split(/\s+/).filter(Boolean);
+    const joinWords = (words, sep, capitalize) => words.map((w, i) => {
+      const c = w[0].toUpperCase() + w.slice(1);
+      return (capitalize || i > 0) ? c : w;
+    });
+    const pascalName = (s) => joinWords(toWords(s), '', true).join('') || 'Field';
+
+    /* ============================================================
+       JSON → 编程语言类型/代码生成
+       思路:先把 JSON 归一化成"结构树"(struct + 字段描述),
+       再由各语言渲染器遍历输出。同构对象数组合并为一个 struct。
+       ============================================================ */
+    // 基础类型:bigint = 超出 int32 的整数(Java Long / Go int64 / MySQL BIGINT)
+    const kindOf = (v) =>
+      v === null ? 'null'
+      : Array.isArray(v) ? 'array'
+      : typeof v === 'number'
+        ? (Number.isInteger(v) ? (Math.abs(v) > 2147483647 ? 'bigint' : 'integer') : 'float')
+      : typeof v;
+
+    // 字段描述:{ key, kind: 'scalar'|'struct'|'array', optional, scalarKind,
+    //            scalarUnion, itemScalar, itemUnion, itemStruct, itemNullable, maxLen }
+    const describeField = (key, val, ownerName, optional) => {
+      const f = { key, optional: !!optional };
+      if (val === null) {
+        f.kind = 'scalar'; f.scalarKind = 'unknown'; f.optional = true;
+        return f;
+      }
+      if (Array.isArray(val)) {
+        f.kind = 'array';
+        const nonNull = val.filter((x) => x !== null);
+        f.itemNullable = nonNull.length > 0 && val.length > nonNull.length;
+        if (!nonNull.length) { f.itemScalar = 'unknown'; return f; }
+        const kinds = [...new Set(nonNull.map(kindOf))];
+        if (kinds.length === 1 && kinds[0] === 'object') {
+          f.itemStruct = buildStruct(ownerName + pascalName(key), nonNull);
+        } else if (kinds.length === 1) {
+          f.itemScalar = kinds[0];
+        } else {
+          f.itemScalar = 'mixed';
+          f.itemUnion = kinds;
+        }
+        return f;
+      }
+      if (typeof val === 'object') {
+        f.kind = 'struct';
+        f.struct = buildStruct(ownerName + pascalName(key), [val]);
+        return f;
+      }
+      f.kind = 'scalar';
+      f.scalarKind = kindOf(val);
+      if (typeof val === 'string') f.maxLen = val.length;
+      return f;
+    };
+
+    // objs:同构对象数组(或单元素数组);并集 key,缺省字段记 optional
+    const buildStruct = (name, objs) => {
+      const keyOrder = [];
+      const values = new Map();
+      objs.forEach((o) => {
+        Object.entries(o).forEach(([k, v]) => {
+          if (!values.has(k)) { values.set(k, []); keyOrder.push(k); }
+          values.get(k).push(v);
+        });
+      });
+      const s = { name, fields: [] };
+      keyOrder.forEach((k) => {
+        const vals = values.get(k);
+        const optional = vals.length < objs.length;
+        const nonNull = vals.filter((x) => x !== null);
+        if (!nonNull.length) {
+          s.fields.push({ key: k, kind: 'scalar', scalarKind: 'unknown', optional: true });
+          return;
+        }
+        const kinds = [...new Set(nonNull.map(kindOf))];
+        if (kinds.length > 1) {
+          // 同名 key 在不同对象里类型不一致 → 退化为 mixed
+          s.fields.push({ key: k, kind: 'scalar', scalarKind: 'mixed', scalarUnion: kinds, optional });
+          return;
+        }
+        const f = describeField(k, nonNull[0], name, optional);
+        // maxLen 取并集里所有字符串的最大长度(VARCHAR 用)
+        f.maxLen = Math.max(0, ...vals.map((x) => (typeof x === 'string' ? x.length : 0)), f.maxLen || 0);
+        s.fields.push(f);
+      });
+      return s;
+    };
+
+    // 根节点归一化:顶层必须是对象或对象数组
+    const rootStructOf = (v) => {
+      if (v === null || typeof v !== 'object') {
+        throw new Error('顶层必须是对象或对象数组');
+      }
+      if (Array.isArray(v)) {
+        const nonNull = v.filter((x) => x !== null);
+        if (!nonNull.length) throw new Error('数组为空,无法推断结构');
+        if (!nonNull.every((x) => x && typeof x === 'object' && !Array.isArray(x))) {
+          throw new Error('数组元素必须是对象');
+        }
+        return { struct: buildStruct('RootItem', nonNull), isArray: true };
+      }
+      return { struct: buildStruct('Root', [v]), isArray: false };
+    };
+
+    // 平铺收集全部 struct(父在前、子在后)
+    const collectStructs = (s, acc) => {
+      acc.push(s);
+      s.fields.forEach((f) => {
+        if (f.struct) collectStructs(f.struct, acc);
+        if (f.itemStruct) collectStructs(f.itemStruct, acc);
+      });
+      return acc;
+    };
+    const IDENT_RE = /^[\p{L}_$][\p{L}\p{N}_$]*$/u;
+
+    // ---- TypeScript ----
+    const tsScalar = (k) => ({ string: 'string', integer: 'number', bigint: 'number', float: 'number', boolean: 'boolean' }[k] || 'unknown');
+    const genTs = (root) => {
+      const all = collectStructs(root.struct, []);
+      const typeOf = (f) => {
+        if (f.kind === 'scalar') return f.scalarUnion ? f.scalarUnion.map(tsScalar).join(' | ') : tsScalar(f.scalarKind);
+        if (f.kind === 'struct') return f.struct.name;
+        let t = f.itemStruct ? f.itemStruct.name : (f.itemUnion ? f.itemUnion.map(tsScalar).join(' | ') : tsScalar(f.itemScalar));
+        return t + '[]';
+      };
+      const out = all.map((s) =>
+        'interface ' + s.name + ' {\n' +
+        s.fields.map((f) => {
+          let t = typeOf(f);
+          if (f.kind === 'array' && f.itemNullable) t = '(' + t + ' | null)';
+          return '  ' + (IDENT_RE.test(f.key) ? f.key : JSON.stringify(f.key)) + (f.optional ? '?' : '') + ': ' + t + ';';
+        }).join('\n') +
+        '\n}'
+      );
+      if (root.isArray) out.push('type Root = RootItem[]');
+      return out.join('\n\n') + '\n';
+    };
+
+    // ---- Java ----
+    const javaScalar = (k) => ({ string: 'String', integer: 'Integer', bigint: 'Long', float: 'Double', boolean: 'Boolean' }[k] || 'Object');
+    const genJava = (root) => {
+      const all = collectStructs(root.struct, []);
+      let needJsonProp = false;
+      const cls = (s) =>
+        'public class ' + s.name + ' {\n' +
+        s.fields.map((f) => {
+          let t;
+          if (f.kind === 'scalar') t = javaScalar(f.scalarKind);
+          else if (f.kind === 'struct') t = f.struct.name;
+          else t = 'List<' + (f.itemStruct ? f.itemStruct.name : javaScalar(f.itemScalar)) + '>';
+          const raw = IDENT_RE.test(f.key);
+          if (!raw) needJsonProp = true;
+          return (raw ? '' : '    @JsonProperty(' + JSON.stringify(f.key) + ')\n')
+            + '    private ' + t + ' ' + (raw ? f.key : pascalName(f.key)) + ';';
+        }).join('\n') +
+        '\n}';
+      const out = all.map(cls);
+      if (root.isArray) out.push('// 顶层是数组,对应类型:List<' + root.struct.name + '>');
+      const imports = [];
+      if (all.some((s) => s.fields.some((f) => f.kind === 'array'))) imports.push('import java.util.List;');
+      if (needJsonProp) imports.push('import com.fasterxml.jackson.annotation.JsonProperty;');
+      return (imports.length ? imports.join('\n') + '\n\n' : '') + out.join('\n\n') + '\n';
+    };
+
+    // ---- Python (dataclass) ----
+    const pyScalar = (k) => ({ string: 'str', integer: 'int', bigint: 'int', float: 'float', boolean: 'bool' }[k] || 'Any');
+    const pyIdent = (k) => IDENT_RE.test(k) ? k : '_' + pascalName(k).replace(/[^\p{L}\p{N}_]/gu, '_');
+    const genPython = (root) => {
+      const all = collectStructs(root.struct, []).reverse(); // 子类先定义
+      const typeOf = (f) => {
+        let t;
+        if (f.kind === 'scalar') t = pyScalar(f.scalarKind);
+        else if (f.kind === 'struct') t = f.struct.name;
+        else t = 'List[' + (f.itemStruct ? f.itemStruct.name : pyScalar(f.itemScalar)) + ']';
+        return f.optional ? 'Optional[' + t + ']' : t;
+      };
+      const out = all.map((s) =>
+        '@dataclass\n' +
+        'class ' + s.name + ':\n' +
+        (s.fields.length
+          ? s.fields.map((f) => {
+              const name = pyIdent(f.key);
+              return '    ' + name + ': ' + typeOf(f) + (f.optional ? ' = None' : '');
+            }).join('\n')
+          : '    pass')
+      );
+      if (root.isArray) out.push('Root = List[' + root.struct.name + ']');
+      return 'from dataclasses import dataclass\nfrom typing import Any, List, Optional\n\n'
+        + out.join('\n\n') + '\n';
+    };
+
+    // ---- Go ----
+    const goScalar = (k) => ({ string: 'string', integer: 'int', bigint: 'int64', float: 'float64', boolean: 'bool' }[k] || 'interface{}');
+    const genGo = (root) => {
+      const all = collectStructs(root.struct, []);
+      const typeOf = (f) => {
+        let t;
+        if (f.kind === 'scalar') t = goScalar(f.scalarKind);
+        else if (f.kind === 'struct') t = f.struct.name;
+        else t = '[]' + (f.itemStruct ? f.itemStruct.name : goScalar(f.itemScalar));
+        return f.optional ? '*' + t : t;
+      };
+      const out = all.map((s) =>
+        'type ' + s.name + ' struct {\n' +
+        s.fields.map((f) => {
+          const name = f.key === pascalName(f.key) || /^[\p{Lu}][\p{L}\p{N}]*$/u.test(f.key)
+            ? f.key : pascalName(f.key);
+          return '\t' + (/^[A-Z]/.test(name) ? name : 'X' + name) + ' ' + typeOf(f)
+            + ' `json:"' + String(f.key).replace(/\\/g, '\\\\').replace(/"/g, '\\"')
+            + (f.optional ? ',omitempty' : '') + '"`';
+        }).join('\n') +
+        '\n}'
+      );
+      if (root.isArray) out.push('// 顶层是数组,对应类型:[]' + root.struct.name);
+      return 'package main\n\n' + out.join('\n\n') + '\n';
+    };
+
+    // ---- C# ----
+    const csScalar = (k) => ({ string: 'string', integer: 'int', bigint: 'long', float: 'double', boolean: 'bool' }[k] || 'object');
+    const genCsharp = (root) => {
+      const all = collectStructs(root.struct, []);
+      const typeOf = (f) => {
+        let t;
+        if (f.kind === 'scalar') t = csScalar(f.scalarKind);
+        else if (f.kind === 'struct') t = f.struct.name;
+        else t = 'List<' + (f.itemStruct ? f.itemStruct.name : csScalar(f.itemScalar)) + '>';
+        return f.optional && t !== 'object' ? t + '?' : t;
+      };
+      const out = all.map((s) =>
+        'public class ' + s.name + '\n{\n' +
+        s.fields.map((f) => {
+          const name = pascalName(f.key);
+          return '    [JsonPropertyName(' + JSON.stringify(f.key) + ')]\n'
+            + '    public ' + typeOf(f) + ' ' + (/^[A-Za-z_]/.test(name) ? name : '_' + name) + ' { get; set; }';
+        }).join('\n') +
+        '\n}'
+      );
+      if (root.isArray) out.push('// 顶层是数组,对应类型:List<' + root.struct.name + '>');
+      return 'using System;\nusing System.Collections.Generic;\nusing System.Text.Json.Serialization;\n\n'
+        + out.join('\n\n') + '\n';
+    };
+
+    // ---- Kotlin ----
+    const ktScalar = (k) => ({ string: 'String', integer: 'Int', bigint: 'Long', float: 'Double', boolean: 'Boolean' }[k] || 'Any');
+    const genKotlin = (root) => {
+      const all = collectStructs(root.struct, []);
+      let needSerial = false;
+      const out = all.map((s) =>
+        'data class ' + s.name + '(\n' +
+        s.fields.map((f) => {
+          let t;
+          if (f.kind === 'scalar') t = ktScalar(f.scalarKind);
+          else if (f.kind === 'struct') t = f.struct.name;
+          else t = 'List<' + (f.itemStruct ? f.itemStruct.name : ktScalar(f.itemScalar)) + '>';
+          const raw = IDENT_RE.test(f.key);
+          if (!raw) needSerial = true;
+          return (raw ? '' : '    @SerializedName(' + JSON.stringify(f.key) + ')\n')
+            + '    val ' + (raw ? f.key : pascalName(f.key).replace(/^[0-9]/, '_$&')) + ': ' + t
+            + (f.optional ? '? = null' : '');
+        }).join(',\n').replace(/,(\n)?$/, '$1') +
+        '\n)'
+      );
+      if (root.isArray) out.push('// 顶层是数组,对应类型:List<' + root.struct.name + '>');
+      return (needSerial ? 'import com.google.gson.annotations.SerializedName\n\n' : '') + out.join('\n\n') + '\n';
+    };
+
+    // ---- MySQL CREATE TABLE(仅顶层对象) ----
+    const genMysql = (root) => {
+      if (root.isArray) throw new Error('MySQL 建表需要顶层为对象');
+      const s = root.struct;
+      const isId = (f) => f.key === 'id' && (f.scalarKind === 'integer' || f.scalarKind === 'bigint');
+      const cols = s.fields.map((f) => {
+        let t;
+        if (f.kind === 'struct' || f.kind === 'array') t = 'JSON';
+        else if (f.scalarKind === 'string') {
+          const steps = [16, 32, 64, 128, 255];
+          t = 'VARCHAR(' + (steps.find((x) => x >= (f.maxLen || 1)) || 255) + ')';
+        } else {
+          t = { integer: 'INT', bigint: 'BIGINT', float: 'DOUBLE', boolean: 'TINYINT(1)' }[f.scalarKind] || 'VARCHAR(255)';
+        }
+        const col = '`' + String(f.key).replace(/`/g, '') + '` ' + t;
+        return '  ' + (isId(f) ? col + ' NOT NULL AUTO_INCREMENT' : col + (f.optional ? ' DEFAULT NULL' : ' NOT NULL'));
+      });
+      if (s.fields.some(isId)) cols.push('  PRIMARY KEY (`id`)');
+      const table = toWords(s.name).join('_').toLowerCase() || 'root';
+      return 'CREATE TABLE `' + table + '` (\n' + cols.join(',\n') + '\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;\n';
+    };
+
+    // ---- XML(不依赖结构树,直接递归) ----
+    const genXml = (v, opts) => {
+      const ind = (opts && opts.indent) || '  ';
+      const escXml = (s) => String(s).replace(/[&<>"']/g, (c) =>
+        ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;' }[c]));
+      const tagOf = (k) => {
+        let t = String(k).trim().replace(/\s+/g, '_');
+        if (!/^[A-Za-z_]/.test(t)) t = '_' + t;
+        return t.replace(/[^\w.\-]/g, '_') || '_';
+      };
+      const render = (val, tag, depth) => {
+        const pad = ind.repeat(depth);
+        if (val === null) return pad + '<' + tag + '/>';
+        if (Array.isArray(val)) return val.map((x) => render(x, tag, depth)).join('\n');
+        if (typeof val === 'object') {
+          const inner = Object.entries(val)
+            .map(([k, v]) => render(v, tagOf(k), depth + 1)).join('\n');
+          return pad + '<' + tag + (inner ? '>\n' + inner + '\n' + pad + '</' + tag + '>' : '/>');
+        }
+        return pad + '<' + tag + '>' + escXml(val) + '</' + tag + '>';
+      };
+      const head = '<?xml version="1.0" encoding="UTF-8"?>\n';
+      if (Array.isArray(v)) {
+        const inner = v.map((x) => render(x, 'item', 1)).join('\n');
+        return head + '<root>\n' + inner + '\n</root>\n';
+      }
+      if (v === null || typeof v !== 'object') throw new Error('顶层必须是对象或对象数组');
+      return head + render(v, 'root', 0) + '\n';
+    };
+
+    const CONVERT_TARGETS = {
+      ts:     { label: 'TypeScript', ext: 'ts',  fn: (v) => genTs(rootStructOf(v)) },
+      java:   { label: 'Java',       ext: 'java', fn: (v) => genJava(rootStructOf(v)) },
+      python: { label: 'Python',     ext: 'py',  fn: (v) => genPython(rootStructOf(v)) },
+      go:     { label: 'Go',         ext: 'go',  fn: (v) => genGo(rootStructOf(v)) },
+      csharp: { label: 'C#',         ext: 'cs',  fn: (v) => genCsharp(rootStructOf(v)) },
+      kotlin: { label: 'Kotlin',     ext: 'kt',  fn: (v) => genKotlin(rootStructOf(v)) },
+      mysql:  { label: 'MySQL',      ext: 'sql', fn: (v) => genMysql(rootStructOf(v)) },
+      xml:    { label: 'XML',        ext: 'xml', fn: (v, o) => genXml(v, o) },
+    };
+
+    // ---- JSON → GET 查询参数(嵌套对象用点连接,数组用下标;key/value 都做 URL 编码) ----
+    const toQueryString = (obj) => {
+      const parts = [];
+      const walk = (val, prefix) => {
+        if (val === null || val === undefined) { parts.push(prefix + '='); return; }
+        if (Array.isArray(val)) { val.forEach((x, i) => walk(x, prefix + '[' + i + ']')); return; }
+        if (typeof val === 'object') {
+          Object.keys(val).forEach((k) => {
+            // 只编码 key 本身,点号/方括号连接符保持字面量(常见 API 约定)
+            walk(val[k], prefix ? prefix + '.' + encodeURIComponent(k) : encodeURIComponent(k));
+          });
+          return;
+        }
+        parts.push(prefix + '=' + encodeURIComponent(String(val)));
+      };
+      walk(obj, '');
+      return parts.join('&');
+    };
+
     // ---- 示例 JSON(给"加载示例"用,只保留一个最具代表性的) ----
     const samples = {
       api: {
@@ -658,7 +1116,7 @@
       view: () => `
         <div class="tool-header">
           <h1 class="tool-title">JSON 格式化</h1>
-          <p class="tool-desc">格式化、压缩、去注释、转义、键排序、树视图、错误定位、树内搜索。</p>
+          <p class="tool-desc">格式化、压缩、去注释、转义、中文⇌Unicode、转 GET 参数、生成 TS/Java/Python/Go 等类型代码、键排序、树视图、错误定位、树内搜索。</p>
         </div>
         <div class="row">
           <div class="panel">
@@ -671,6 +1129,9 @@
               <button class="btn" data-act="strip">仅去注释</button>
               <button class="btn" data-act="escape">转义</button>
               <button class="btn" data-act="unescape">去转义</button>
+              <button class="btn" data-act="to-uni">中文→Unicode</button>
+              <button class="btn" data-act="from-uni">Unicode→中文</button>
+              <button class="btn" data-act="to-get">转GET参数</button>
               <button class="btn" data-act="sort">键排序</button>
               <span style="color: var(--text-muted); font-size: 11px; padding: 0 6px; user-select: none; font-family: var(--font-mono);">key 风格</span>
               <button class="btn" data-act="key-camel">camelCase</button>
@@ -704,7 +1165,23 @@
             <div class="btn-row panel-toolbar" style="flex-wrap:wrap; gap:6px;">
               <button class="btn" data-act="expand">展开全部</button>
               <button class="btn" data-act="collapse">收起全部</button>
+              <div class="jconv">
+                <span>转换为</span>
+                <select id="jconv">
+                  <option value="ts">TypeScript</option>
+                  <option value="java">Java</option>
+                  <option value="python">Python</option>
+                  <option value="go">Go</option>
+                  <option value="csharp">C#</option>
+                  <option value="kotlin">Kotlin</option>
+                  <option value="mysql">MySQL</option>
+                  <option value="xml">XML</option>
+                </select>
+                <button class="btn btn-sm" data-act="convert">生成</button>
+              </div>
               <span style="flex:1;"></span>
+              <button class="btn btn-sm" data-act="fs-dec" title="减小字号">A-</button>
+              <button class="btn btn-sm" data-act="fs-inc" title="增大字号">A+</button>
               <button class="btn" data-act="download">下载 .json</button>
               <button class="btn" data-act="copy">复制结果</button>
               <button class="btn" data-act="swap">↕ 替换输入</button>
@@ -749,6 +1226,7 @@
         const $errorMsg = root.querySelector('#jerror-msg');
         const $jseg = root.querySelector('#jseg');
         const $textView = root.querySelector('#jtext');
+        const $jconvSel = root.querySelector('#jconv');
 
         // ---- 状态 ----
         let currentValue = undefined;
@@ -758,6 +1236,16 @@
         let filter = '';
         let lastFn = 'fmt';
         let lastError = null;
+        let lastConvExt = null; // 生成代码后下载用的扩展名(null = .json)
+        let lastTextLen = 0;    // 最近一次解析文本长度,树视图大文档保护用
+        const TREE_CHAR_LIMIT = 300 * 1024;
+
+        // 结果区字号(树 + 文本视图共用,localStorage 持久化)
+        let fontSize = 13;
+        try {
+          const savedFs = parseInt(localStorage.getItem('wt-json-fs'), 10);
+          if (savedFs >= 11 && savedFs <= 20) fontSize = savedFs;
+        } catch (e) { /* localStorage 不可用时用默认值 */ }
 
         const show = (ok, msg) => {
           $s.style.display = 'inline-block';
@@ -766,6 +1254,7 @@
         };
 
         const renderStats = (text, value) => {
+          lastTextLen = text.length;
           const s = computeStats(text, value);
           $statCells[0].textContent = s.chars.toLocaleString();
           $statCells[1].textContent = s.lines.toLocaleString();
@@ -796,6 +1285,12 @@
             return;
           }
           lineCounter.n = 0;
+          if (lastTextLen > TREE_CHAR_LIMIT) {
+            const warn = el('div', 'jtree-empty-hint');
+            warn.textContent = '文档超过 ' + Math.round(TREE_CHAR_LIMIT / 1024) + 'KB,已暂停树形渲染,请使用文本视图';
+            $t.appendChild(warn);
+            return;
+          }
           $t.appendChild(buildNode(currentValue, undefined));
           applyFilter();
         };
@@ -883,7 +1378,7 @@
           }
         };
 
-        // 下载结果为 .json
+        // 下载结果(生成代码后按语言扩展名下载)
         const downloadResult = () => {
           if (currentValue === undefined) {
             toast('没有可下载的内容');
@@ -892,15 +1387,30 @@
           const text = typeof currentValue === 'string'
             ? currentValue
             : JSON.stringify(currentValue, null, indentChar.repeat(indent));
-          const blob = new Blob([text], { type: 'application/json' });
+          const ext = lastConvExt || 'json';
+          const blob = new Blob([text], { type: ext === 'json' ? 'application/json' : 'text/plain;charset=utf-8' });
           const url = URL.createObjectURL(blob);
           const a = document.createElement('a');
           a.href = url;
-          a.download = 'result.json';
+          a.download = 'result.' + ext;
           document.body.appendChild(a);
           a.click();
           document.body.removeChild(a);
           setTimeout(() => URL.revokeObjectURL(url), 1000);
+        };
+
+        // ---- 结果区字号(树 + 文本视图,持久化) ----
+        const applyFontSize = () => {
+          $t.style.fontSize = fontSize + 'px';
+          $textView.style.fontSize = (fontSize - 0.5) + 'px';
+        };
+        const setFontSize = (n) => {
+          const next = Math.min(20, Math.max(11, n));
+          if (next === fontSize) return;
+          fontSize = next;
+          try { localStorage.setItem('wt-json-fs', String(fontSize)); } catch (e) { /* 隐私模式等 */ }
+          applyFontSize();
+          show(true, '字号 ' + fontSize + 'px');
         };
 
         // 展开/收起全部
@@ -914,8 +1424,11 @@
         const tryRender = (text, ok, value, msgOk, msgErr) => {
           if (ok) {
             currentValue = value;
+            lastTextLen = text.length;
             renderError(null);
             show(true, msgOk);
+            // 大文档:树形 DOM 渲染会卡死浏览器,自动切到文本视图
+            if (text.length > TREE_CHAR_LIMIT && view === 'tree') setView('text');
             if (view === 'tree') renderTree(); else renderText();
             renderStats(text, value);
           } else {
@@ -931,6 +1444,7 @@
         const fmt = () => {
           try {
             const v = JSON.parse($i.value);
+            lastConvExt = null;
             tryRender($i.value, true, v, `✓ 有效 JSON · ${indentLabel()}缩进`);
           } catch (e) {
             tryRender($i.value, false, e, '', '✗ ' + e.message);
@@ -1061,15 +1575,67 @@
           }
         };
 
+        // ---- 中文 ⇌ Unicode(字符串内容转 \uXXXX,结构仍是合法 JSON) ----
+        const toUni = () => {
+          try {
+            const v = JSON.parse($i.value);
+            const text = escapeNonAscii(JSON.stringify(v, null, indentChar.repeat(indent)));
+            $i.value = text;
+            tryRender(text, true, v, '✓ 非 ASCII 字符已转为 \\uXXXX');
+            lastFn = 'fmt'; // 一次性操作,后续编辑回到格式化预览
+          } catch (e) {
+            tryRender($i.value, false, e, '', '✗ ' + e.message);
+          }
+        };
+        const fromUni = () => {
+          try {
+            const v = JSON.parse($i.value); // JSON.parse 自动解码 \uXXXX
+            const text = JSON.stringify(v, null, indentChar.repeat(indent));
+            $i.value = text;
+            tryRender(text, true, v, '✓ \\uXXXX 转义已解码为实际字符');
+            lastFn = 'fmt';
+          } catch (e) {
+            tryRender($i.value, false, e, '', '✗ ' + e.message);
+          }
+        };
+
+        // ---- JSON 对象 → GET 查询参数(嵌套用点连接,数组用下标) ----
+        const toGet = () => {
+          let v;
+          try { v = JSON.parse($i.value); }
+          catch (e) { tryRender($i.value, false, e, '', '✗ ' + e.message); return; }
+          if (v === null || typeof v !== 'object' || Array.isArray(v)) {
+            show(false, '✗ 转 GET 参数只对顶层对象有效');
+            return;
+          }
+          const qs = toQueryString(v);
+          currentValue = qs;
+          renderError(null);
+          show(true, '✓ 已转 GET 参数 · ' + qs.split('&').length + ' 项');
+          if (view === 'text') renderText(); else setView('text');
+          renderStats(qs, v);
+          lastConvExt = 'txt';
+        };
+
+        // ---- 生成编程语言类型/代码,输出到文本视图 ----
+        const convert = () => {
+          let v;
+          try { v = JSON.parse($i.value); }
+          catch (e) { tryRender($i.value, false, e, '', '✗ ' + e.message); return; }
+          const def = CONVERT_TARGETS[$jconvSel.value];
+          let code;
+          try { code = def.fn(v, { indent: indentChar.repeat(indent) }); }
+          catch (e2) { show(false, '✗ ' + (e2.message || '生成失败')); return; }
+          currentValue = code;
+          renderError(null);
+          show(true, '✓ 已生成 ' + def.label + ' · 可复制 / 下载 / 替换输入');
+          if (view === 'text') renderText(); else setView('text');
+          renderStats(code, v);
+          lastConvExt = def.ext;
+        };
+
         // ---- key 命名风格转换 (camelCase / snake_case / PascalCase / kebab-case) ----
-        const toWords = (s) => String(s)
-          .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
-          .replace(/[_\-\s]+/g, ' ')
-          .trim().toLowerCase().split(/\s+/).filter(Boolean);
-        const joinWords = (words, sep, capitalize) => words.map((w, i) => {
-          const c = w[0].toUpperCase() + w.slice(1);
-          return (capitalize || i > 0) ? c : w;
-        });
+        // toWords/joinWords 定义在工厂层,与类型生成的 pascalName 共用
         const keyCaseMap = {
           camel:  w => joinWords(w, '', false).join(''),
           pascal: w => joinWords(w, '', true).join(''),
@@ -1173,7 +1739,8 @@
           $jsearch.focus();
         });
 
-        // 初始:有内容先格式化,空内容显示占位
+        // 初始:应用字号,有内容先格式化,空内容显示占位
+        applyFontSize();
         if ($i.value.trim()) runLastFn();
         else {
           if (view === 'tree') renderTree();
@@ -1189,6 +1756,7 @@
             renderError(null);
             $s.style.display = 'none';
             lastFn = 'fmt';
+            lastConvExt = null;
             if (view === 'tree') renderTree(); else renderText();
             renderStats('', undefined);
           } else if (a === 'copy') {
@@ -1215,6 +1783,18 @@
             jumpToError();
           } else if (a === 'download') {
             downloadResult();
+          } else if (a === 'to-uni') {
+            toUni();
+          } else if (a === 'from-uni') {
+            fromUni();
+          } else if (a === 'to-get') {
+            toGet();
+          } else if (a === 'convert') {
+            convert();
+          } else if (a === 'fs-inc') {
+            setFontSize(fontSize + 1);
+          } else if (a === 'fs-dec') {
+            setFontSize(fontSize - 1);
           } else {
             lastFn = a;
             runLastFn();
@@ -3574,6 +4154,159 @@ country: CN</textarea></div>
           else if (a === 'clear') $o.value = '';
         });
         gen();
+      }
+    };
+  },
+
+  /* ---------- JSON ↔ CSV ---------- */
+  jsoncsv() {
+    // CSV 单元格转义:含逗号/引号/换行时用双引号包裹,内部引号双写
+    const csvCell = (v) => {
+      const s = v === null || v === undefined
+        ? ''
+        : (typeof v === 'object' ? JSON.stringify(v) : String(v));
+      return /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+    };
+    const jsonToCsv = (v) => {
+      if (v === null || typeof v !== 'object') {
+        throw new Error('只支持对象或对象数组');
+      }
+      const rows = Array.isArray(v) ? v : [v];
+      if (!rows.length) return '';
+      if (rows.some((r) => r === null || typeof r !== 'object' || Array.isArray(r))) {
+        throw new Error('数组元素必须是对象');
+      }
+      // 列 = 所有行 key 的并集,保持首次出现顺序
+      const cols = [];
+      const seen = new Set();
+      rows.forEach((r) => Object.keys(r).forEach((k) => {
+        if (!seen.has(k)) { seen.add(k); cols.push(k); }
+      }));
+      return [cols.map(csvCell).join(',')]
+        .concat(rows.map((r) => cols.map((c) => csvCell(r[c])).join(',')))
+        .join('\r\n');
+    };
+    // CSV 解析:状态机,支持引号包裹、双写引号、字段内换行
+    const parseCsv = (text) => {
+      const rows = [];
+      let row = [], cell = '', inQ = false;
+      const endRow = () => { row.push(cell); cell = ''; rows.push(row); row = []; };
+      for (let i = 0; i < text.length; i++) {
+        const c = text[i];
+        if (inQ) {
+          if (c === '"') {
+            if (text[i + 1] === '"') { cell += '"'; i++; } else inQ = false;
+          } else cell += c;
+        } else if (c === '"') {
+          inQ = true;
+        } else if (c === ',') {
+          row.push(cell); cell = '';
+        } else if (c === '\r' || c === '\n') {
+          if (c === '\r' && text[i + 1] === '\n') i++;
+          endRow();
+        } else cell += c;
+      }
+      if (cell !== '' || row.length) endRow();
+      while (rows.length && rows[rows.length - 1].every((x) => x === '')) rows.pop();
+      return rows;
+    };
+    const inferCell = (s) => {
+      if (s === 'true') return true;
+      if (s === 'false') return false;
+      if (s === 'null') return null;
+      // 前导零(007)视为编号/邮编,保留字符串
+      if (/^-?(0|[1-9]\d*)(\.\d+)?([eE][+-]?\d+)?$/.test(s) && isFinite(Number(s))) return Number(s);
+      return s;
+    };
+    const SAMPLE = [
+      { name: '张三', age: 28, email: 'zhangsan@example.com', vip: true },
+      { name: '李四', age: 35, email: 'lisi@example.com', vip: false },
+      { name: 'Tom "T"', age: 41, email: 'tom@example.com', vip: true }
+    ];
+
+    return {
+      view: () => `
+        <div class="tool-header">
+          <h1 class="tool-title">JSON ↔ CSV</h1>
+          <p class="tool-desc">JSON 对象数组与 CSV 互转。支持引号/逗号/换行转义，转 JSON 可自动推断类型，可下载 .csv（含 BOM，Excel 直接打开中文不乱码）。</p>
+        </div>
+        <div class="row">
+          <div class="panel">
+            <div class="panel-title">JSON（对象或对象数组）</div>
+            <div class="btn-row panel-toolbar" style="flex-wrap:wrap; gap:6px;">
+              <button class="btn btn-primary" data-act="to-csv">转 CSV →</button>
+              <button class="btn" data-act="load-sample">加载示例</button>
+              <button class="btn" data-act="clear">清空</button>
+            </div>
+            <div class="input-area"><textarea class="textarea mono" id="jcin" placeholder='[{"name":"张三","age":28,"vip":true}]'></textarea></div>
+          </div>
+          <div class="panel">
+            <div class="panel-title">CSV（首行为表头）</div>
+            <div class="btn-row panel-toolbar" style="flex-wrap:wrap; gap:6px;">
+              <button class="btn btn-primary" data-act="to-json">← 转 JSON</button>
+              <label class="switch" style="gap:6px; user-select:none;">
+                <input type="checkbox" id="jc-infer" checked />
+                <span class="switch-track"></span>
+                <span style="font-size:12px; color:var(--text-muted);">类型推断</span>
+              </label>
+              <span style="flex:1;"></span>
+              <button class="btn" data-act="copy">复制</button>
+              <button class="btn" data-act="download">下载 .csv</button>
+            </div>
+            <div class="input-area"><textarea class="textarea mono" id="jcout" placeholder="name,age,vip&#10;张三,28,true"></textarea></div>
+          </div>
+        </div>
+      `,
+      bind(root) {
+        const $i = root.querySelector('#jcin');
+        const $o = root.querySelector('#jcout');
+        const $infer = root.querySelector('#jc-infer');
+
+        root.addEventListener('click', e => {
+          const a = e.target.dataset.act;
+          if (!a) return;
+          if (a === 'to-csv') {
+            try {
+              $o.value = jsonToCsv(JSON.parse($i.value));
+              toast('已转 CSV');
+            } catch (err) {
+              toast('✗ 转换失败:' + err.message);
+            }
+          } else if (a === 'to-json') {
+            const rows = parseCsv($o.value);
+            if (!rows.length) { toast('CSV 为空'); return; }
+            const header = rows[0];
+            const infer = $infer.checked;
+            const data = rows.slice(1).map((r) => {
+              const obj = {};
+              header.forEach((h, idx) => {
+                const cell = r[idx] === undefined ? '' : r[idx];
+                obj[h] = infer ? inferCell(cell) : cell;
+              });
+              return obj;
+            });
+            $i.value = JSON.stringify(data, null, 2);
+            toast('已转 JSON · ' + data.length + ' 行');
+          } else if (a === 'copy') {
+            copyTextWithBtn($o.value, e.target);
+          } else if (a === 'download') {
+            if (!$o.value) { toast('没有可下载的内容'); return; }
+            // BOM 让 Excel 正确识别 UTF-8
+            const blob = new Blob(['\uFEFF' + $o.value], { type: 'text/csv;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const aEl = document.createElement('a');
+            aEl.href = url;
+            aEl.download = 'data.csv';
+            document.body.appendChild(aEl);
+            aEl.click();
+            document.body.removeChild(aEl);
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+          } else if (a === 'load-sample') {
+            $i.value = JSON.stringify(SAMPLE, null, 2);
+          } else if (a === 'clear') {
+            $i.value = '';
+          }
+        });
       }
     };
   },
