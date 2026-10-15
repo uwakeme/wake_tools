@@ -224,8 +224,14 @@
   function render() {
     const hash = location.hash.replace(/^#\/?/, '');
     const tool = TOOLS.find((t) => t.id === hash);
-    const panel = document.getElementById('panel');
+    let panel = document.getElementById('panel');
     const breadcrumb = document.getElementById('breadcrumb');
+
+    // 换一个不带监听的 panel 壳：factory.bind 会把监听挂在 panel 上，
+    // 只清 innerHTML 的话监听会随路由切换不断累积（cloneNode 不复制监听器）
+    const freshPanel = panel.cloneNode(false);
+    panel.parentNode.replaceChild(freshPanel, panel);
+    panel = freshPanel;
 
     if (!tool) {
       state.toolId = null;

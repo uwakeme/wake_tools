@@ -2699,7 +2699,7 @@ try {
         const $repWith = root.querySelector('#st-rep-with');
         const $repRegex = root.querySelector('#st-rep-regex');
         const $repIcase = root.querySelector('#st-rep-icase');
-        const $replace = root.querySelector('#st-rep');
+        const $replace = root.querySelector('#st-replace');
         const updateReplace = () => {
           const s = $i.value;
           const find = $repFind.value;
@@ -3306,20 +3306,22 @@ try {
     const next = (expr, count = 5) => {
       const parts = expr.trim().split(/\s+/);
       if (parts.length !== 5 && parts.length !== 6) throw new Error('需要 5 或 6 段（分 时 日 月 周 [年]）');
-      const [m, h, d, mo, w] = parts;
+      const [m, h, d, mo, w, y] = parts;
       const results = [];
       let t = new Date();
       t.setSeconds(0, 0);
       t.setMinutes(t.getMinutes() + 1);
       let safety = 0;
-      while (results.length < count && safety < 366 * 24 * 60 * 5) {
+      const LIMIT = 366 * 24 * 60; // 最多向前扫一年，防止永不匹配的表达式长时间卡死页面
+      while (results.length < count && safety < LIMIT) {
         safety++;
         const mm = t.getMinutes(), hh = t.getHours(), dd = t.getDate(), mmm = t.getMonth() + 1, ww = t.getDay();
-        if (match(m, mm) && match(h, hh) && match(d, dd) && match(mo, mmm) && match(w, ww)) {
+        if (match(m, mm) && match(h, hh) && match(d, dd) && match(mo, mmm) && match(w, ww) && (y === undefined || match(y, t.getFullYear()))) {
           results.push(new Date(t));
         }
         t.setMinutes(t.getMinutes() + 1);
       }
+      if (results.length === 0) throw new Error('未来一年内没有匹配的执行时间：表达式可能永不匹配（如 2 月 30 日），或执行时间在一年之外（如指定了较远年份）');
       return results;
     };
     const match = (field, v) => {
@@ -3455,7 +3457,7 @@ try {
         for (let i = 32; i <= 126; i++) a.insertAdjacentHTML('beforeend', cell(String.fromCharCode(i), i));
         const c = root.querySelector('#acjk');
         for (let i = 0x4E00; i <= 0x4EFF; i++) c.insertAdjacentHTML('beforeend', cell(String.fromCodePoint(i), i));
-        document.addEventListener('click', e => {
+        root.addEventListener('click', e => {
           const t = e.target.closest('.ascii-cell');
           if (t) { copyText(t.dataset.ch); toast('已复制：' + t.dataset.ch); }
         });
@@ -3913,7 +3915,7 @@ X-Request-ID: 550e8400-e29b-41d4-a716-446655440000</textarea></div>
           const v = parseFloat($i.value);
           if (isNaN(v)) { toast('请输入有效数值'); return; }
           const ms = v * UNITS[$f.value];
-          $o.value = [
+          $o.textContent = [
             `${ms} 毫秒`,
             `${(ms / 1000).toFixed(6)} 秒`,
             `${(ms / 60000).toFixed(6)} 分`,
@@ -3988,7 +3990,7 @@ X-Request-ID: 550e8400-e29b-41d4-a716-446655440000</textarea></div>
           for (let i = 0; i < units.length; i++) {
             lines.push(`${(bytes / Math.pow(base, i)).toFixed(6).replace(/\.?0+$/, '')}  ${units[i]}`);
           }
-          $o.value = lines.join('\n') + `\n\n原始字节: ${bytes.toLocaleString()} B`;
+          $o.textContent = lines.join('\n') + `\n\n原始字节: ${bytes.toLocaleString()} B`;
         };
         $i.addEventListener('input', conv);
         $f.addEventListener('change', conv);
@@ -4027,8 +4029,13 @@ X-Request-ID: 550e8400-e29b-41d4-a716-446655440000</textarea></div>
              .replace(/_(.+?)_/g, '<em>$1</em>');
       // 行内代码
       md = md.replace(/`([^`]+)`/g, '<code>$1</code>');
-      // 链接
-      md = md.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+      // 链接：只放行 http(s)/mailto/tel 与无协议的相对地址，拦截 javascript:/data: 等危险 scheme
+      md = md.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, text, href) => {
+        const s = href.trim();
+        const scheme = s.match(/^[a-z][a-z0-9+.\-]*:/i);
+        if (scheme && !/^(https?|mailto|tel):/i.test(scheme[0])) return text;
+        return `<a href="${s}" target="_blank" rel="noopener">${text}</a>`;
+      });
       // 列表
       md = md.replace(/^[\-\*] (.+)$/gm, '<li>$1</li>');
       md = md.replace(/(<li>.*<\/li>\n?)+/g, m => '<ul>' + m + '</ul>');
