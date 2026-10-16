@@ -754,8 +754,8 @@
       };
       if (count > 0) {
         head.addEventListener('click', (ev) => {
-          if (ev.target === wrap._toggle) return;
-          // 点删除按钮/key/value 时是编辑操作,不触发折叠
+          // 点删除按钮/key/value 时是编辑操作,不触发折叠;
+          // 其余区域(含 ▼/▶ 箭头、括号、空白)都是折叠开关
           if (ev.target.closest && ev.target.closest('.jtree-del, .jtree-editable, .jtree-edit-input')) return;
           wrap._setFolded(wrap.classList.contains('jtree-expanded'));
         });

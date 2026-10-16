@@ -1672,6 +1672,9 @@ code { font-size: 0.9em; }
 .jtree-toggle {
   display: inline-block;
   width: 14px;
+  /* 扩大点击热区但不改变视觉位置(负 margin 抵消 padding) */
+  padding: 4px 3px;
+  margin: -4px -3px;
   color: var(--text-muted);
   cursor: pointer;
   user-select: none;
