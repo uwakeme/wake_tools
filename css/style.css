@@ -1704,6 +1704,19 @@ code { font-size: 0.9em; }
 }
 .jtree-punct { color: var(--text-secondary); flex-shrink: 0; }
 .jtree-open { flex-shrink: 0; }
+/* 超长值(>48 字符)分行展示:值从 key 行下方另起一行,独占整行宽度。
+   值左缘对齐 key 起始:行号槽 = 2.6em(11.5px)+ 12px 外距 ≈ 42px;
+   并清掉 .jtree-editable 的 -2px 负外距,避免越出行右缘 2px */
+.jtree-row.jtree-valwrap { flex-wrap: wrap; }
+.jtree-row.jtree-valwrap > .jtree-string,
+.jtree-row.jtree-valwrap > .jtree-number,
+.jtree-row.jtree-valwrap > .jtree-boolean,
+.jtree-row.jtree-valwrap > .jtree-null {
+  flex: 1 1 100%;
+  margin-left: 0;
+  margin-right: 0;
+  padding-left: 42px;
+}
 /* 长字符串/数字(典型如 UUID)在自身内部换行,不撑出横向滚动条 */
 .jtree-key,
 .jtree-string,

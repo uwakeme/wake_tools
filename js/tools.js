@@ -682,8 +682,16 @@
           row.appendChild(makeKeySpan(keyName));
           row.appendChild(el('span', 'jtree-punct', ': '));
         }
-        row.appendChild(fmtVal(value));
-        if (path.length) row.appendChild(makeDelBtn());
+        const valSpan = fmtVal(value);
+        // 超长值参考 json.cn 分行展示:值另起一行独占整行宽度,
+        // 避免挤在 key 后面的窄条里换行;删除按钮留在第一行行尾
+        const longVal = valSpan.textContent.length > 48;
+        if (longVal) {
+          row.classList.add('jtree-valwrap');
+          if (path.length) row.appendChild(makeDelBtn());
+        }
+        row.appendChild(valSpan);
+        if (!longVal && path.length) row.appendChild(makeDelBtn());
         return row;
       }
       const isArray = Array.isArray(value);
