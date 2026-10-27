@@ -28,8 +28,9 @@ Wake Tools — 为开发者准备的小工具集合：时间戳转换、JSON 格
 ```
 wake_tools/
 ├── index.html         # 单页入口 (lang="zh-CN")
+├── _headers           # Cloudflare 缓存策略 (js/css 一年 immutable,HTML 每次校验)
 ├── css/
-│   └── style.css      # 全站样式 (Precision Console 风格,Inter + JetBrains Mono)
+│   └── style.css      # 全站样式 (Precision Console 风格,系统字体栈 + JetBrains Mono 异步加载)
 ├── js/
 │   ├── icons.js       # SVG 图标常量 (NS.IC / NS.SVG)
 │   ├── utils.js       # 通用工具函数 (复制、toast、防抖等)
@@ -39,7 +40,9 @@ wake_tools/
 └── README.md          # 占位文件 (UTF-16 LE,只有一句标题)
 ```
 
-**加载顺序硬编码在 `index.html`**:`icons.js` → `utils.js` → `tools.js` → `app.js`。新增脚本必须按这个顺序追加,且自检不破坏全局命名空间 (`window.WT`)。
+**加载顺序硬编码在 `index.html`**:`icons.js` → `utils.js` → `tools.js` → `app.js` (均带 `defer`,按文档顺序执行)。新增脚本必须按这个顺序追加,且自检不破坏全局命名空间 (`window.WT`)。
+
+**缓存失效规则**:`_headers` 把 `/js/*`、`/css/*` 设为一年 immutable,失效全靠 `index.html` 里的 `?v=N` 查询参数 —— **改动任何 js/css 内容后必须同步 bump 对应的 `?v=N`**,否则老用户一年内看不到更新。字体策略:中文走系统字体栈,不加载 Inter;JetBrains Mono 用 `media="print" onload` 异步加载,不要改回渲染阻塞的同步 `<link>`。
 
 ## Code style
 
@@ -93,5 +96,5 @@ Commit 信息里附**手动验证清单**(边界用例、浏览器测试等),重
 
 - 这是个**用户公开访问**的小工具集,UI 一致性比"巧妙"更重要
 - 新工具优先复用现有 `WT.utils.*` 工具函数,不要重新发明轮子
-- 改动 `js/tools.js` 时注意文件已经 130KB,新增工具放在文件末尾的注册区,保持一致性
+- 改动 `js/tools.js` 时注意文件已经 200KB,新增工具放在文件末尾的注册区,保持一致性
 - 未提交改动 (`git status` 看到的 `js/icons.js`、`js/tools.js`) 通常是上一次会话遗留,开始工作前先确认是否要保留

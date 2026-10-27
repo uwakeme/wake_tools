@@ -1,0 +1,15 @@
+# Cloudflare Workers assets 缓存策略
+# js/css 内容指纹靠 index.html 里的 ?v=N 查询参数 —— 改了内容必须同步 bump 版本号,
+# 否则老用户命中一年期 immutable 缓存看不到更新。HTML 不长缓存,每次 revalidate。
+
+/js/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/css/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/
+  Cache-Control: public, max-age=0, must-revalidate
+
+/index.html
+  Cache-Control: public, max-age=0, must-revalidate
