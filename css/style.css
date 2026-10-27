@@ -1650,7 +1650,7 @@ code { font-size: 0.9em; }
   overflow: auto;
   flex: 1;
 }
-/* flex 行里 lineno/键固定,值/标点允许在自身内换行 */
+/* flex 行里 lineno/key/标点固定宽度,值占满剩余空间并内部换行 */
 .jtree-row { padding: 0; display: flex; align-items: baseline; gap: 0; }
 .jtree-row > * { min-width: 0; }
 .jtree-lineno {
@@ -1684,12 +1684,26 @@ code { font-size: 0.9em; }
   vertical-align: middle;
 }
 .jtree-toggle:hover { color: var(--primary); }
-.jtree-key { color: var(--primary); }
+/* key 不参与 flex 收缩:超长值按比例收缩时会把窄的 key 压到 0 而消失。
+   key 自身超长时上限 40% 宽度、内部换行 */
+.jtree-key {
+  color: var(--primary);
+  flex-shrink: 0;
+  max-width: 40%;
+}
 .jtree-string { color: #16A34A; }
 .jtree-number { color: #EA580C; }
 .jtree-boolean { color: #9333EA; font-weight: 500; }
 .jtree-null { color: var(--text-muted); font-style: italic; }
-.jtree-punct { color: var(--text-secondary); }
+/* 值占满 key 之后的剩余宽度,超长内容在自己内部换行,续行对齐值起始位置 */
+.jtree-string,
+.jtree-number,
+.jtree-boolean,
+.jtree-null {
+  flex: 1 1 0;
+}
+.jtree-punct { color: var(--text-secondary); flex-shrink: 0; }
+.jtree-open { flex-shrink: 0; }
 /* 长字符串/数字(典型如 UUID)在自身内部换行,不撑出横向滚动条 */
 .jtree-key,
 .jtree-string,
@@ -1699,7 +1713,7 @@ code { font-size: 0.9em; }
   overflow-wrap: anywhere;
   word-break: break-word;
 }
-.jtree-summary { color: var(--text-muted); font-size: 12px; }
+.jtree-summary { color: var(--text-muted); font-size: 12px; flex-shrink: 0; }
 
 /* 树内编辑:点击 key/value 原地修改 */
 .jtree-editable {
