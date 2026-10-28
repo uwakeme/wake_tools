@@ -1879,7 +1879,7 @@ code { font-size: 0.9em; }
 }
 .jtree-search input {
   flex: 1;
-  padding: 6px 28px 6px 28px;
+  padding: 6px 8px 6px 28px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--bg-elev-2);
@@ -1895,8 +1895,6 @@ code { font-size: 0.9em; }
   box-shadow: 0 0 0 3px var(--primary-softer);
 }
 .jtree-search .jtree-search-clear {
-  position: absolute;
-  right: 4px;
   width: 20px;
   height: 20px;
   border: 0;
@@ -1910,15 +1908,67 @@ code { font-size: 0.9em; }
   font-size: 14px;
   line-height: 1;
   padding: 0;
+  flex-shrink: 0;
 }
 .jtree-search .jtree-search-clear:hover { background: var(--bg-hover); color: var(--text); }
 .jtree-search.has-value .jtree-search-clear { display: inline-flex; }
+/* 上一个/下一个导航按钮 */
+.jtree-search-nav {
+  width: 22px;
+  height: 22px;
+  border: 1px solid var(--border);
+  background: var(--bg-elev-2);
+  color: var(--text-secondary);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  line-height: 1;
+  padding: 0;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+}
+.jtree-search-nav:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: var(--primary-softer);
+}
+/* 替换行:搜索栏下方,配合搜索词替换命中的 key/字符串值 */
+.jtree-search { margin-bottom: 6px; }
+.jtree-replace-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.jtree-replace-row input {
+  flex: 1;
+  min-width: 0;
+  padding: 5px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-elev-2);
+  color: var(--text);
+  font-size: 12.5px;
+  font-family: inherit;
+  outline: none;
+  transition: all var(--transition-fast);
+}
+.jtree-replace-row input:focus {
+  border-color: var(--primary);
+  background: var(--bg-elev);
+  box-shadow: 0 0 0 3px var(--primary-softer);
+}
 .jtree-search-match-count {
   margin-left: 8px;
   font-family: var(--font-mono);
   font-size: 11px;
   color: var(--text-muted);
   white-space: nowrap;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
 }
 
 /* 树节点命中/隐藏 */

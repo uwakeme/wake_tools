@@ -1229,10 +1229,18 @@
               <div class="jstat"><div class="jstat-label">键数</div><div class="jstat-value">—</div></div>
               <div class="jstat"><div class="jstat-label">大小</div><div class="jstat-value">—</div></div>
             </div>
-            <div class="jtree-search" id="jsearch-wrap" style="margin-bottom:8px;">
+            <div class="jtree-search" id="jsearch-wrap">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-              <input type="text" id="jsearch" placeholder="在结果中搜索 key 或 value..." />
-              <button class="jtree-search-clear" id="jsearch-clear" type="button" title="清空">×</button>
+              <input type="text" id="jsearch" placeholder="搜索 key 或 value,空格分隔多词(且关系),回车下一个" />
+              <span class="jtree-search-match-count" id="jsearch-count"></span>
+              <button class="jtree-search-nav" id="jsearch-prev" type="button" title="上一个(Shift+Enter)">↑</button>
+              <button class="jtree-search-nav" id="jsearch-next" type="button" title="下一个(Enter)">↓</button>
+              <button class="jtree-search-clear" id="jsearch-clear" type="button" title="清空(Esc)">×</button>
+            </div>
+            <div class="jtree-replace-row" id="jreplace-wrap">
+              <input type="text" id="jreplace" placeholder="替换为…(作用于命中的 key 和字符串值,留空即删除)" />
+              <button class="btn btn-sm" data-act="replace-one" title="只替换当前选中的匹配">替换当前</button>
+              <button class="btn btn-sm" data-act="replace-all" title="替换所有命中">全部替换</button>
             </div>
             <div id="jtree" class="jtree"></div>
             <textarea id="jtext" class="jtext-view" style="display:none;" readonly placeholder="在左侧输入 JSON 后此处会显示格式化结果"></textarea>
@@ -1256,6 +1264,11 @@
         const $jsearch = root.querySelector('#jsearch');
         const $jsearchWrap = root.querySelector('#jsearch-wrap');
         const $jsearchClear = root.querySelector('#jsearch-clear');
+        const $jsearchCount = root.querySelector('#jsearch-count');
+        const $jsearchPrev = root.querySelector('#jsearch-prev');
+        const $jsearchNext = root.querySelector('#jsearch-next');
+        const $replaceWrap = root.querySelector('#jreplace-wrap');
+        const $jreplace = root.querySelector('#jreplace');
         const $jindent = root.querySelector('#jindent');
         const $error = root.querySelector('#jerror');
         const $errorPos = root.querySelector('#jerror-pos');
@@ -1356,55 +1369,99 @@
             $t.style.display = '';
             $textView.style.display = 'none';
             $jsearchWrap.style.display = '';
+            $replaceWrap.style.display = '';
             renderTree();
           } else {
             $t.style.display = 'none';
             $textView.style.display = '';
             $jsearchWrap.style.display = 'none';
+            $replaceWrap.style.display = 'none';
             renderText();
           }
         };
 
-        // 树内搜索/过滤:匹配 key 或 value,递归计算 hasMatch
+        // 树内搜索/过滤:空格分隔多词(AND,子树级——所有词都出现在同一
+        // 子树内即命中,整个子树算一个命中单元),命中单元收集到 matchList
+        // 供 上一个/下一个 导航;行内任一词命中都会高亮
+        let matchList = [];
+        let matchIndex = -1;
+        const searchTerms = () => filter.trim().toLowerCase().split(/\s+/).filter(Boolean);
+
+        const updateMatchUI = () => {
+          $jsearchCount.textContent = matchList.length
+            ? (matchIndex + 1) + '/' + matchList.length
+            : (filter.trim() ? '0' : '');
+        };
+
+        const gotoMatch = (i) => {
+          if (!matchList.length) return;
+          matchIndex = ((i % matchList.length) + matchList.length) % matchList.length;
+          matchList.forEach(r => r.classList.remove('jtree-match-hl'));
+          const row = matchList[matchIndex];
+          row.classList.add('jtree-match-hl');
+          row.scrollIntoView({ block: 'nearest' });
+          updateMatchUI();
+        };
+
         const applyFilter = () => {
           if (view !== 'tree') return;
-          const q = filter.trim().toLowerCase();
+          const terms = searchTerms();
           // 先清旧状态
-          $t.querySelectorAll('.jtree-row.jtree-match, .jtree-node.jtree-hidden, .jtree-leaf.jtree-hidden')
-            .forEach(el => el.classList.remove('jtree-match', 'jtree-hidden'));
-          if (!q) {
+          $t.querySelectorAll('.jtree-row.jtree-match, .jtree-row.jtree-match-hl, .jtree-node.jtree-hidden, .jtree-leaf.jtree-hidden')
+            .forEach(el => el.classList.remove('jtree-match', 'jtree-match-hl', 'jtree-hidden'));
+          matchList = [];
+          matchIndex = -1;
+          if (!terms.length) {
             $jsearchWrap.classList.remove('has-value');
+            updateMatchUI();
             return;
           }
           $jsearchWrap.classList.add('has-value');
+          const matchesAll = (text) => terms.every(t => text.includes(t));
+          const anyTerm = (text) => terms.some(t => text.includes(t));
+          // 返回 { hasAll, text }:子树合并文本是否包含全部词
           const walk = (node) => {
             const isWrap = node.classList && node.classList.contains('jtree-node');
             const headRow = isWrap ? node.querySelector(':scope > .jtree-row') : node;
-            const childContainer = isWrap ? node.querySelector(':scope > .jtree-children') : null;
             const selfText = headRow ? headRow.textContent.toLowerCase() : '';
-            const selfMatch = selfText.includes(q);
-            let childHasMatch = false;
+            if (!isWrap) {
+              const termMatch = anyTerm(selfText);
+              if (termMatch) headRow.classList.add('jtree-match');
+              const hasAll = matchesAll(selfText);
+              if (hasAll) matchList.push(headRow); // 单行自己含全部词 → 自成单元
+              return { hasAll, text: selfText };
+            }
+            const childContainer = node.querySelector(':scope > .jtree-children');
+            let text = selfText;
+            let childHasAll = 0;
             if (childContainer) {
               for (const c of childContainer.children) {
-                if (walk(c)) childHasMatch = true;
+                const r = walk(c);
+                text += '\n' + r.text;
+                if (r.hasAll) childHasAll++;
               }
             }
-            const hasMatch = selfMatch || childHasMatch;
-            if (hasMatch) {
-              if (isWrap) {
-                node.classList.remove('jtree-hidden');
-                if (selfMatch && headRow) headRow.classList.add('jtree-match');
-                if (childHasMatch && typeof node._setFolded === 'function') node._setFolded(false);
-              } else if (selfMatch) {
+            const hasAll = matchesAll(text);
+            if (hasAll) {
+              node.classList.remove('jtree-hidden');
+              if (typeof node._setFolded === 'function') node._setFolded(false);
+              if (childHasAll === 0) {
+                // 词分散在不同子节点 → 整个对象是一个命中单元,
+                // 行头可导航,子级全部可见(作为命中上下文)
+                matchList.push(headRow);
                 headRow.classList.add('jtree-match');
+                if (childContainer) {
+                  childContainer.querySelectorAll('.jtree-hidden').forEach(el => el.classList.remove('jtree-hidden'));
+                }
               }
             } else {
-              if (isWrap) node.classList.add('jtree-hidden');
-              else headRow.classList.add('jtree-hidden');
+              node.classList.add('jtree-hidden');
             }
-            return hasMatch;
+            return { hasAll, text };
           };
           for (const c of $t.children) walk(c);
+          if (matchList.length) gotoMatch(0);
+          else updateMatchUI();
         };
 
         // 跳到错误:在 textarea 中定位光标并滚动
@@ -1906,12 +1963,134 @@
           filter = $jsearch.value;
           applyFilter();
         });
+        $jsearch.addEventListener('keydown', (ev) => {
+          if (ev.key === 'Enter') {
+            ev.preventDefault();
+            gotoMatch(matchIndex + (ev.shiftKey ? -1 : 1));
+          } else if (ev.key === 'Escape') {
+            ev.stopPropagation();
+            $jsearch.value = '';
+            filter = '';
+            applyFilter();
+            $jsearch.blur();
+          }
+        });
+        $jsearchPrev.addEventListener('click', () => gotoMatch(matchIndex - 1));
+        $jsearchNext.addEventListener('click', () => gotoMatch(matchIndex + 1));
         $jsearchClear.addEventListener('click', () => {
           $jsearch.value = '';
           filter = '';
           applyFilter();
           $jsearch.focus();
         });
+
+        // ---- 搜索替换(作用于命中的 key 和字符串值;不改动数字/布尔等字面量) ----
+        const escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const replaceRegex = () => {
+          const terms = filter.trim().split(/\s+/).filter(Boolean);
+          if (!terms.length) return null;
+          return new RegExp(terms.map(escapeRe).join('|'), 'gi');
+        };
+        // 深度遍历:替换所有对象的 key 和字符串值,返回 { next, replaced, skipped }
+        const replaceDeep = (v, re, to) => {
+          let replaced = 0, skipped = 0;
+          const countHits = (s) => { re.lastIndex = 0; const n = (s.match(re) || []).length; re.lastIndex = 0; return n; };
+          const walk = (val) => {
+            if (Array.isArray(val)) return val.map(walk);
+            if (val && typeof val === 'object') {
+              const out = {};
+              for (const k of Object.keys(val)) {
+                let nk = k;
+                if (typeof k === 'string' && re.test(k)) {
+                  const hits = countHits(k);
+                  const cand = k.replace(re, to);
+                  if (cand !== k && Object.prototype.hasOwnProperty.call(val, cand)) {
+                    skipped += hits; // 与兄弟 key 重名,保留原 key,子值照常递归
+                  } else {
+                    replaced += hits;
+                    nk = cand;
+                  }
+                }
+                re.lastIndex = 0;
+                out[nk] = walk(val[k]);
+              }
+              return out;
+            }
+            if (typeof val === 'string' && re.test(val)) {
+              const hits = countHits(val);
+              re.lastIndex = 0;
+              replaced += hits;
+              return val.replace(re, to);
+            }
+            re.lastIndex = 0;
+            return val;
+          };
+          return { next: walk(v), replaced, skipped };
+        };
+        // 只替换当前选中单元:叶子行改它的 key/字符串值;
+        // 对象单元(多词分散命中的整体)则对整个子树做替换
+        const replaceCurrent = () => {
+          if (!filter.trim()) { toast('请先在上方输入搜索词'); return; }
+          if (lastError) { toast('✗ 请先修正 JSON 错误再替换'); return; }
+          if (!matchList.length) { toast('没有命中的搜索结果'); return; }
+          const re = replaceRegex();
+          const to = $jreplace.value;
+          const row = matchList[Math.max(0, matchIndex)];
+          const path = JSON.parse(row.dataset.path || '[]');
+          const parent = path.length ? getAtPath(path.slice(0, -1)) : null;
+          const keyNow = path.length ? path[path.length - 1] : undefined;
+          if (path.length && (parent == null || typeof parent !== 'object' || !Object.prototype.hasOwnProperty.call(parent, keyNow))) {
+            toast('✗ 该节点已不存在,请重新搜索');
+            return;
+          }
+          let changed = 0;
+          if (!path.length) {
+            // 根行:整棵树替换
+            const r = replaceDeep(currentValue, re, to);
+            currentValue = r.next;
+            changed = r.replaced;
+          } else if (typeof parent[keyNow] === 'object' && parent[keyNow] !== null) {
+            // 对象/数组单元:子树整体替换
+            const r = replaceDeep(parent[keyNow], re, to);
+            parent[keyNow] = r.next;
+            changed = r.replaced;
+          } else {
+            // 叶子行:key 重命名 + 字符串值替换
+            let k = keyNow;
+            if (!Array.isArray(parent) && typeof k === 'string' && re.test(k)) {
+              re.lastIndex = 0;
+              const nk = k.replace(re, to);
+              if (nk !== k) {
+                if (Object.prototype.hasOwnProperty.call(parent, nk)) {
+                  toast('✗ 目标 key 已存在:' + nk);
+                  return;
+                }
+                parent[nk] = parent[k];
+                delete parent[k];
+                k = nk;
+                changed++;
+              }
+            }
+            if (typeof parent[k] === 'string') {
+              re.lastIndex = 0;
+              const nv = parent[k].replace(re, to);
+              if (nv !== parent[k]) { parent[k] = nv; changed++; }
+            }
+          }
+          if (!changed) { toast('当前命中没有可替换的 key/字符串值'); return; }
+          syncAfterTreeEdit('✓ 已替换 ' + changed + ' 处');
+        };
+        const replaceAllMatches = () => {
+          if (!filter.trim()) { toast('请先在上方输入搜索词'); return; }
+          if (lastError) { toast('✗ 请先修正 JSON 错误再替换'); return; }
+          if (currentValue === undefined) { toast('没有可替换的内容'); return; }
+          const re = replaceRegex();
+          const to = $jreplace.value;
+          const { next, replaced, skipped } = replaceDeep(currentValue, re, to);
+          if (!replaced) { toast('没有命中的内容可替换'); return; }
+          currentValue = next;
+          syncAfterTreeEdit('✓ 已替换 ' + replaced + ' 处' + (skipped ? '(跳过 ' + skipped + ' 处重名 key)' : ''));
+        };
 
         // 初始:应用字号,有内容先格式化,空内容显示占位
         applyFontSize();
@@ -1961,6 +2140,10 @@
             toGet();
           } else if (a === 'convert') {
             convert();
+          } else if (a === 'replace-one') {
+            replaceCurrent();
+          } else if (a === 'replace-all') {
+            replaceAllMatches();
           } else if (a === 'fs-inc') {
             setFontSize(fontSize + 1);
           } else if (a === 'fs-dec') {
