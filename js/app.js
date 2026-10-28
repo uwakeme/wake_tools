@@ -347,4 +347,14 @@
   } else {
     init();
   }
+
+  /* ============================================================
+     Service Worker — 弱网/断网回访秒开(策略见根目录 sw.js)
+     http:// 等非安全上下文自动跳过,不影响现有访问
+     ============================================================ */
+  if ('serviceWorker' in navigator && window.isSecureContext) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    });
+  }
 })();

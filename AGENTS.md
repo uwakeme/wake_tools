@@ -29,6 +29,7 @@ Wake Tools — 为开发者准备的小工具集合：时间戳转换、JSON 格
 wake_tools/
 ├── index.html         # 单页入口 (lang="zh-CN")
 ├── _headers           # Cloudflare 缓存策略 (js/css 一年 immutable,HTML 每次校验)
+├── sw.js              # Service Worker (导航网络优先+超时回退缓存,资源缓存优先;见下)
 ├── css/
 │   └── style.css      # 全站样式 (Precision Console 风格,系统字体栈 + JetBrains Mono 异步加载)
 ├── js/
@@ -43,6 +44,8 @@ wake_tools/
 **加载顺序硬编码在 `index.html`**:`icons.js` → `utils.js` → `tools.js` → `app.js` (均带 `defer`,按文档顺序执行)。新增脚本必须按这个顺序追加,且自检不破坏全局命名空间 (`window.WT`)。
 
 **缓存失效规则**:`_headers` 把 `/js/*`、`/css/*` 设为一年 immutable,失效全靠 `index.html` 里的 `?v=N` 查询参数 —— **改动任何 js/css 内容后必须同步 bump 对应的 `?v=N`**,否则老用户一年内看不到更新。字体策略:中文走系统字体栈,不加载 Inter;JetBrains Mono 用 `media="print" onload` 异步加载,不要改回渲染阻塞的同步 `<link>`。
+
+**Service Worker (`sw.js`)**:预缓存列表是 install 时解析首页 HTML 里的 `?v=` 自动生成的,**新增/升级资源不需要登记 sw.js**;但改缓存策略本身(策略逻辑、缓存结构)要 bump `CACHE_NAME`,旧缓存会在 activate 时清掉。只拦截同源 GET,导航请求网络优先 3s 超时后回退缓存(弱网秒开),静态资源缓存优先。
 
 ## Code style
 
