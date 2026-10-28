@@ -525,11 +525,15 @@ code { font-size: 0.9em; }
 .tool-panel {
   display: flex;
   flex-direction: column;
-  flex: 1;
-  min-height: 0;
+  /* basis auto + 不收缩:内容矮时 flex-grow 撑满视口,内容多时按内容向下生长,
+     交给 .content 整页滚动。此前 flex:1 + min-height:0 会把面板锁死在一屏内,
+     多面板工具(字符串/UUID 等)全被压缩、内容互相重叠。 */
+  flex: 1 0 auto;
   padding: 32px 32px 40px;
   /* 取消 max-width,让面板撑满主区宽度;取消 margin:0 auto 改为左对齐 */
 }
+/* 顶层 .row 的双栏工具(时间戳/Base64/URL/Hex/JSON 等)仍锁定一屏、面板内各自滚动 */
+.tool-panel:has(> .row) { flex: 1; min-height: 0; }
 
 /* ============================================================
    Tool page header — eyebrow + title
@@ -610,7 +614,7 @@ code { font-size: 0.9em; }
 .panel + .panel { margin-top: 16px; }
 /* 补充:.row / .diff-container 不是 .panel,会阻断上面的相邻兄弟选择器
    这里给 .tool-panel 内所有"主要块"之间补 16px 间距(.row/.diff-container 内部仍由 .row > .panel + .panel 等覆盖) */
-.tool-panel > * + *:is(.panel, .row, .diff-container) { margin-top: 16px; }
+.tool-panel > * + *:is(.panel, .row, .row-3, .diff-container) { margin-top: 16px; }
 /* 直接挂在 .tool-panel 下的 .panel(不放在 .row 里,如 header / regex / case / markdown / yaml 等)
    默认按内容高度收缩,textarea 撑不开。
    只对"含主内容区(.input-area / .output / .jtext-view / .jtree)"的 panel 补 flex:1,
@@ -692,7 +696,8 @@ code { font-size: 0.9em; }
 .row-3 {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  grid-template-rows: minmax(0, 1fr);
+  /* 不定义 grid-template-rows:控件行高度必须由内容决定,
+     minmax(0,1fr) 行高会把自动高度的 grid 塌缩成 0,字段全部叠在一起 */
   gap: 16px;
   align-items: stretch;
 }
