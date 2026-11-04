@@ -219,6 +219,68 @@
   }
 
   /* ============================================================
+     Tool state snapshot (sessionStorage)
+     - 离开工具页时把 panel 内所有 input/textarea/select 的值按
+       工具 id 存起来,回到该工具时恢复并补发 input/change 事件:
+       实时计算的工具(正则/Markdown 等)监听在字段上,补发事件即
+       自动重算;按钮驱动的工具(Base64 等)结果写在输出 textarea
+       里,随字段一起原样恢复。
+     - sessionStorage 不可用(隐私模式/配额超限)时降级为内存 Map,
+       本次会话内仍然生效。
+     - 所有读写 try/catch 静默,快照失败等同无快照。
+     - 会话级:关掉标签自动清空,敏感内容不落盘。
+     ============================================================ */
+  const STATE_KEY_PREFIX = 'wt-state:';
+  const memState = new Map(); // sessionStorage 不可用时的会话内兜底
+
+  function saveToolState(toolId, root) {
+    if (!toolId || !root) return;
+    const data = {};
+    root.querySelectorAll('input, textarea, select').forEach((el, i) => {
+      const key = el.id || '__idx' + i;
+      if (el.type === 'checkbox' || el.type === 'radio') {
+        data[key] = { t: 'c', v: el.checked };
+      } else if (el.tagName === 'SELECT') {
+        data[key] = { t: 's', v: el.value };
+      } else {
+        data[key] = { t: 'f', v: el.value };
+      }
+    });
+    const json = JSON.stringify(data);
+    try {
+      sessionStorage.setItem(STATE_KEY_PREFIX + toolId, json);
+      memState.delete(toolId);
+    } catch (e) {
+      memState.set(toolId, json);
+    }
+  }
+
+  function restoreToolState(toolId, root) {
+    if (!toolId || !root) return;
+    let json = null;
+    try {
+      json = sessionStorage.getItem(STATE_KEY_PREFIX + toolId);
+    } catch (e) { /* 不可用,走内存兜底 */ }
+    if (json == null) json = memState.get(toolId) || null;
+    if (!json) return;
+    let data;
+    try { data = JSON.parse(json); } catch (e) { return; }
+    root.querySelectorAll('input, textarea, select').forEach((el, i) => {
+      const rec = data[el.id || '__idx' + i];
+      if (!rec) return;
+      if (el.type === 'checkbox' || el.type === 'radio') {
+        if (el.checked !== rec.v) {
+          el.checked = rec.v;
+          el.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      } else if (el.value !== rec.v) {
+        el.value = rec.v;
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+    });
+  }
+
+  /* ============================================================
      Tool page rendering
      ============================================================ */
   function render() {
@@ -226,6 +288,9 @@
     const tool = TOOLS.find((t) => t.id === hash);
     let panel = document.getElementById('panel');
     const breadcrumb = document.getElementById('breadcrumb');
+
+    // 换工具前先快照当前工具页的字段值,回到该工具时恢复
+    saveToolState(state.toolId, panel);
 
     // 换一个不带监听的 panel 壳：factory.bind 会把监听挂在 panel 上，
     // 只清 innerHTML 的话监听会随路由切换不断累积（cloneNode 不复制监听器）
@@ -244,6 +309,7 @@
       const factory = Tools[tool.id]();
       panel.innerHTML = factory.view();
       factory.bind(panel);
+      restoreToolState(tool.id, panel);
 
       // Inject eyebrow row + icon into tool title
       const titleEl = panel.querySelector('.tool-title');
@@ -339,6 +405,11 @@
 
     initTheme();
     window.addEventListener('hashchange', render);
+    // 刷新/关标签前也快照一次:没切过工具直接 F5 时,否则恢复的是
+    // 上次离开时的旧值而非当前输入
+    window.addEventListener('pagehide', () => {
+      saveToolState(state.toolId, document.getElementById('panel'));
+    });
     render();
   }
 
