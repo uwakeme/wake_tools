@@ -60,6 +60,8 @@
     desc: '批量生成 UUID v4。' },
   { id: 'password', group: '生成器', icon: 'password', name: '随机密码',
     desc: '生成高强度随机密码，可选字符集与长度。' },
+  { id: 'secret', group: '生成器', icon: 'secret', name: '密钥 / Token 生成',
+    desc: '生成 API Key、Secret、随机 Token，支持 Hex / Base64 / 字母数字，并标注熵强度。' },
   { id: 'lorem', group: '生成器', icon: 'lorem', name: 'Lorem Ipsum',
     desc: '生成占位文本。' },
   { id: 'hash', group: '生成器', icon: 'hash', name: 'Hash 生成',
@@ -4667,6 +4669,172 @@ country: CN</textarea></div>
             $i.value = '';
           }
         });
+      }
+    };
+  },
+
+  /* ---------- 密钥 / Token 生成 ---------- */
+  secret() {
+    const ALNUM = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const AMBIGUOUS = 'Il1O0';
+
+    const randBytes = (n) => crypto.getRandomValues(new Uint8Array(n));
+
+    const toHex = (bytes) => {
+      let s = '';
+      for (let i = 0; i < bytes.length; i++) s += bytes[i].toString(16).padStart(2, '0');
+      return s;
+    };
+
+    const toBase64 = (bytes, urlSafe) => {
+      let bin = '';
+      for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+      const s = btoa(bin);
+      // URL 安全变体:+ / 换成 - _,去掉尾部填充 =
+      return urlSafe ? s.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '') : s;
+    };
+
+    // 拒绝采样:丢弃 >= limit 的字节,避免 % 取模带来的分布偏置
+    const randomChars = (charset, n) => {
+      const limit = Math.floor(256 / charset.length) * charset.length;
+      const out = [];
+      while (out.length < n) {
+        const buf = randBytes(Math.max(16, (n - out.length) * 2));
+        for (let i = 0; i < buf.length && out.length < n; i++) {
+          if (buf[i] < limit) out.push(charset[buf[i] % charset.length]);
+        }
+      }
+      return out.join('');
+    };
+
+    return {
+      view: () => `
+        <div class="tool-header">
+          <h1 class="tool-title">密钥 / Token 生成</h1>
+          <p class="tool-desc">生成 API Key、Secret、随机 Token。支持 Hex / Base64 / Base64 URL 安全 / 字母数字，实时标注熵强度。全部在本地浏览器生成，不发送任何请求。</p>
+        </div>
+        <div class="panel">
+          <div class="row-3">
+            <div class="field">
+              <label class="field-label">格式</label>
+              <select class="select" id="skfmt">
+                <option value="hex">Hex 十六进制（如 openssl rand -hex）</option>
+                <option value="base64">Base64 标准</option>
+                <option value="base64url">Base64 URL 安全（- _）</option>
+                <option value="alnum">字母数字 Token</option>
+              </select>
+            </div>
+            <div class="field">
+              <label class="field-label" id="sklenLabel">随机字节数</label>
+              <input class="input" type="number" id="sklen" value="32" min="8" max="64" />
+              <div style="font-size:12px; color:var(--text-muted); margin-top:6px;" id="sklenHint"></div>
+            </div>
+            <div class="field">
+              <label class="field-label">生成数量</label>
+              <input class="input" type="number" id="skcount" value="1" min="1" max="20" />
+            </div>
+          </div>
+          <div style="display:flex; gap:16px; align-items:flex-end; flex-wrap:wrap; margin-top:16px;">
+            <div class="field" style="flex:1; min-width:180px; margin-bottom:0;">
+              <label class="field-label">前缀（可选）</label>
+              <input class="input" type="text" id="skprefix" placeholder="如 sk_ / app_" />
+            </div>
+            <div class="field" id="skambigField" style="margin-bottom:0;">
+              <label class="field-label">字符集</label>
+              <label class="switch">
+                <input type="checkbox" id="skambig" />
+                <span class="switch-track"></span>
+                <span class="switch-label">排除易混字符 I l 1 O 0</span>
+              </label>
+            </div>
+            <div class="field" style="margin-bottom:0;">
+              <button class="btn btn-primary" data-act="gen">生成</button>
+            </div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-title">结果</div>
+          <div class="input-area"><textarea class="textarea mono" id="skout" style="min-height:200px;" spellcheck="false"></textarea></div>
+          <div class="field" style="margin-top:8px;">
+            <span class="tag" id="skentropy"></span>
+          </div>
+          <div class="btn-row" style="margin-top:8px;">
+            <button class="btn" data-act="copy">复制全部</button>
+            <button class="btn" data-act="clear">清空</button>
+          </div>
+        </div>
+      `,
+      bind(root) {
+        const $fmt = root.querySelector('#skfmt');
+        const $len = root.querySelector('#sklen');
+        const $lenLabel = root.querySelector('#sklenLabel');
+        const $lenHint = root.querySelector('#sklenHint');
+        const $prefix = root.querySelector('#skprefix');
+        const $count = root.querySelector('#skcount');
+        const $ambig = root.querySelector('#skambig');
+        const $ambigField = root.querySelector('#skambigField');
+        const $out = root.querySelector('#skout');
+        const $tag = root.querySelector('#skentropy');
+
+        // 长度字段的含义随格式变:字节数(熵的直接来源) vs 字符数
+        const syncLabels = () => {
+          const alnum = $fmt.value === 'alnum';
+          $lenLabel.textContent = alnum ? '字符长度' : '随机字节数';
+          $len.max = alnum ? 128 : 64;
+          $ambigField.style.display = alnum ? '' : 'none';
+        };
+
+        const render = () => {
+          syncLabels();  // 标签跟着格式走:sessionStorage 恢复参数时也不会残留旧文案
+          const alnum = $fmt.value === 'alnum';
+          const count = Math.min(20, Math.max(1, +$count.value || 1));
+          const prefix = $prefix.value.trim();
+          const lines = [];
+          let bits = 0;
+          let len = 0;
+          if (alnum) {
+            const set = $ambig.checked
+              ? ALNUM.split('').filter((c) => !AMBIGUOUS.includes(c)).join('')
+              : ALNUM;
+            len = Math.min(128, Math.max(8, +$len.value || 32));
+            bits = Math.floor(len * Math.log2(set.length));
+            for (let i = 0; i < count; i++) lines.push(randomChars(set, len));
+          } else {
+            const bytes = Math.min(64, Math.max(8, +$len.value || 32));
+            bits = bytes * 8;
+            for (let i = 0; i < count; i++) {
+              const b = randBytes(bytes);
+              if ($fmt.value === 'hex') lines.push(toHex(b));
+              else lines.push(toBase64(b, $fmt.value === 'base64url'));
+            }
+            len = $fmt.value === 'hex' ? bytes * 2
+              : $fmt.value === 'base64url' ? Math.ceil((bytes * 4) / 3)
+              : Math.ceil(bytes / 3) * 4;
+          }
+          $out.value = lines.map((l) => prefix + l).join('\n');
+          const [label, cls] = bits >= 128 ? ['强', 'success'] : bits >= 64 ? ['中', 'warning'] : ['弱', 'danger'];
+          $tag.className = 'tag ' + cls;
+          $tag.textContent = bits + ' bit · 强度' + label + (count > 1 ? ' · ' + count + ' 个' : '');
+          $lenHint.textContent = '输出 ' + len + ' 个字符';
+        };
+
+        $fmt.addEventListener('change', render);
+        $fmt.addEventListener('input', render);  // 状态恢复时派发的是 input,不是 change
+        $len.addEventListener('input', render);
+        $count.addEventListener('input', render);
+        $prefix.addEventListener('input', render);
+        $ambig.addEventListener('change', render);
+
+        root.addEventListener('click', (e) => {
+          const a = e.target.dataset.act;
+          if (a === 'gen') render();
+          else if (a === 'copy') copyTextWithBtn($out.value, e.target);
+          else if (a === 'clear') $out.value = '';
+        });
+
+        syncLabels();
+        // 延到下一轮再生成:等 app.js 的 sessionStorage 状态恢复跑完,保证结果与恢复后的参数一致
+        setTimeout(render, 0);
       }
     };
   },
