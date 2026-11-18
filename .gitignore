@@ -10,3 +10,6 @@ node_modules/
 
 # 临时调试用的截图/脚本,不入仓
 .screenshots/
+
+# 编辑器/工具产生的备份文件
+*.bak
