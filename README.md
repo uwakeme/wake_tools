@@ -284,7 +284,7 @@ MIT，详见 [LICENSE](./LICENSE)。
 [forks-url]: https://github.com/uwakeme/wake_tools/network/members
 [license-shield]: https://img.shields.io/github/license/uwakeme/wake_tools?style=for-the-badge
 [license-url]: https://github.com/uwakeme/wake_tools/blob/main/LICENSE
-[version-shield]: https://img.shields.io/github/v/release/uwakeme/wake_tools.svg?style=for-the-badge
+[version-shield]: https://img.shields.io/github/v/tag/uwakeme/wake_tools.svg?style=for-the-badge
 [version-url]: https://github.com/uwakeme/wake_tools/releases
 [commit-shield]: https://img.shields.io/github/last-commit/uwakeme/wake_tools?style=for-the-badge
 [commit-url]: https://github.com/uwakeme/wake_tools/commits/main
