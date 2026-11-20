@@ -35,6 +35,8 @@
      ============================================================ */
   const RECENT_KEY = 'wt-recent';
   const RECENT_MAX = 8;
+  // 工具页侧边栏"最近使用"分组最多展示条数;首页 hero-strip 固定 4 条
+  const RECENT_SIDEBAR_MAX = 5;
 
   function recordToolVisit(toolId) {
     try {
@@ -178,6 +180,14 @@
   /* ============================================================
      Sidebar nav
      ============================================================ */
+  function navItemHtml(t) {
+    return `
+            <a class="nav-item ${t.id === state.toolId ? 'active' : ''}" data-id="${t.id}" href="#/${t.id}">
+              <span class="nav-item-icon">${ICONS[t.icon] || ''}</span>
+              <span class="nav-item-label">${escapeHtml(t.name)}</span>
+            </a>`;
+  }
+
   function renderNav(filter = '') {
     const f = filter.trim().toLowerCase();
     const groups = {};
@@ -193,19 +203,32 @@
             <span>${escapeHtml(g)}</span>
             <span class="nav-group-count">${list.length}</span>
           </div>
-          ${list
-            .map(
-              (t) => `
-            <a class="nav-item ${t.id === state.toolId ? 'active' : ''}" data-id="${t.id}" href="#/${t.id}">
-              <span class="nav-item-icon">${ICONS[t.icon] || ''}</span>
-              <span class="nav-item-label">${escapeHtml(t.name)}</span>
-            </a>`
-            )
-            .join('')}
+          ${list.map(navItemHtml).join('')}
         </div>`
       )
       .join('');
-    if (!html) {
+
+    // 工具页时在侧边栏顶部插入"最近使用"分组:排除当前工具(它已在
+    // 下方分类里高亮)。首页不插——首页走 hero-strip 的现有设计;
+    // 搜索过滤时也隐藏,不干扰全量匹配结果。
+    let recentHtml = '';
+    if (!f && state.toolId) {
+      const recent = (getRecentTools(RECENT_MAX) || [])
+        .filter((t) => t.id !== state.toolId)
+        .slice(0, RECENT_SIDEBAR_MAX);
+      if (recent.length > 0) {
+        recentHtml = `
+        <div class="nav-group nav-recent">
+          <div class="nav-group-title">
+            <span>最近使用</span>
+            <span class="nav-group-count">${recent.length}</span>
+          </div>
+          ${recent.map(navItemHtml).join('')}
+        </div>`;
+      }
+    }
+
+    if (!recentHtml && !html) {
       const term = escapeHtml(filter.trim());
       document.getElementById('navList').innerHTML =
         `<div class="nav-empty">` +
@@ -214,7 +237,7 @@
           `<button type="button" data-clear-search>清空搜索</button>` +
         `</div>`;
     } else {
-      document.getElementById('navList').innerHTML = html;
+      document.getElementById('navList').innerHTML = recentHtml + html;
     }
   }
 
