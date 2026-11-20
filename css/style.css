@@ -357,6 +357,42 @@ code { font-size: 0.9em; }
   text-align: center;
 }
 
+/* "最近使用"分组——卡片区块,与下方扁平的分类列表区分 */
+.nav-recent {
+  background: var(--bg-elev-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 2px 5px 5px;
+  margin-bottom: 14px;
+}
+.nav-recent .nav-group-title {
+  margin-top: 0;
+  padding: 8px 6px 4px;
+  border-top: none;
+}
+.nav-recent-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.nav-recent-title svg {
+  width: 12px;
+  height: 12px;
+  color: var(--primary);
+  flex-shrink: 0;
+}
+/* 卡片底与徽章同色,徽章改透明底只留描边 */
+.nav-recent .nav-group-count {
+  background: transparent;
+}
+/* 亮色主题 --bg-hover 与卡片底同色,卡片内 hover 用 --bg-active */
+.nav-recent .nav-item {
+  border-radius: var(--radius-sm);
+}
+.nav-recent .nav-item:hover {
+  background: var(--bg-active);
+}
+
 .nav-item {
   display: flex;
   align-items: center;

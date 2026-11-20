@@ -220,7 +220,7 @@
         recentHtml = `
         <div class="nav-group nav-recent">
           <div class="nav-group-title">
-            <span>最近使用</span>
+            <span class="nav-recent-title">${ICONS.timestamp || ''}<span>最近使用</span></span>
             <span class="nav-group-count">${recent.length}</span>
           </div>
           ${recent.map(navItemHtml).join('')}
