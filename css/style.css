@@ -1725,6 +1725,27 @@ code { font-size: 0.9em; }
   vertical-align: middle;
 }
 .jtree-toggle:hover { color: var(--primary); }
+.jtree-toggle:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 1px;
+  border-radius: 3px;
+}
+/* 被截断的子项:仍留在 DOM 里(搜索能命中),只是不显示 */
+.jtree-trunc,
+.jtree-row.jtree-trunc,
+.jtree-node.jtree-trunc { display: none; }
+/* "显示全部"操作行 */
+.jtree-more {
+  margin-top: 2px;
+  padding: 4px 8px;
+  border-top: 1px dashed var(--border);
+  color: var(--text-muted);
+  font-size: 12px;
+  cursor: pointer;
+  user-select: none;
+  border-radius: 3px;
+}
+.jtree-more:hover { color: var(--primary); background: var(--bg-hover); }
 /* key 不参与 flex 收缩:超长值按比例收缩时会把窄的 key 压到 0 而消失。
    key 自身超长时上限 40% 宽度、内部换行 */
 .jtree-key {

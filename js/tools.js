@@ -673,8 +673,23 @@
     const lineCounter = { n: 0 };
     const nextLine = () => { lineCounter.n += 1; return String(lineCounter.n).padStart(3, ' '); };
 
+    // ---- 树默认展开层级 / 长列表截断 ----
+    // 展开层级:根容器算第 0 层,深度 < expandDepth 的容器默认展开,
+    // 更深的容器默认收起(行首留 {n keys} 徽标),点箭头即可展开。
+    const DEPTH_ALL = 99;
+    let expandDepth = 2;
+    // 单个容器的子项超过这个数时只显示前 N 项,其余折叠成"显示全部"一行
+    const TRUNCATE_LIMIT = 50;
+
+    // 展开被截断的子项:去掉隐藏标记 + 移除"显示全部"行
+    const revealMore = (more) => {
+      if (!more) return;
+      (more._rows || []).forEach(r => r.classList.remove('jtree-trunc'));
+      more.remove();
+    };
+
     // ---- 树节点构造(path:从根到当前节点的 key/下标路径,树内编辑用) ----
-    const buildNode = (value, keyName, path = []) => {
+    const buildNode = (value, keyName, path = [], depth = 0) => {
       const isContainer = value !== null && typeof value === 'object';
       if (!isContainer) {
         const row = el('div', 'jtree-row jtree-leaf');
@@ -706,6 +721,9 @@
       head.dataset.path = JSON.stringify(path);
       head.appendChild(el('span', 'jtree-lineno', nextLine()));
       const toggle = el('span', 'jtree-toggle', '▼');
+      toggle.setAttribute('role', 'button');
+      toggle.setAttribute('tabindex', '0');
+      toggle.setAttribute('aria-label', '展开/折叠');
       head.appendChild(toggle);
       if (keyName !== undefined) {
         head.appendChild(makeKeySpan(keyName));
@@ -716,14 +734,32 @@
       const label = isArray
         ? (count === 1 ? 'item' : 'items')
         : (count === 1 ? 'key' : 'keys');
-      const summary = el('span', 'jtree-summary', ` ${count} ${label} `);
+      // 折叠态徽标:形如 { 3 keys } / [ 3 items ],与 json.cn 的 { 4 + } 同一思路
+      const summary = el('span', 'jtree-summary', (isArray ? '[' : '{') + ' ' + count + ' ' + label + ' ' + (isArray ? ']' : '}'));
       summary.style.display = 'none';
       head.appendChild(summary);
       if (path.length) head.appendChild(makeDelBtn());
       wrap.appendChild(head);
       const childWrap = el('div', 'jtree-children');
       for (const [k, v] of entries) {
-        childWrap.appendChild(buildNode(v, isArray ? undefined : k, path.concat(k)));
+        childWrap.appendChild(buildNode(v, isArray ? undefined : k, path.concat(k), depth + 1));
+      }
+      // 子项太多:只显示前 TRUNCATE_LIMIT 项,其余留在 DOM 里但隐藏,
+      // 底部补一行"显示全部"(保留 DOM 是为了让搜索还能命中被藏起来的项)
+      if (count > TRUNCATE_LIMIT) {
+        const hiddenRows = [];
+        Array.from(childWrap.children).slice(TRUNCATE_LIMIT).forEach(c => {
+          c.classList.add('jtree-trunc');
+          hiddenRows.push(c);
+        });
+        const more = el('div', 'jtree-more', '⋯ 还有 ' + (count - TRUNCATE_LIMIT) + ' 项 · 显示全部');
+        more.title = '显示全部 ' + count + ' 项';
+        more._rows = hiddenRows;
+        more.addEventListener('click', (ev) => {
+          ev.stopPropagation();
+          revealMore(more);
+        });
+        childWrap.appendChild(more);
       }
       wrap.appendChild(childWrap);
       if (count > 0) {
@@ -744,6 +780,7 @@
       wrap._summary = summary;
       wrap._toggle = toggle;
       wrap._setFolded = (folded) => {
+        wrap._toggle.setAttribute('aria-expanded', folded ? 'false' : 'true');
         if (folded) {
           wrap.classList.add('jtree-collapsed');
           wrap.classList.remove('jtree-expanded');
@@ -769,6 +806,16 @@
           if (ev.target.closest && ev.target.closest('.jtree-del, .jtree-editable, .jtree-edit-input')) return;
           wrap._setFolded(wrap.classList.contains('jtree-expanded'));
         });
+        // 键盘可达:Tab 聚焦箭头后 Enter/空格 折叠-展开
+        toggle.addEventListener('keydown', (ev) => {
+          if (ev.key === 'Enter' || ev.key === ' ') {
+            ev.preventDefault();
+            ev.stopPropagation();
+            wrap._setFolded(wrap.classList.contains('jtree-expanded'));
+          }
+        });
+        // 默认按层级折叠:深度超过展开层数的容器默认收起
+        wrap._setFolded(depth >= expandDepth);
       }
       return wrap;
     };
@@ -1154,7 +1201,7 @@
       view: () => `
         <div class="tool-header">
           <h1 class="tool-title">JSON 格式化</h1>
-          <p class="tool-desc">格式化、压缩、去注释、转义、中文⇌Unicode、转 GET 参数、生成 TS/Java/Python/Go 等类型代码、键排序、错误定位、树内搜索。树视图可直接点击 key/value 编辑，悬停行尾可删除节点。</p>
+          <p class="tool-desc">格式化、压缩、去注释、转义、中文⇌Unicode、转 GET 参数、生成 TS/Java/Python/Go 等类型代码、键排序、错误定位、树内搜索。树视图默认只展开第一层对象，更深的层级收起并显示条目数，超长列表默认只显示前 50 项。树视图可直接点击 key/value 编辑，悬停行尾可删除节点。</p>
         </div>
         <div class="row">
           <div class="panel">
@@ -1203,6 +1250,15 @@
             <div class="btn-row panel-toolbar" style="flex-wrap:wrap; gap:6px;">
               <button class="btn" data-act="expand">展开全部</button>
               <button class="btn" data-act="collapse">收起全部</button>
+              <div class="jconv">
+                <span>展开</span>
+                <select id="jdepth" title="默认展开到第几层(根容器算第 0 层)">
+                  <option value="1">第 1 层</option>
+                  <option value="2" selected>第 2 层</option>
+                  <option value="3">第 3 层</option>
+                  <option value="all">全部</option>
+                </select>
+              </div>
               <div class="jconv">
                 <span>转换为</span>
                 <select id="jconv">
@@ -1272,6 +1328,7 @@
         const $replaceWrap = root.querySelector('#jreplace-wrap');
         const $jreplace = root.querySelector('#jreplace');
         const $jindent = root.querySelector('#jindent');
+        const $jdepth = root.querySelector('#jdepth');
         const $error = root.querySelector('#jerror');
         const $errorPos = root.querySelector('#jerror-pos');
         const $errorMsg = root.querySelector('#jerror-msg');
@@ -1301,6 +1358,14 @@
           const savedFs = parseInt(localStorage.getItem('wt-json-fs'), 10);
           if (savedFs >= 11 && savedFs <= 20) fontSize = savedFs;
         } catch (e) { /* localStorage 不可用时用默认值 */ }
+
+        // 默认展开层级:第 2 层(根容器 + 第一层对象),localStorage 记住用户选择
+        try {
+          const savedDepth = localStorage.getItem('wt-json-depth');
+          if (savedDepth === 'all') expandDepth = DEPTH_ALL;
+          else if (savedDepth === '1' || savedDepth === '2' || savedDepth === '3') expandDepth = parseInt(savedDepth, 10);
+        } catch (e) { /* localStorage 不可用时用默认值 */ }
+        $jdepth.value = expandDepth === DEPTH_ALL ? 'all' : String(expandDepth);
 
         const show = (ok, msg) => {
           $s.style.display = 'inline-block';
@@ -1347,6 +1412,8 @@
             return;
           }
           $t.appendChild(buildNode(currentValue, undefined, []));
+          // 搜索词生效时不能截断,否则被藏起来的命中项用户根本看不到
+          if (filter.trim()) revealAllTruncated();
           applyFilter();
         };
 
@@ -1423,6 +1490,8 @@
           const anyTerm = (text) => terms.some(t => text.includes(t));
           // 返回 { hasAll, text }:子树合并文本是否包含全部词
           const walk = (node) => {
+            // "显示全部"是操作行,不是数据行,不参与匹配
+            if (node.classList && node.classList.contains('jtree-more')) return { hasAll: false, text: '' };
             const isWrap = node.classList && node.classList.contains('jtree-node');
             const headRow = isWrap ? node.querySelector(':scope > .jtree-row') : node;
             const selfText = headRow ? headRow.textContent.toLowerCase() : '';
@@ -1512,11 +1581,20 @@
           show(true, '字号 ' + fontSize + 'px');
         };
 
+        // 把所有被截断的子项放出来(展开全部 / 搜索时用)
+        const revealAllTruncated = () => {
+          $t.querySelectorAll('.jtree-trunc').forEach(r => r.classList.remove('jtree-trunc'));
+          $t.querySelectorAll('.jtree-more').forEach(m => m.remove());
+        };
         // 展开/收起全部
         const setAllFolded = (folded) => {
           $t.querySelectorAll('.jtree-node').forEach(n => {
-            if (typeof n._setFolded === 'function') n._setFolded(folded);
+            if (typeof n._setFolded !== 'function') return;
+            // 收起全部时保留根节点展开,否则整棵树只剩一行,看不到顶层结构
+            if (folded && n.parentNode === $t) return;
+            n._setFolded(folded);
           });
+          if (!folded) revealAllTruncated();
         };
 
         /* ---- 树内编辑:点击 key/value 修改,悬停删除;改动写回输入框 ---- */
@@ -1940,6 +2018,19 @@
           liveTimer = setTimeout(() => runLastFn(true), 200);
         });
 
+        // 展开层级变化(状态恢复时派发的是 input 而不是 change,两个都监听)
+        const onDepthChange = () => {
+          const v = $jdepth.value;
+          expandDepth = v === 'all' ? DEPTH_ALL : (parseInt(v, 10) || 2);
+          try { localStorage.setItem('wt-json-depth', v); } catch (e) { /* 隐私模式等 */ }
+          if (view === 'tree') renderTree(); else renderText();
+          // 选"全部"时顺手解除长列表截断,和"展开全部"按钮保持一致
+          if (v === 'all') revealAllTruncated();
+          show(true, '展开层级:' + (v === 'all' ? '全部' : '第 ' + v + ' 层'));
+        };
+        $jdepth.addEventListener('change', onDepthChange);
+        $jdepth.addEventListener('input', onDepthChange);
+
         // 缩进变化
         $jindent.addEventListener('change', () => {
           const v = $jindent.value;
@@ -1961,10 +2052,22 @@
         });
 
         // 树内搜索
-        $jsearch.addEventListener('input', () => {
-          filter = $jsearch.value;
-          applyFilter();
-        });
+        // 过滤词变化统一收口:有词时先解除截断(保证命中项可见),
+        // 清空词时重渲树,恢复"前 50 项 + 显示全部"的截断
+        const setFilter = (val) => {
+          const prev = filter.trim();
+          filter = val;
+          const now = filter.trim();
+          if (now) {
+            if (!prev) revealAllTruncated();
+            applyFilter();
+          } else if (prev) {
+            if (view === 'tree') renderTree(); else renderText();
+          } else {
+            applyFilter();
+          }
+        };
+        $jsearch.addEventListener('input', () => setFilter($jsearch.value));
         $jsearch.addEventListener('keydown', (ev) => {
           if (ev.key === 'Enter') {
             ev.preventDefault();
@@ -1972,8 +2075,7 @@
           } else if (ev.key === 'Escape') {
             ev.stopPropagation();
             $jsearch.value = '';
-            filter = '';
-            applyFilter();
+            setFilter('');
             $jsearch.blur();
           }
         });
@@ -1981,8 +2083,7 @@
         $jsearchNext.addEventListener('click', () => gotoMatch(matchIndex + 1));
         $jsearchClear.addEventListener('click', () => {
           $jsearch.value = '';
-          filter = '';
-          applyFilter();
+          setFilter('');
           $jsearch.focus();
         });
 
